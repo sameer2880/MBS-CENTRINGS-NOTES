@@ -369,9 +369,6 @@ function WorkerPage() {
             <h3 className="font-bold flex items-center gap-2">
               <Wallet className="h-4 w-4 text-primary" /> Money given
             </h3>
-            <Button size="sm" onClick={() => openPayment(null)}>
-              <Plus className="h-4 w-4 mr-1.5" /> Add payment
-            </Button>
           </div>
 
           {payments.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">No payments recorded yet.</p>}
@@ -443,9 +440,6 @@ function WorkerPage() {
                       </Button>
                     ))}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Wage counted: Full = 1 day, Half = ½ day, OT = 1.5 days.
-                  </p>
                 </div>
               )}
 

@@ -53,7 +53,7 @@ function dayStart(dateStr: string) {
 const STATUS_LABEL: Record<AttStatus, string> = { present: "Present", absent: "Absent", holiday: "Holiday" };
 const DAY_TYPE_LABEL: Record<DayType, string> = { full: "Full day", half: "Half day", ot: "Overtime (OT)" };
 const DAY_TYPE_SHORT: Record<DayType, string> = { full: "", half: "½", ot: "OT" };
-const DAY_TYPE_FACTOR: Record<DayType, number> = { full: 1, half: 0.5, ot: 1.5 };
+const DAY_TYPE_FACTOR: Record<DayType, number> = { full: 1, half: 0.5, ot: 0.25 };
 
 
 function WorkerPage() {
@@ -285,7 +285,6 @@ function WorkerPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Present this month", value: `${presentDays} days`, tone: "text-success" },
-          { label: "Half / OT days", value: `${halfDays} / ${otDays}`, tone: "text-primary" },
           { label: "Absent / Holiday", value: `${absentDays} / ${holidayDays} days`, tone: "text-destructive" },
           { label: "Wage earned (month)", value: `₹${earned.toLocaleString("en-IN")}`, tone: "text-primary" },
           { label: "Paid (month / total)", value: `₹${monthPaid.toLocaleString("en-IN")} / ₹${totalPaid.toLocaleString("en-IN")}`, tone: "text-primary" },

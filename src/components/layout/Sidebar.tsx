@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat } from "lucide-react";
+import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/assets/logo.png";
@@ -169,9 +169,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <p className="text-[11px] text-muted-foreground">Nereducherla · Rental Notebook</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.location.reload()}
+              title="Refresh"
+              aria-label="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              title={dark ? "Use light mode" : "Use dark mode"}
+              aria-label={dark ? "Use light mode" : "Use dark mode"}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
         </header>
         <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">{children}</main>
       </div>

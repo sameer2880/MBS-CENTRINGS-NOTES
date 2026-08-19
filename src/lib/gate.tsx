@@ -44,7 +44,12 @@ export function Gate({ children }: { children: ReactNode }) {
           }
           return;
         }
-        const { data } = await supabase.auth.getSession();
+        const { data } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<{ data: { session: null } }>((resolve) =>
+            window.setTimeout(() => resolve({ data: { session: null } }), 8000),
+          ),
+        ]);
         if (!mounted) return;
         if (data.session?.user) {
           const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);

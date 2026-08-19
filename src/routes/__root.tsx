@@ -5,7 +5,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -47,6 +47,36 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    const recoveryKey = "mbs-dynamic-import-recovery";
+    const isDynamicImportFailure = (message: string) =>
+      message.includes("Failed to fetch dynamically imported module") ||
+      message.includes("Importing a module script failed");
+    const reloadOnce = (message: string) => {
+      if (!isDynamicImportFailure(message)) return;
+      try {
+        if (sessionStorage.getItem(recoveryKey) === "1") {
+          sessionStorage.removeItem(recoveryKey);
+          return;
+        }
+        sessionStorage.setItem(recoveryKey, "1");
+      } catch {
+        return;
+      }
+      window.location.reload();
+    };
+    const onError = (event: ErrorEvent) => reloadOnce(event.message || event.error?.message || "");
+    const onRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      reloadOnce(typeof reason === "string" ? reason : reason?.message ?? "");
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

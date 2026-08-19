@@ -26,7 +26,10 @@ export const Route = createFileRoute("/_authenticated/labour/$id")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: WorkerPage,
+  component: () => {
+    const { id } = Route.useParams();
+    return <WorkerOverview id={id} />;
+  },
   errorComponent: ({ error }) => <div role="alert" className="p-4">{error.message}</div>,
   notFoundComponent: () => <div className="p-4">Worker not found.</div>,
 });
@@ -56,8 +59,7 @@ const DAY_TYPE_SHORT: Record<DayType, string> = { full: "", half: "½", ot: "OT"
 const DAY_TYPE_FACTOR: Record<DayType, number> = { full: 1, half: 0.5, ot: 0.25 };
 
 
-function WorkerPage() {
-  const { id } = Route.useParams();
+export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?: boolean }) {
   const qc = useQueryClient();
   const [cursor, setCursor] = useState(() => new Date());
   const [dayOpen, setDayOpen] = useState(false);
@@ -330,7 +332,8 @@ function WorkerPage() {
               return (
                 <button
                   key={date}
-                  onClick={() => openDay(date)}
+                  onClick={readOnly ? undefined : () => openDay(date)}
+                  disabled={readOnly}
                   title={st ? `${STATUS_LABEL[st]}${st === "present" ? ` · ${DAY_TYPE_LABEL[dt]}` : ""}` : "No record — tap to set"}
                   className={cn(
                     "relative aspect-square rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
@@ -382,14 +385,18 @@ function WorkerPage() {
                     {new Date(p.paid_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <ConfirmDelete
-                  onConfirm={() => delPayment.mutate(p.id)}
-                  title="Delete this payment?"
-                  description="This payment record will be permanently removed."
-                />
+                {!readOnly && (
+                  <>
+                    <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <ConfirmDelete
+                      onConfirm={() => delPayment.mutate(p.id)}
+                      title="Delete this payment?"
+                      description="This payment record will be permanently removed."
+                    />
+                  </>
+                )}
 
               </div>
             ))}
@@ -397,8 +404,7 @@ function WorkerPage() {
         </CardContent>
       </Card>
 
-      {/* Day detail */}
-      <Dialog open={dayOpen} onOpenChange={setDayOpen}>
+      {!readOnly && <Dialog open={dayOpen} onOpenChange={setDayOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -508,10 +514,10 @@ function WorkerPage() {
             <Button variant="outline" onClick={() => setDayOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
       {/* Payment form */}
-      <Dialog open={payOpen} onOpenChange={(o) => { setPayOpen(o); if (!o) setEditingPay(null); }}>
+      {!readOnly && <Dialog open={payOpen} onOpenChange={(o) => { setPayOpen(o); if (!o) setEditingPay(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingPay ? "Edit payment" : "Add payment"}</DialogTitle>
@@ -538,7 +544,7 @@ function WorkerPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </div>
   );
 }

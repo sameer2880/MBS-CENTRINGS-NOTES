@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { HardHat, Plus, Pencil, Trash2, Search, ChevronRight, Download } from "lucide-react";
+import { HardHat, Plus, Pencil, Trash2, Search, ChevronRight, Download, UserPlus } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { downloadCsv } from "@/lib/export";
+import { workerEmail } from "@/lib/worker-auth";
 
 export const Route = createFileRoute("/_authenticated/labour/")({
   head: () => ({
@@ -91,6 +92,28 @@ function LabourList() {
       qc.invalidateQueries({ queryKey: ["workers"] });
       toast.success("Worker removed");
     },
+  });
+
+  const createAccount = useMutation({
+    mutationFn: async (worker: Worker) => {
+      if (!worker.phone?.trim()) throw new Error("Add a mobile number before creating a login");
+      const email = workerEmail(worker.name, worker.id);
+      const password = worker.phone.trim();
+      if (password.length < 6) throw new Error("The mobile number must contain at least 6 characters");
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: worker.name, mobile: worker.phone, worker_id: worker.id } },
+      });
+      if (error) throw error;
+      if (!data.user) throw new Error("The worker account was not created");
+      await supabase.auth.signOut();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workers"] });
+      toast.success("Worker login created. Name is the username; mobile is the password.");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const filtered = useMemo(() => {
@@ -173,6 +196,16 @@ function LabourList() {
                   }}
                 >
                   <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => createAccount.mutate(w)}
+                  disabled={createAccount.isPending}
+                  title="Create worker login"
+                >
+                  <UserPlus className="h-4 w-4 mr-1.5" />
+                  Create login
                 </Button>
                 <ConfirmDelete
                   onConfirm={() => del.mutate(w.id)}

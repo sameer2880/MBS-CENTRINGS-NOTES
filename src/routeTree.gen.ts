@@ -19,6 +19,7 @@ import { Route as AuthenticatedDiaryRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedReelsRouteImport } from './routes/_authenticated/reels'
 import { Route as AuthenticatedRentalsRouteImport } from './routes/_authenticated/rentals'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedLabourIndexRouteImport } from './routes/_authenticated/labour/index'
 import { Route as AuthenticatedLabourIdRouteImport } from './routes/_authenticated/labour/$id'
@@ -76,6 +77,11 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
+  id: '/worker',
+  path: '/worker',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/reels': typeof AuthenticatedReelsRoute
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/worker': typeof AuthenticatedWorkerRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labour/$id': typeof AuthenticatedLabourIdRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/reels': typeof AuthenticatedReelsRoute
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/worker': typeof AuthenticatedWorkerRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labour/$id': typeof AuthenticatedLabourIdRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/reels': typeof AuthenticatedReelsRoute
   '/_authenticated/rentals': typeof AuthenticatedRentalsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/worker': typeof AuthenticatedWorkerRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/labour/$id': typeof AuthenticatedLabourIdRoute
   '/_authenticated/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/rentals'
     | '/reports'
+    | '/worker'
     | '/.mcp/invoke-tool/$tool'
     | '/labour/$id'
     | '/receipts/$id'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/rentals'
     | '/reports'
+    | '/worker'
     | '/.mcp/invoke-tool/$tool'
     | '/labour/$id'
     | '/receipts/$id'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reels'
     | '/_authenticated/rentals'
     | '/_authenticated/reports'
+    | '/_authenticated/worker'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/labour/$id'
     | '/_authenticated/receipts/$id'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/worker': {
+      id: '/_authenticated/worker'
+      path: '/worker'
+      fullPath: '/worker'
+      preLoaderRoute: typeof AuthenticatedWorkerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -332,6 +351,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReelsRoute: typeof AuthenticatedReelsRoute
   AuthenticatedRentalsRoute: typeof AuthenticatedRentalsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
   AuthenticatedLabourIdRoute: typeof AuthenticatedLabourIdRoute
   AuthenticatedReceiptsIdRoute: typeof AuthenticatedReceiptsIdRoute
   AuthenticatedLabourIndexRoute: typeof AuthenticatedLabourIndexRoute
@@ -344,6 +364,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReelsRoute: AuthenticatedReelsRoute,
   AuthenticatedRentalsRoute: AuthenticatedRentalsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
   AuthenticatedLabourIdRoute: AuthenticatedLabourIdRoute,
   AuthenticatedReceiptsIdRoute: AuthenticatedReceiptsIdRoute,
   AuthenticatedLabourIndexRoute: AuthenticatedLabourIndexRoute,

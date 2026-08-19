@@ -1,9 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
+import { supabase } from "@/integrations/supabase/client";
+import { WORKER_ID_KEY, workerEmail } from "@/lib/worker-auth";
 
 const KEY = "mbs-gate";
 const USER = "mbsnotes";
@@ -16,32 +19,90 @@ export function isUnlocked() {
 
 export function lock() {
   localStorage.removeItem(KEY);
-  window.location.reload();
+  localStorage.removeItem(WORKER_ID_KEY);
+  void supabase.auth.signOut().finally(() => window.location.reload());
 }
 
 export function Gate({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [ready, setReady] = useState(false);
   const [ok, setOk] = useState(false);
   const [u, setU] = useState("");
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
+  const [worker, setWorker] = useState(false);
 
   useEffect(() => {
-    setOk(isUnlocked());
-    setReady(true);
+    let mounted = true;
+    const loadSession = async () => {
+      if (isUnlocked()) {
+        if (mounted) {
+          setOk(true);
+          setReady(true);
+        }
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (data.session?.user) {
+        const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
+        const { data: workerRecord } = workerId
+          ? await supabase.from("workers").select("id").eq("id", workerId).maybeSingle()
+          : { data: null };
+        if (workerRecord) setWorker(true);
+        else await supabase.auth.signOut();
+      }
+      setReady(true);
+    };
+    void loadSession();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
+  useEffect(() => {
+    if (worker && pathname !== "/worker") void navigate({ to: "/worker" });
+  }, [navigate, pathname, worker]);
+
   if (!ready) return null;
-  if (ok) return <>{children}</>;
+  if (ok || worker) return <>{children}</>;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErr("");
     if (u.trim() === USER && p === PASS) {
       localStorage.setItem(KEY, "1");
       setOk(true);
-    } else {
-      setErr("Invalid username or password");
+      return;
     }
+    void (async () => {
+      const { data: workerByName } = await supabase
+        .from("workers")
+        .select("id, name, phone")
+        .ilike("name", u.trim())
+        .maybeSingle();
+      const { data: workerByPhone } = workerByName
+        ? { data: null }
+        : await supabase.from("workers").select("id, name, phone").eq("phone", u.trim()).maybeSingle();
+      const workerRecord = workerByName ?? workerByPhone;
+      if (!workerRecord?.phone) {
+        setErr("Worker name or mobile number was not found");
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: workerEmail(workerRecord.name, workerRecord.id),
+        password: p.trim(),
+      });
+      if (error) {
+        setErr(error.message.includes("Email not confirmed")
+          ? "Worker account is not confirmed. Disable email confirmation in Supabase Auth settings, then create the login again."
+          : error.message);
+        return;
+      }
+      localStorage.setItem(WORKER_ID_KEY, workerRecord.id);
+      setWorker(true);
+    })();
   };
 
   return (
@@ -51,7 +112,6 @@ export function Gate({ children }: { children: ReactNode }) {
           <div className="flex flex-col items-center text-center gap-2">
             <img src={logo} alt="MBS" className="h-16 w-16 rounded-full bg-white p-1 shadow" />
             <h1 className="font-bold text-lg leading-tight">M.B.S CENTRING WORKS</h1>
-            <p className="text-xs text-muted-foreground">Nereducherla · Rental Notebook</p>
           </div>
           <form onSubmit={submit} className="space-y-3">
             <div className="space-y-1.5">

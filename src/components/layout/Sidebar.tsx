@@ -6,6 +6,8 @@ import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
+import { supabase } from "@/integrations/supabase/client";
+import { WORKER_ID_KEY } from "@/lib/worker-auth";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,9 +23,24 @@ const nav = [
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [worker, setWorker] = useState(false);
+  useEffect(() => {
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user) return;
+      const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
+      const { data: workerRecord } = workerId ? await supabase
+        .from("workers")
+        .select("id")
+        .eq("id", workerId)
+        .maybeSingle() : { data: null };
+      setWorker(Boolean(workerRecord));
+    })();
+  }, []);
+  const links = worker ? [{ to: "/worker", label: "My Attendance & Payments", icon: HardHat }] : nav;
   return (
     <nav className="flex flex-col gap-1 px-3">
-      {nav.map(({ to, label, icon: Icon }) => {
+      {links.map(({ to, label, icon: Icon }) => {
         const active = path === to || path.startsWith(to + "/");
         return (
           <Link

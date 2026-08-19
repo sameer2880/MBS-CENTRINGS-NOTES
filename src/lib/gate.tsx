@@ -36,31 +36,36 @@ export function Gate({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     const loadSession = async () => {
-      if (isUnlocked()) {
-        if (mounted) {
-          setOk(true);
-          setReady(true);
+      try {
+        if (isUnlocked()) {
+          if (mounted) {
+            setOk(true);
+            setReady(true);
+          }
+          return;
         }
-        return;
-      }
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      if (data.session?.user) {
-        const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
-        const { data: workerRecord } = workerId
-          ? await supabase.from("workers").select("id").eq("id", workerId).maybeSingle()
-          : { data: null };
-        if (workerRecord) setWorker(true);
-        else await supabase.auth.signOut();
-      } else {
-        const workerId = localStorage.getItem(WORKER_ID_KEY);
-        if (workerId) {
-          const { data: workerRecord } = await supabase.from("workers").select("id").eq("id", workerId).maybeSingle();
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (data.session?.user) {
+          const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
+          const { data: workerRecord } = workerId
+            ? await supabase.from("workers").select("id").eq("id", workerId).maybeSingle()
+            : { data: null };
           if (workerRecord) setWorker(true);
-          else localStorage.removeItem(WORKER_ID_KEY);
+          else await supabase.auth.signOut();
+        } else {
+          const workerId = localStorage.getItem(WORKER_ID_KEY);
+          if (workerId) {
+            const { data: workerRecord } = await supabase.from("workers").select("id").eq("id", workerId).maybeSingle();
+            if (workerRecord) setWorker(true);
+            else localStorage.removeItem(WORKER_ID_KEY);
+          }
         }
+      } catch (error) {
+        console.warn("Unable to restore the previous session", error);
+      } finally {
+        if (mounted) setReady(true);
       }
-      setReady(true);
     };
     void loadSession();
     return () => {
@@ -72,7 +77,9 @@ export function Gate({ children }: { children: ReactNode }) {
     if (worker && pathname !== "/worker") void navigate({ to: "/worker" });
   }, [navigate, pathname, worker]);
 
-  if (!ready) return null;
+  if (!ready) {
+    return <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">Loading...</div>;
+  }
   if (ok || worker) return <>{children}</>;
 
   const submit = (e: React.FormEvent) => {

@@ -268,11 +268,13 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/labour">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
+        {!readOnly && (
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/labour">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-xl font-bold sm:text-2xl">{worker?.name ?? "Worker"}</h2>
           <p className="text-sm text-muted-foreground">

@@ -3,7 +3,7 @@ import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOu
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/assets/logo.png";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +94,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [worker, setWorker] = useState(false);
   const [workerName, setWorkerName] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const workerId = localStorage.getItem(WORKER_ID_KEY);
     setWorker(Boolean(workerId));
@@ -111,6 +112,25 @@ export function AppLayout({ children }: { children: ReactNode }) {
       setDark(true);
     }
   }, []);
+  useEffect(() => {
+    if (!accountOpen) return;
+    const closeOnOutsidePress = (event: MouseEvent | TouchEvent) => {
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAccountOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsidePress);
+    document.addEventListener("touchstart", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsidePress);
+      document.removeEventListener("touchstart", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [accountOpen]);
   const toggleTheme = () => {
     const next = !dark;
     setDark(next);
@@ -182,7 +202,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-1">
             {worker && (
-              <div className="relative mr-1">
+              <div ref={accountRef} className="relative mr-1 max-w-[45vw]">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -191,7 +211,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   aria-label="Open account menu"
                 >
                   <UserCircle className="h-4 w-4 mr-1.5" />
-                  <span className="hidden sm:inline">Signed in as {workerName || "Worker"}</span>
+                  <span className="hidden max-w-[24rem] truncate sm:inline">Signed in as {workerName || "Worker"}</span>
                   <span className="sm:hidden">Account</span>
                 </Button>
                 {accountOpen && (

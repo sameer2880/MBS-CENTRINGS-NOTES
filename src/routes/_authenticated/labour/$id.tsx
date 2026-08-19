@@ -267,19 +267,19 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="ghost" size="icon" asChild>
           <Link to="/labour">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold">{worker?.name ?? "Worker"}</h2>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-xl font-bold sm:text-2xl">{worker?.name ?? "Worker"}</h2>
           <p className="text-sm text-muted-foreground">
             {worker?.phone ? `${worker.phone} · ` : ""}₹{Number(worker?.daily_wage ?? 0).toLocaleString("en-IN")}/day
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportData}>
+        <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={exportData}>
           <Download className="h-4 w-4 mr-1.5" /> Export
         </Button>
       </div>

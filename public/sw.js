@@ -1,4 +1,4 @@
-const CACHE_NAME = "mbs-works-v1";
+const CACHE_NAME = "mbs-works-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/logo.png"];
 
 self.addEventListener("install", (event) => {

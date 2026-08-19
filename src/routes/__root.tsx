@@ -76,7 +76,19 @@ function RootComponent() {
       } catch {
         return;
       }
-      window.location.reload();
+      void (async () => {
+        try {
+          const registrations = await navigator.serviceWorker?.getRegistrations();
+          await Promise.all(registrations?.map((registration) => registration.unregister()) ?? []);
+          const cacheNames = await caches?.keys();
+          await Promise.all(cacheNames?.map((name) => caches.delete(name)) ?? []);
+        } catch {
+          // Continue with a cache-busting navigation if storage APIs are unavailable.
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set("asset_refresh", String(Date.now()));
+        window.location.replace(url.toString());
+      })();
     };
     const onError = (event: ErrorEvent) => reloadOnce(event.message || event.error?.message || "");
     const onRejection = (event: PromiseRejectionEvent) => {

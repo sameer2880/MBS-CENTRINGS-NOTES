@@ -86,15 +86,19 @@ export function Gate({ children }: { children: ReactNode }) {
     void (async () => {
       const { data: workerByName } = await supabase
         .from("workers")
-        .select("id, name, phone")
+        .select("id, name, phone, active")
         .ilike("name", u.trim())
         .maybeSingle();
       const { data: workerByPhone } = workerByName
         ? { data: null }
-        : await supabase.from("workers").select("id, name, phone").eq("phone", u.trim()).maybeSingle();
+        : await supabase.from("workers").select("id, name, phone, active").eq("phone", u.trim()).maybeSingle();
       const workerRecord = workerByName ?? workerByPhone;
       if (!workerRecord?.phone) {
         setErr("Worker name or mobile number was not found");
+        return;
+      }
+      if (!workerRecord.active) {
+        setErr("This worker account is disabled");
         return;
       }
       const password = p.trim();

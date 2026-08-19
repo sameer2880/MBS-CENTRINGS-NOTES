@@ -116,6 +116,18 @@ function LabourList() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const disableAccount = useMutation({
+    mutationFn: async (worker: Worker) => {
+      const { error } = await supabase.from("workers").update({ active: false }).eq("id", worker.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workers"] });
+      toast.success("Worker account disabled");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const filtered = useMemo(() => {
     const ql = q.toLowerCase();
     if (!ql) return workers;
@@ -207,6 +219,18 @@ function LabourList() {
                   <UserPlus className="h-4 w-4 mr-1.5" />
                   Create login
                 </Button>
+                {w.active && (
+                  <ConfirmDelete
+                    onConfirm={() => disableAccount.mutate(w)}
+                    title={`Disable ${w.name}'s account?`}
+                    description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
+                    confirmLabel="Disable account"
+                  >
+                    <Button variant="destructive" size="sm" aria-label={`Disable ${w.name}'s account`}>
+                      Disable account
+                    </Button>
+                  </ConfirmDelete>
+                )}
                 <ConfirmDelete
                   onConfirm={() => del.mutate(w.id)}
                   title={`Delete ${w.name}?`}

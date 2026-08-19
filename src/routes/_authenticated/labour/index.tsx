@@ -190,7 +190,7 @@ function LabourList() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {filtered.map((w) => (
-              <div key={w.id} className="rounded-lg border border-border p-3 flex items-center gap-3">
+              <div key={w.id} className="rounded-lg border border-border p-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link to="/labour/$id" params={{ id: w.id }} className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{w.name}</div>
                   <div className="text-xs text-muted-foreground">
@@ -198,51 +198,54 @@ function LabourList() {
                   </div>
                   {w.notes && <div className="text-xs text-muted-foreground truncate mt-0.5">{w.notes}</div>}
                 </Link>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setEditing(w);
-                    setForm({ name: w.name, phone: w.phone ?? "", daily_wage: w.daily_wage, notes: w.notes ?? "" });
-                    setOpen(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => createAccount.mutate(w)}
-                  disabled={createAccount.isPending}
-                  title="Create worker login"
-                >
-                  <UserPlus className="h-4 w-4 mr-1.5" />
-                  Create login
-                </Button>
-                {w.active && (
-                  <ConfirmDelete
-                    onConfirm={() => disableAccount.mutate(w)}
-                    title={`Disable ${w.name}'s account?`}
-                    description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
-                    confirmLabel="Disable account"
+                <div className="flex flex-wrap items-center gap-1 sm:shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEditing(w);
+                      setForm({ name: w.name, phone: w.phone ?? "", daily_wage: w.daily_wage, notes: w.notes ?? "" });
+                      setOpen(true);
+                    }}
+                    aria-label={`Edit ${w.name}`}
                   >
-                    <Button variant="destructive" size="sm" aria-label={`Disable ${w.name}'s account`}>
-                      Disable account
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => createAccount.mutate(w)}
+                    disabled={createAccount.isPending}
+                    title="Create worker login"
+                  >
+                    <UserPlus className="h-4 w-4 mr-1.5" />
+                    Create login
+                  </Button>
+                  {w.active && (
+                    <ConfirmDelete
+                      onConfirm={() => disableAccount.mutate(w)}
+                      title={`Disable ${w.name}'s account?`}
+                      description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
+                      confirmLabel="Disable account"
+                    >
+                      <Button variant="destructive" size="sm" aria-label={`Disable ${w.name}'s account`}>
+                        Disable account
+                      </Button>
+                    </ConfirmDelete>
+                  )}
+                  <ConfirmDelete
+                    onConfirm={() => del.mutate(w.id)}
+                    title={`Delete ${w.name}?`}
+                    description="All attendance and payment records for this worker will also be removed."
+                  >
+                    <Button variant="ghost" size="icon" className="text-destructive" aria-label="Delete worker">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </ConfirmDelete>
-                )}
-                <ConfirmDelete
-                  onConfirm={() => del.mutate(w.id)}
-                  title={`Delete ${w.name}?`}
-                  description="All attendance and payment records for this worker will also be removed."
-                >
-                  <Button variant="ghost" size="icon" className="text-destructive" aria-label="Delete worker">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </ConfirmDelete>
-                <Link to="/labour/$id" params={{ id: w.id }}>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Link>
+                  <Link to="/labour/$id" params={{ id: w.id }} aria-label={`Open ${w.name}`}>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

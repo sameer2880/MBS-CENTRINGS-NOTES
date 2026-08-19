@@ -212,7 +212,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 >
                   <UserCircle className="h-4 w-4 mr-1.5" />
                   <span className="hidden max-w-[24rem] truncate sm:inline">Signed in as {workerName || "Worker"}</span>
-                  <span className="sm:hidden">Account</span>
+                  <span className="max-w-[7rem] truncate sm:hidden">{workerName || "Worker"}</span>
                 </Button>
                 {accountOpen && (
                   <div className="absolute right-0 top-full z-50 mt-1 min-w-44 rounded-md border border-border bg-card p-1 shadow-md">

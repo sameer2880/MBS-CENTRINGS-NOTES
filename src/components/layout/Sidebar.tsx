@@ -91,7 +91,9 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 export function AppLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
+  const [worker, setWorker] = useState(false);
   useEffect(() => {
+    setWorker(Boolean(localStorage.getItem(WORKER_ID_KEY)));
     const stored = localStorage.getItem("mbs-theme");
     if (stored === "dark") {
       document.documentElement.classList.add("dark");
@@ -141,22 +143,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden lg:flex w-64 flex-shrink-0 border-r border-sidebar-border">
-        <SidebarContent />
-      </aside>
+      {!worker && (
+        <aside className="hidden lg:flex w-64 flex-shrink-0 border-r border-sidebar-border">
+          <SidebarContent />
+        </aside>
+      )}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 lg:px-6 sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72">
-                <SidebarContent onNav={() => setOpen(false)} />
-              </SheetContent>
-            </Sheet>
+            {!worker && (
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-72">
+                  <SidebarContent onNav={() => setOpen(false)} />
+                </SheetContent>
+              </Sheet>
+            )}
             <img src={logo} alt="MBS" className="h-9 w-9 rounded-full lg:hidden" />
             <div>
               <h1 className="font-bold text-sm sm:text-base leading-tight">M.B.S CENTRING WORKS</h1>

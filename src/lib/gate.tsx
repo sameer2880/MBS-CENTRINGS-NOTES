@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
-import { WORKER_ID_KEY, workerEmail } from "@/lib/worker-auth";
+import { WORKER_ID_KEY } from "@/lib/worker-auth";
 
 const KEY = "mbs-gate";
 const USER = "mbsnotes";
@@ -52,6 +52,13 @@ export function Gate({ children }: { children: ReactNode }) {
           : { data: null };
         if (workerRecord) setWorker(true);
         else await supabase.auth.signOut();
+      } else {
+        const workerId = localStorage.getItem(WORKER_ID_KEY);
+        if (workerId) {
+          const { data: workerRecord } = await supabase.from("workers").select("id").eq("id", workerId).maybeSingle();
+          if (workerRecord) setWorker(true);
+          else localStorage.removeItem(WORKER_ID_KEY);
+        }
       }
       setReady(true);
     };
@@ -90,14 +97,9 @@ export function Gate({ children }: { children: ReactNode }) {
         setErr("Worker name or mobile number was not found");
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({
-        email: workerEmail(workerRecord.name, workerRecord.id),
-        password: p.trim(),
-      });
-      if (error) {
-        setErr(error.message.includes("Email not confirmed")
-          ? "Worker account is not confirmed. Disable email confirmation in Supabase Auth settings, then create the login again."
-          : error.message);
+      const password = p.trim();
+      if (password !== workerRecord.phone.trim()) {
+        setErr("Incorrect mobile number");
         return;
       }
       localStorage.setItem(WORKER_ID_KEY, workerRecord.id);

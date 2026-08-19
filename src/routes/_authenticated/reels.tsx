@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/reels")({
   head: () => ({
     meta: [
       { title: "Reel Management — M.B.S Centring Works" },
-      { name: "description", content: "Manage reels for M.B.S Centring Works directly from the rental notebook app." },
+      { name: "description", content: "Manage reels for M.B.S Centring Works." },
       { property: "og:title", content: "Reel Management — M.B.S Centring Works" },
       { property: "og:description", content: "Manage and control your reels from one place." },
       { property: "og:type", content: "website" },

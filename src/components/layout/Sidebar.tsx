@@ -81,7 +81,7 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
           <LogOut className="h-4 w-4 mr-2" /> Sign out
         </Button>
         <div className="text-[11px] text-sidebar-foreground/60 leading-relaxed">
-          Rental notebook
+          M.B.S Centring Works
         </div>
       </div>
     </div>
@@ -177,7 +177,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <img src={logo} alt="MBS" className="h-9 w-9 rounded-full lg:hidden" />
             <div>
               <h1 className="font-bold text-sm sm:text-base leading-tight">M.B.S CENTRING WORKS</h1>
-              <p className="text-[11px] text-muted-foreground">Nereducherla · Rental Notebook</p>
+              <p className="text-[11px] text-muted-foreground">Nereducherla</p>
             </div>
           </div>
           <div className="flex items-center gap-1">

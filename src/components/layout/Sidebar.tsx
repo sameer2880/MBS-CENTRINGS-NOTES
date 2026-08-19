@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat, RefreshCw } from "lucide-react";
+import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat, RefreshCw, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/assets/logo.png";
@@ -92,8 +92,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
+  const [workerName, setWorkerName] = useState("");
+  const [accountOpen, setAccountOpen] = useState(false);
   useEffect(() => {
-    setWorker(Boolean(localStorage.getItem(WORKER_ID_KEY)));
+    const workerId = localStorage.getItem(WORKER_ID_KEY);
+    setWorker(Boolean(workerId));
+    if (workerId) {
+      void supabase
+        .from("workers")
+        .select("name")
+        .eq("id", workerId)
+        .maybeSingle()
+        .then(({ data }) => setWorkerName(data?.name ?? "Worker"));
+    }
     const stored = localStorage.getItem("mbs-theme");
     if (stored === "dark") {
       document.documentElement.classList.add("dark");
@@ -170,6 +181,33 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {worker && (
+              <div className="relative mr-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAccountOpen((value) => !value)}
+                  aria-expanded={accountOpen}
+                  aria-label="Open account menu"
+                >
+                  <UserCircle className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Signed in as {workerName || "Worker"}</span>
+                  <span className="sm:hidden">Account</span>
+                </Button>
+                {accountOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-1 min-w-44 rounded-md border border-border bg-card p-1 shadow-md">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-destructive hover:text-destructive"
+                      onClick={lock}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" /> Sign out
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
             <Button
               variant="ghost"
               size="icon"

@@ -27,9 +27,7 @@ export function Gate({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [ready, setReady] = useState(false);
-  const [mobileSplash, setMobileSplash] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches,
-  );
+  const [mobileSplash, setMobileSplash] = useState(() => typeof window !== "undefined");
   const [ok, setOk] = useState(false);
   const [u, setU] = useState("");
   const [p, setP] = useState("");
@@ -37,8 +35,6 @@ export function Gate({ children }: { children: ReactNode }) {
   const [worker, setWorker] = useState(false);
 
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 767px)").matches;
-    if (!mobile) return;
     const timer = window.setTimeout(() => setMobileSplash(false), 4000);
     return () => window.clearTimeout(timer);
   }, []);

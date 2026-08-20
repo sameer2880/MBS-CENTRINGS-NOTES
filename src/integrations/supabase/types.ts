@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          entity_id: string | null
+          event_type: string
+          id: string
+          notify_admin: boolean
+          title: string
+          worker_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          entity_id?: string | null
+          event_type: string
+          id?: string
+          notify_admin?: boolean
+          title: string
+          worker_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          entity_id?: string | null
+          event_type?: string
+          id?: string
+          notify_admin?: boolean
+          title?: string
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       diary_notes: {
         Row: {
           amount: number | null

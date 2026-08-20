@@ -1,10 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  createRootRouteWithContext,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
+import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -21,6 +16,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { title: "M.B.S Centring Works" },
       { name: "description", content: "M.B.S Centring Works, Nereducherla." },
+      { name: "google-site-verification", content: "google2ae77d07cfbf23ca.html" },
       { property: "og:title", content: "M.B.S Centring Works" },
       { property: "og:description", content: "M.B.S Centring Works, Nereducherla." },
       { property: "og:type", content: "website" },
@@ -96,7 +92,7 @@ function RootComponent() {
     const onError = (event: ErrorEvent) => reloadOnce(event.message || event.error?.message || "");
     const onRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason;
-      reloadOnce(typeof reason === "string" ? reason : reason?.message ?? "");
+      reloadOnce(typeof reason === "string" ? reason : (reason?.message ?? ""));
     };
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);

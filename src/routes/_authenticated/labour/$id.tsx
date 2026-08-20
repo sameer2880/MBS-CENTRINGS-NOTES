@@ -71,6 +71,11 @@ type Attendance = {
   note: string | null;
 };
 type Payment = { id: string; amount: number; note: string | null; paid_at: string };
+type Feedback = {
+  work_date: string;
+  attendance_feedback: string | null;
+  payment_feedback: string | null;
+};
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const ymd = (d: Date) =>
@@ -105,6 +110,8 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
   const [dayOpen, setDayOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(ymd(new Date()));
   const [dayNote, setDayNote] = useState("");
+  const [attendanceFeedback, setAttendanceFeedback] = useState("");
+  const [paymentFeedback, setPaymentFeedback] = useState("");
   const [payOpen, setPayOpen] = useState(false);
   const [editingPay, setEditingPay] = useState<Payment | null>(null);
   const [payForm, setPayForm] = useState({
@@ -144,6 +151,18 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         .order("paid_at", { ascending: false });
       if (error) throw error;
       return data as Payment[];
+    },
+  });
+
+  const { data: feedback = [] } = useQuery({
+    queryKey: ["worker_feedback", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("worker_feedback")
+        .select("work_date, attendance_feedback, payment_feedback")
+        .eq("worker_id", id);
+      if (error) throw error;
+      return data as Feedback[];
     },
   });
 
@@ -242,6 +261,26 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const saveFeedback = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("worker_feedback").upsert(
+        {
+          worker_id: id,
+          work_date: selectedDate,
+          attendance_feedback: attendanceFeedback.trim() || null,
+          payment_feedback: paymentFeedback.trim() || null,
+        },
+        { onConflict: "worker_id,work_date" },
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["worker_feedback", id] });
+      toast.success("Feedback submitted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
@@ -306,11 +345,15 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
   };
 
   const dayPayments = payments.filter((p) => ymd(new Date(p.paid_at)) === selectedDate);
+  const dayPaymentTotal = dayPayments.reduce((sum, payment) => sum + Number(payment.amount), 0);
   const dayAtt = attMap.get(selectedDate);
 
   const openDay = (date: string) => {
     setSelectedDate(date);
     setDayNote(attMap.get(date)?.note ?? "");
+    const savedFeedback = feedback.find((item) => item.work_date === date);
+    setAttendanceFeedback(savedFeedback?.attendance_feedback ?? "");
+    setPaymentFeedback(savedFeedback?.payment_feedback ?? "");
     setDayOpen(true);
   };
 
@@ -436,8 +479,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                 return (
                   <button
                     key={date}
-                    onClick={readOnly ? undefined : () => openDay(date)}
-                    disabled={readOnly}
+                    onClick={() => openDay(date)}
                     title={
                       st
                         ? `${STATUS_LABEL[st]}${st === "present" ? ` · ${DAY_TYPE_LABEL[dt]}` : ""}`
@@ -539,106 +581,133 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         </CardContent>
       </Card>
 
-      {!readOnly && (
-        <Dialog open={dayOpen} onOpenChange={setDayOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {dayStart(selectedDate).toLocaleDateString("en-IN", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </DialogTitle>
-            </DialogHeader>
+      <Dialog open={dayOpen} onOpenChange={setDayOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {dayStart(selectedDate).toLocaleDateString("en-IN", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Attendance</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["present", "absent", "holiday"] as AttStatus[]).map((s) => (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <div>
+                <div className="text-xs text-muted-foreground">Attendance</div>
+                <div className="font-semibold">
+                  {dayAtt
+                    ? `${STATUS_LABEL[dayAtt.status]}${dayAtt.status === "present" ? ` · ${DAY_TYPE_LABEL[dayAtt.day_type ?? "full"]}` : ""}`
+                    : "Not marked"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Amount given</div>
+                <div className="font-semibold text-primary">
+                  ₹{dayPaymentTotal.toLocaleString("en-IN")}
+                </div>
+              </div>
+            </div>
+
+            {!readOnly && (
+              <>
+                <div className="space-y-2">
+                  <Label>Attendance</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["present", "absent", "holiday"] as AttStatus[]).map((s) => (
+                      <Button
+                        key={s}
+                        variant={dayAtt?.status === s ? "default" : "outline"}
+                        onClick={() =>
+                          setStatus.mutate({ date: selectedDate, status: s, note: dayNote })
+                        }
+                        disabled={setStatus.isPending}
+                      >
+                        {STATUS_LABEL[s]}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {dayAtt?.status === "present" && (
+                    <div className="space-y-2 pt-1">
+                      <Label className="text-xs text-muted-foreground">How long did he work?</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(["full", "half", "ot"] as DayType[]).map((d) => (
+                          <Button
+                            key={d}
+                            size="sm"
+                            variant={(dayAtt.day_type ?? "full") === d ? "default" : "outline"}
+                            onClick={() =>
+                              setStatus.mutate({
+                                date: selectedDate,
+                                status: "present",
+                                note: dayNote,
+                                dayType: d,
+                              })
+                            }
+                            disabled={setStatus.isPending}
+                          >
+                            {d === "ot" ? "OT" : d === "half" ? "Half day" : "Full day"}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <ConfirmDelete
+                    onConfirm={() =>
+                      setStatus.mutate({ date: selectedDate, status: null, note: "" })
+                    }
+                    title="Clear attendance for this day?"
+                    description="The attendance mark and its note for this day will be removed. Payments are not affected."
+                    confirmLabel="Clear"
+                  >
                     <Button
-                      key={s}
-                      variant={dayAtt?.status === s ? "default" : "outline"}
-                      onClick={() =>
-                        setStatus.mutate({ date: selectedDate, status: s, note: dayNote })
-                      }
-                      disabled={setStatus.isPending}
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive w-full"
+                      disabled={!dayAtt}
                     >
-                      {STATUS_LABEL[s]}
+                      <Trash2 className="h-4 w-4 mr-1.5" /> Clear attendance
                     </Button>
-                  ))}
+                  </ConfirmDelete>
                 </div>
 
-                {dayAtt?.status === "present" && (
-                  <div className="space-y-2 pt-1">
-                    <Label className="text-xs text-muted-foreground">How long did he work?</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["full", "half", "ot"] as DayType[]).map((d) => (
-                        <Button
-                          key={d}
-                          size="sm"
-                          variant={(dayAtt.day_type ?? "full") === d ? "default" : "outline"}
-                          onClick={() =>
-                            setStatus.mutate({
-                              date: selectedDate,
-                              status: "present",
-                              note: dayNote,
-                              dayType: d,
-                            })
-                          }
-                          disabled={setStatus.isPending}
-                        >
-                          {d === "ot" ? "OT" : d === "half" ? "Half day" : "Full day"}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <Label>Day note</Label>
+                  <Textarea
+                    rows={2}
+                    value={dayNote}
+                    onChange={(e) => setDayNote(e.target.value)}
+                    placeholder="Optional note for this day"
+                  />
+                  {dayAtt && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
+                      onClick={() =>
+                        setStatus.mutate({
+                          date: selectedDate,
+                          status: dayAtt.status,
+                          note: dayNote,
+                        })
+                      }
+                    >
+                      Save note
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
 
-                <ConfirmDelete
-                  onConfirm={() => setStatus.mutate({ date: selectedDate, status: null, note: "" })}
-                  title="Clear attendance for this day?"
-                  description="The attendance mark and its note for this day will be removed. Payments are not affected."
-                  confirmLabel="Clear"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive w-full"
-                    disabled={!dayAtt}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1.5" /> Clear attendance
-                  </Button>
-                </ConfirmDelete>
-              </div>
-
-              <div>
-                <Label>Day note</Label>
-                <Textarea
-                  rows={2}
-                  value={dayNote}
-                  onChange={(e) => setDayNote(e.target.value)}
-                  placeholder="Optional note for this day"
-                />
-                {dayAtt && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-2"
-                    onClick={() =>
-                      setStatus.mutate({ date: selectedDate, status: dayAtt.status, note: dayNote })
-                    }
-                  >
-                    Save note
-                  </Button>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Payments on this day</Label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Payments on this day</Label>
+                {!readOnly && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -646,49 +715,81 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                   >
                     <Plus className="h-4 w-4 mr-1.5" /> Add
                   </Button>
-                </div>
-                {dayPayments.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No payments on this day.</p>
                 )}
-                <div className="divide-y divide-border">
-                  {dayPayments.map((p) => (
-                    <div key={p.id} className="flex items-center gap-2 py-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-primary">
-                          ₹{Number(p.amount).toLocaleString("en-IN")}
-                        </div>
-                        {p.note && (
-                          <div className="text-sm text-muted-foreground break-words">{p.note}</div>
-                        )}
-                        <div className="text-[11px] text-muted-foreground">
-                          {new Date(p.paid_at).toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
+              </div>
+              {dayPayments.length === 0 && (
+                <p className="text-sm text-muted-foreground">No payments on this day.</p>
+              )}
+              <div className="divide-y divide-border">
+                {dayPayments.map((p) => (
+                  <div key={p.id} className="flex items-center gap-2 py-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-primary">
+                        ₹{Number(p.amount).toLocaleString("en-IN")}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <ConfirmDelete
-                        onConfirm={() => delPayment.mutate(p.id)}
-                        title="Delete this payment?"
-                        description="This payment record will be permanently removed."
-                      />
+                      {p.note && (
+                        <div className="text-sm text-muted-foreground break-words">{p.note}</div>
+                      )}
+                      <div className="text-[11px] text-muted-foreground">
+                        {new Date(p.paid_at).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    {!readOnly && (
+                      <>
+                        <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <ConfirmDelete
+                          onConfirm={() => delPayment.mutate(p.id)}
+                          title="Delete this payment?"
+                          description="This payment record will be permanently removed."
+                        />
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDayOpen(false)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            {readOnly && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <div>
+                  <Label htmlFor="attendance-feedback">Attendance feedback</Label>
+                  <Textarea
+                    id="attendance-feedback"
+                    rows={3}
+                    value={attendanceFeedback}
+                    onChange={(e) => setAttendanceFeedback(e.target.value)}
+                    placeholder="Share feedback about your attendance record"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="payment-feedback">Payment feedback</Label>
+                  <Textarea
+                    id="payment-feedback"
+                    rows={3}
+                    value={paymentFeedback}
+                    onChange={(e) => setPaymentFeedback(e.target.value)}
+                    placeholder="Share feedback about the payment given"
+                  />
+                </div>
+                <Button onClick={() => saveFeedback.mutate()} disabled={saveFeedback.isPending}>
+                  {saveFeedback.isPending ? "Submitting…" : "Submit feedback"}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDayOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Payment form */}
       {!readOnly && (

@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Phone,
   MapPin,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -38,6 +39,7 @@ const nav = [
   { to: "/reports", label: "Reports", icon: FileBarChart },
   { to: "/receipts", label: "Receipts", icon: Receipt },
   { to: "/reels", label: "Reel Management", icon: Film },
+  { to: "/feedback", label: "Worker Feedback", icon: MessageSquare },
 ];
 
 function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horizontal?: boolean }) {

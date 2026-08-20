@@ -13,26 +13,6 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-self.addEventListener("message", (event) => {
-  if (event.data?.type !== "SHOW_NOTIFICATION") return;
-  event.waitUntil(
-    self.registration.showNotification(event.data.title, {
-      body: event.data.body,
-      tag: event.data.tag,
-      icon: "/logo.png",
-      badge: "/logo.png",
-    }),
-  );
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-    const client = clients.find((item) => "focus" in item);
-    return client ? client.focus() : self.clients.openWindow("/");
-  }));
-});
-
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || !event.request.url.startsWith(self.location.origin)) return;
   if (["script", "style", "worker"].includes(event.request.destination)) return;

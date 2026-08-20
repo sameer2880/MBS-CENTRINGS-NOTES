@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat, RefreshCw, UserCircle } from "lucide-react";
+import { LayoutDashboard, Package, FileBarChart, Receipt, Menu, Moon, Sun, LogOut, NotebookPen, Film, HardHat, RefreshCw, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/assets/logo.png";
@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
-import { currentWorkerId, enableMobileNotifications, listRecentNotifications, showMobileNotification, subscribeToActivityNotifications, type ActivityNotification } from "@/lib/notifications";
-import { toast } from "sonner";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -87,71 +85,6 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function NotificationButton() {
-  const [permission, setPermission] = useState<NotificationPermission>(() =>
-    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "denied",
-  );
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-    let unsubscribe: (() => void) | undefined;
-    const seen = new Set<string>();
-    const isRelevant = (notification: ActivityNotification, workerId: string | null) =>
-      workerId ? notification.worker_id === workerId : notification.notify_admin;
-    const handleNotification = (notification: ActivityNotification, workerId: string | null, announce: boolean) => {
-      if (!mounted || seen.has(notification.id) || !isRelevant(notification, workerId)) return;
-      seen.add(notification.id);
-      if (!announce) return;
-      setUnread((count) => count + 1);
-      showMobileNotification(notification);
-      toast.info(notification.title, { description: notification.body });
-    };
-    void currentWorkerId().then((workerId) => {
-      if (!mounted) return;
-      void listRecentNotifications()
-        .then((notifications) => notifications.reverse().forEach((notification) => handleNotification(notification, workerId, false)))
-        .catch(() => undefined);
-      unsubscribe = subscribeToActivityNotifications(
-        (notification) => handleNotification(notification, workerId, true),
-        (status) => {
-          if (status === "SUBSCRIBED") toast.success("Live notifications connected");
-        },
-      );
-    });
-    return () => {
-      mounted = false;
-      unsubscribe?.();
-    };
-  }, []);
-
-  const enable = async () => {
-    const nextPermission = await enableMobileNotifications();
-    setPermission(nextPermission);
-    setUnread(0);
-    if (nextPermission === "granted") toast.success("Mobile notifications enabled");
-    else if (nextPermission === "denied") toast.error("Notifications are blocked in this browser");
-  };
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => void enable()}
-      title={permission === "granted" ? "Notifications enabled" : "Enable mobile notifications"}
-      aria-label={permission === "granted" ? "Notifications enabled" : "Enable mobile notifications"}
-      className="relative"
-    >
-      <Bell className="h-4 w-4" />
-      {unread > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-destructive px-1 text-[10px] leading-4 text-destructive-foreground">
-          {unread > 9 ? "9+" : unread}
-        </span>
-      )}
-    </Button>
   );
 }
 
@@ -268,7 +201,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <NotificationButton />
             {worker && (
               <div ref={accountRef} className="relative mr-1 max-w-[45vw]">
                 <Button

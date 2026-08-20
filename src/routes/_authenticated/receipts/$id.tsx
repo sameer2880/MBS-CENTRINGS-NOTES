@@ -11,7 +11,10 @@ export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
     meta: [
       { title: "Rental Receipt | M.B.S Centring Works" },
-      { name: "description", content: "View and print a construction material rental receipt from M.B.S Centring Works." },
+      {
+        name: "description",
+        content: "View and print a construction material rental receipt from M.B.S Centring Works.",
+      },
       { property: "og:title", content: "Rental Receipt | M.B.S Centring Works" },
       { property: "og:description", content: "A printable construction material rental receipt." },
       { property: "og:type", content: "website" },
@@ -39,29 +42,51 @@ function ReceiptPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between print:hidden">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/receipts"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
+          <Link to="/receipts">
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          </Link>
         </Button>
         <Button onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-1.5" /> Print Receipt
         </Button>
       </div>
 
-      <article className="receipt-sheet mx-auto max-w-3xl border border-border bg-card p-5 text-card-foreground shadow-lg sm:p-8 print:shadow-none">
+      <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-border/80 bg-card p-4 text-card-foreground shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-primary pb-4">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="M.B.S Centring Works logo" className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover sm:h-20 sm:w-20" />
+            <img
+              src={logo}
+              alt="M.B.S Centring Works logo"
+              className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover sm:h-20 sm:w-20"
+            />
             <div>
               <h1 className="text-2xl font-black text-primary">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>
-              <p className="mt-1 text-xs text-muted-foreground">Construction Material Rental Services</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Construction Material Rental Services
+              </p>
             </div>
           </div>
           <div className="text-right">
-            <div className="inline-block rounded bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground">Receipt</div>
+            <div className="inline-block rounded bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground">
+              Receipt
+            </div>
             <div className="text-xs mt-2 font-mono">#{r.id.slice(0, 8).toUpperCase()}</div>
-            <div className="text-xs text-muted-foreground">Recorded: {new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
+            <div className="text-xs text-muted-foreground">
+              Recorded:{" "}
+              {new Date(r.created_at).toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </div>
             {r.updated_at && r.updated_at !== r.created_at && (
-              <div className="text-[10px] text-muted-foreground">Updated: {new Date(r.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</div>
+              <div className="text-[10px] text-muted-foreground">
+                Updated:{" "}
+                {new Date(r.updated_at).toLocaleString("en-IN", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -75,9 +100,15 @@ function ReceiptPage() {
           </div>
           <div>
             <h3 className="mb-2 text-xs font-bold uppercase text-primary">Rental Period</h3>
-            <div className="text-sm">Issue: <span className="font-semibold">{r.issue_date}</span></div>
-            <div className="text-sm">Return: <span className="font-semibold">{r.return_date}</span></div>
-            <div className="text-sm">Status: <span className="font-semibold capitalize">{r.status}</span></div>
+            <div className="text-sm">
+              Issue: <span className="font-semibold">{r.issue_date}</span>
+            </div>
+            <div className="text-sm">
+              Return: <span className="font-semibold">{r.return_date}</span>
+            </div>
+            <div className="text-sm">
+              Status: <span className="font-semibold capitalize">{r.status}</span>
+            </div>
           </div>
         </div>
 
@@ -93,9 +124,13 @@ function ReceiptPage() {
           <tbody>
             <tr className="border-b">
               <td className="p-2 font-medium">{r.material_name}</td>
-              <td className="p-2 text-right">{r.quantity} {r.unit}</td>
+              <td className="p-2 text-right">
+                {r.quantity} {r.unit}
+              </td>
               <td className="p-2 text-right">₹{Number(r.rate_per_unit).toLocaleString("en-IN")}</td>
-              <td className="p-2 text-right font-semibold">₹{Number(r.total_amount).toLocaleString("en-IN")}</td>
+              <td className="p-2 text-right font-semibold">
+                ₹{Number(r.total_amount).toLocaleString("en-IN")}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -103,31 +138,42 @@ function ReceiptPage() {
         <div className="flex justify-end mb-8">
           <div className="w-64 space-y-1">
             <div className="flex justify-between text-sm">
-              <span>Subtotal</span><span>₹{Number(r.total_amount).toLocaleString("en-IN")}</span>
+              <span>Subtotal</span>
+              <span>₹{Number(r.total_amount).toLocaleString("en-IN")}</span>
             </div>
             {r.security_deposit ? (
               <div className="flex justify-between text-sm">
-                <span>Security Deposit</span><span>₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
+                <span>Security Deposit</span>
+                <span>₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
               </div>
             ) : null}
             <div className="mt-2 flex justify-between border-t-2 border-primary pt-2 text-lg font-bold text-primary">
               <span>Total</span>
-              <span>₹{(Number(r.total_amount) + Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}</span>
+              <span>
+                ₹
+                {(Number(r.total_amount) + Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}
+              </span>
             </div>
           </div>
         </div>
 
         {r.notes && (
-          <div className="mb-6 border-t pt-3 text-xs text-muted-foreground"><b>Notes:</b> {r.notes}</div>
+          <div className="mb-6 border-t pt-3 text-xs text-muted-foreground">
+            <b>Notes:</b> {r.notes}
+          </div>
         )}
 
         <div className="flex justify-end border-t pt-12">
           <div className="w-64">
-            <div className="border-t border-foreground pt-1 text-center text-xs font-medium">Authorized Signature</div>
+            <div className="border-t border-foreground pt-1 text-center text-xs font-medium">
+              Authorized Signature
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-border pt-3 text-center text-xs font-medium text-primary">Thank you for choosing M.B.S Centring Works, Nereducherla</div>
+        <div className="mt-6 border-t border-border pt-3 text-center text-xs font-medium text-primary">
+          Thank you for choosing M.B.S Centring Works, Nereducherla
+        </div>
       </article>
     </div>
   );

@@ -431,159 +431,162 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         ))}
       </div>
 
-      <Card className="overflow-hidden">
-        <CardContent className="space-y-5 p-4 lg:p-6">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Attendance calendar
-              </p>
-              <h3 className="mt-1 text-lg font-bold text-foreground">
-                {cursor.toLocaleString("en-IN", { month: "long", year: "numeric" })}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:items-start">
+        <Card className="overflow-hidden">
+          <CardContent className="space-y-5 p-4 lg:p-5">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Attendance calendar
+                </p>
+                <h3 className="mt-1 text-lg font-bold text-foreground">
+                  {cursor.toLocaleString("en-IN", { month: "long", year: "numeric" })}
+                </h3>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Previous month"
+                  onClick={() => setCursor(new Date(year, month - 1, 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Next month"
+                  onClick={() => setCursor(new Date(year, month + 1, 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="mx-auto w-full max-w-5xl lg:max-w-none">
+              <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {DAYS.map((d) => (
+                  <div key={d} className="pb-1">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {Array.from({ length: firstDay }).map((_, i) => (
+                  <div key={`e${i}`} className="aspect-square rounded-xl bg-muted/20" />
+                ))}
+                {Array.from({ length: daysInMonth }, (_, i) => {
+                  const date = ymd(new Date(year, month, i + 1));
+                  const st = statusOf(date);
+                  const dt = attMap.get(date)?.day_type ?? "full";
+                  const isToday = date === todayStr;
+                  const hasPay = payments.some((p) => ymd(new Date(p.paid_at)) === date);
+                  return (
+                    <button
+                      key={date}
+                      onClick={() => openDay(date)}
+                      title={
+                        st
+                          ? `${STATUS_LABEL[st]}${st === "present" ? ` · ${DAY_TYPE_LABEL[dt]}` : ""}`
+                          : "No record — tap to set"
+                      }
+                      className={cn(
+                        "relative flex aspect-square flex-col items-center justify-center rounded-xl border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:min-h-16 lg:text-base",
+                        !st && "text-muted-foreground hover:border-primary/40 hover:bg-muted/50",
+                        st === "present" &&
+                          "border-success/30 bg-success/10 text-success hover:bg-success/20",
+                        st === "absent" &&
+                          "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20",
+                        st === "holiday" &&
+                          "border-border bg-muted text-muted-foreground hover:bg-muted/80",
+                        isToday &&
+                          !st &&
+                          "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
+                        isToday && st && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                      )}
+                    >
+                      <span>{i + 1}</span>
+                      {st === "present" && DAY_TYPE_SHORT[dt] && (
+                        <span className="absolute right-2 top-1.5 text-[9px] font-bold leading-none text-primary">
+                          {DAY_TYPE_SHORT[dt]}
+                        </span>
+                      )}
+                      {hasPay && (
+                        <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md border border-success/30 bg-success/20" />{" "}
+                Present
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md border border-destructive/30 bg-destructive/20" />{" "}
+                Absent
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-md bg-muted" /> Holiday
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Payment on that day
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-primary" /> Money given
               </h3>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Previous month"
-                onClick={() => setCursor(new Date(year, month - 1, 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Next month"
-                onClick={() => setCursor(new Date(year, month + 1, 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
 
-          <div className="mx-auto w-full max-w-5xl">
-            <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              {DAYS.map((d) => (
-                <div key={d} className="pb-1">
-                  {d}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`e${i}`} className="aspect-square rounded-xl bg-muted/20" />
-              ))}
-              {Array.from({ length: daysInMonth }, (_, i) => {
-                const date = ymd(new Date(year, month, i + 1));
-                const st = statusOf(date);
-                const dt = attMap.get(date)?.day_type ?? "full";
-                const isToday = date === todayStr;
-                const hasPay = payments.some((p) => ymd(new Date(p.paid_at)) === date);
-                return (
-                  <button
-                    key={date}
-                    onClick={() => openDay(date)}
-                    title={
-                      st
-                        ? `${STATUS_LABEL[st]}${st === "present" ? ` · ${DAY_TYPE_LABEL[dt]}` : ""}`
-                        : "No record — tap to set"
-                    }
-                    className={cn(
-                      "relative flex aspect-square flex-col items-center justify-center rounded-xl border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:min-h-16 lg:text-base",
-                      !st && "text-muted-foreground hover:border-primary/40 hover:bg-muted/50",
-                      st === "present" &&
-                        "border-success/30 bg-success/10 text-success hover:bg-success/20",
-                      st === "absent" &&
-                        "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20",
-                      st === "holiday" &&
-                        "border-border bg-muted text-muted-foreground hover:bg-muted/80",
-                      isToday &&
-                        !st &&
-                        "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
-                      isToday && st && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+            {payments.length === 0 && (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                No payments recorded yet.
+              </p>
+            )}
+            <div className="divide-y divide-border">
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-start gap-3 py-2.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-primary">
+                      ₹{Number(p.amount).toLocaleString("en-IN")}
+                    </div>
+                    {p.note && (
+                      <div className="text-sm text-muted-foreground break-words">{p.note}</div>
                     )}
-                  >
-                    <span>{i + 1}</span>
-                    {st === "present" && DAY_TYPE_SHORT[dt] && (
-                      <span className="absolute right-2 top-1.5 text-[9px] font-bold leading-none text-primary">
-                        {DAY_TYPE_SHORT[dt]}
-                      </span>
-                    )}
-                    {hasPay && (
-                      <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md border border-success/30 bg-success/20" /> Present
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md border border-destructive/30 bg-destructive/20" />{" "}
-              Absent
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-md bg-muted" /> Holiday
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Payment on that day
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" /> Money given
-            </h3>
-          </div>
-
-          {payments.length === 0 && (
-            <p className="text-sm text-muted-foreground py-6 text-center">
-              No payments recorded yet.
-            </p>
-          )}
-          <div className="divide-y divide-border">
-            {payments.map((p) => (
-              <div key={p.id} className="flex items-start gap-3 py-2.5">
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-primary">
-                    ₹{Number(p.amount).toLocaleString("en-IN")}
+                    <div className="text-[11px] text-muted-foreground">
+                      {new Date(p.paid_at).toLocaleString("en-IN", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </div>
                   </div>
-                  {p.note && (
-                    <div className="text-sm text-muted-foreground break-words">{p.note}</div>
+                  {!readOnly && (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <ConfirmDelete
+                        onConfirm={() => delPayment.mutate(p.id)}
+                        title="Delete this payment?"
+                        description="This payment record will be permanently removed."
+                      />
+                    </>
                   )}
-                  <div className="text-[11px] text-muted-foreground">
-                    {new Date(p.paid_at).toLocaleString("en-IN", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </div>
                 </div>
-                {!readOnly && (
-                  <>
-                    <Button variant="ghost" size="icon" onClick={() => openPayment(p)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <ConfirmDelete
-                      onConfirm={() => delPayment.mutate(p.id)}
-                      title="Delete this payment?"
-                      description="This payment record will be permanently removed."
-                    />
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Dialog open={dayOpen} onOpenChange={setDayOpen}>
         <DialogContent className="max-h-[92vh] w-[calc(100%-1.5rem)] max-w-lg overflow-y-auto rounded-2xl border-border/80 p-4 shadow-2xl sm:p-6">

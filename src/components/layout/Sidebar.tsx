@@ -293,7 +293,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {worker && (
-        <aside className="hidden w-56 shrink-0 border-r border-sidebar-border lg:flex">
+        <aside className="hidden w-48 shrink-0 border-r border-sidebar-border lg:flex">
           <SidebarContent workerName={workerName} />
         </aside>
       )}

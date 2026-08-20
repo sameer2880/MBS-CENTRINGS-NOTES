@@ -1,4 +1,4 @@
-const CACHE_NAME = "mbs-works-v2";
+const CACHE_NAME = "mbs-works-v3";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/logo.png"];
 
 self.addEventListener("install", (event) => {
@@ -16,13 +16,16 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || !event.request.url.startsWith(self.location.origin)) return;
   if (["script", "style", "worker"].includes(event.request.destination)) return;
+  const request = event.request.destination === "document"
+    ? new Request(event.request, { cache: "no-store" })
+    : event.request;
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/"))),
+      .catch(() => caches.match(request).then((cached) => cached || caches.match("/"))),
   );
 });

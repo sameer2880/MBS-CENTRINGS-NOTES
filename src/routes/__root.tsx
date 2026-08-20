@@ -55,9 +55,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js").catch((error) => {
-        console.warn("Offline app support is unavailable", error);
-      });
+      void navigator.serviceWorker
+        .register("/sw.js", { updateViaCache: "none" })
+        .then((registration) => registration.update())
+        .catch((error) => {
+          console.warn("Offline app support is unavailable", error);
+        });
     }
   }, []);
   useEffect(() => {

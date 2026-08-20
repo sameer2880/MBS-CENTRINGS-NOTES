@@ -5,19 +5,19 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0a1a2f",
+  "background_color": "#0873bd",
+  "theme_color": "#0873bd",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logo.png",
-      "sizes": "192x192",
+      "src": "/splash-image.png",
+      "sizes": "941x1672",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo.png",
-      "sizes": "512x512",
+      "src": "/splash-image.png",
+      "sizes": "941x1672",
       "type": "image/png",
       "purpose": "any maskable"
     }

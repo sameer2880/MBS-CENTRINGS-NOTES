@@ -1,5 +1,5 @@
 const CACHE_NAME = "mbs-works-v3";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/logo.png"];
+const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/logo.png", "/splash-image.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

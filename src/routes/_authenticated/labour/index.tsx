@@ -101,8 +101,9 @@ function LabourList() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, worker) => {
       qc.invalidateQueries({ queryKey: ["workers"] });
+      setEditing((current) => (current?.id === worker.id ? { ...current, active: true } : current));
       toast.success("Worker login enabled. Name is the username; mobile is the password.");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -113,8 +114,9 @@ function LabourList() {
       const { error } = await supabase.from("workers").update({ active: false }).eq("id", worker.id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, worker) => {
       qc.invalidateQueries({ queryKey: ["workers"] });
+      setEditing((current) => (current?.id === worker.id ? { ...current, active: false } : current));
       toast.success("Worker account disabled");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -203,28 +205,6 @@ function LabourList() {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => createAccount.mutate(w)}
-                    disabled={createAccount.isPending}
-                    title={w.active ? "Worker login is enabled" : "Enable worker login"}
-                  >
-                    <UserPlus className="h-4 w-4 mr-1.5" />
-                    {w.active ? "Login enabled" : "Enable login"}
-                  </Button>
-                  {w.active && (
-                    <ConfirmDelete
-                      onConfirm={() => disableAccount.mutate(w)}
-                      title={`Disable ${w.name}'s account?`}
-                      description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
-                      confirmLabel="Disable account"
-                    >
-                      <Button variant="destructive" size="sm" aria-label={`Disable ${w.name}'s account`}>
-                        Disable account
-                      </Button>
-                    </ConfirmDelete>
-                  )}
                   <ConfirmDelete
                     onConfirm={() => del.mutate(w.id)}
                     title={`Delete ${w.name}?`}
@@ -273,6 +253,33 @@ function LabourList() {
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
             </div>
+            {editing && (
+              <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                {!editing.active && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => createAccount.mutate(editing)}
+                    disabled={createAccount.isPending}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1.5" />
+                    Enable login
+                  </Button>
+                )}
+                {editing.active && (
+                  <ConfirmDelete
+                    onConfirm={() => disableAccount.mutate(editing)}
+                    title={`Disable ${editing.name}'s account?`}
+                    description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
+                    confirmLabel="Disable account"
+                  >
+                    <Button type="button" variant="destructive">
+                      Disable account
+                    </Button>
+                  </ConfirmDelete>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>

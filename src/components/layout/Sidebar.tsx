@@ -382,7 +382,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">{children}</main>
+        <main
+          className={cn(
+            "flex-1 overflow-x-hidden p-4 lg:p-6",
+            worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
+          )}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

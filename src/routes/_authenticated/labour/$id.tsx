@@ -432,7 +432,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-        <Card className="overflow-hidden lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px]">
+        <Card className="overflow-y-auto lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px]">
           <CardContent className="space-y-4 p-4 lg:p-5">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>

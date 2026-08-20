@@ -345,6 +345,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
               {!worker && <NavLinks horizontal />}
             </div>
             <div className="flex items-center gap-1 lg:justify-self-end">
+              {!worker && (
+                <ConfirmDelete
+                  onConfirm={lock}
+                  title="Sign out of the admin account?"
+                  description="You will need to sign in again to access the admin dashboard."
+                  confirmLabel="Sign out"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden items-center gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive lg:flex"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign out
+                  </Button>
+                </ConfirmDelete>
+              )}
               <Button
                 variant="ghost"
                 size="icon"

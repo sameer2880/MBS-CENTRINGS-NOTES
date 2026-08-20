@@ -12,6 +12,12 @@ import {
   Film,
   HardHat,
   RefreshCw,
+  Globe,
+  Instagram,
+  Youtube,
+  MessageCircle,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -87,6 +93,46 @@ function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horiz
   );
 }
 
+const exploreLinks = [
+  { href: "https://mbsndcl.vercel.app", label: "Official website", icon: Globe },
+  {
+    href: "https://www.instagram.com/mbs_centrings_nereducherla/",
+    label: "Instagram",
+    icon: Instagram,
+  },
+  {
+    href: "https://www.youtube.com/@mbs_centring_works_ndcl/?themeRefresh=1",
+    label: "YouTube",
+    icon: Youtube,
+  },
+  { href: "https://wa.me/918688285959", label: "WhatsApp", icon: MessageCircle },
+  { href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6", label: "Visit location", icon: MapPin },
+];
+
+function ExploreLinks() {
+  return (
+    <div className="mx-4 mt-5 border-t border-sidebar-border pt-5">
+      <div className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65">
+        Explore
+      </div>
+      <div className="mt-2 space-y-1">
+        {exploreLinks.map(({ href, label, icon: Icon }) => (
+          <a
+            key={href}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+          >
+            <Icon className="h-5 w-5" />
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?: string }) {
   const isWorkerSidebar = workerName !== undefined;
 
@@ -111,8 +157,18 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
           </div>
           <div className="flex-1 overflow-y-auto py-4">
             <NavLinks onClick={onNav} />
+            <ExploreLinks />
           </div>
           <div className="space-y-2 border-t border-sidebar-border p-4">
+            <Button
+              asChild
+              size="sm"
+              className="w-full justify-center rounded-lg bg-primary font-semibold"
+            >
+              <a href="tel:+918688285959">
+                <Phone className="mr-2 h-4 w-4" /> Call Now
+              </a>
+            </Button>
             <Button
               variant="default"
               size="sm"
@@ -129,18 +185,30 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
       )}
       {isWorkerSidebar && (
         <>
-          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-            <img
-              src={logo}
-              alt="MBS Centring Works"
-              className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
-            />
-            <div className="mt-4 font-bold text-base tracking-tight">MBS CENTRING WORKS</div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/65">
-              NEREDUCHERLA
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex flex-col items-center px-6 pt-8 text-center">
+              <img
+                src={logo}
+                alt="MBS Centring Works"
+                className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
+              />
+              <div className="mt-4 font-bold text-base tracking-tight">MBS CENTRING WORKS</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/65">
+                NEREDUCHERLA
+              </div>
             </div>
+            <ExploreLinks />
           </div>
           <div className="space-y-3 border-t border-sidebar-border p-4">
+            <Button
+              asChild
+              size="sm"
+              className="w-full justify-center rounded-lg bg-primary font-semibold"
+            >
+              <a href="tel:+918688285959">
+                <Phone className="mr-2 h-4 w-4" /> Call Now
+              </a>
+            </Button>
             <div className="min-w-0 text-sm">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
                 Signed in as

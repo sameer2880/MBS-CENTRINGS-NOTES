@@ -114,13 +114,11 @@ function NotificationButton() {
       if (!mounted) return;
       void listRecentNotifications()
         .then((notifications) => notifications.reverse().forEach((notification) => handleNotification(notification, workerId, false)))
-        .catch((error: Error) => toast.error("Notifications are unavailable", { description: error.message }));
+        .catch(() => undefined);
       unsubscribe = subscribeToActivityNotifications(
         (notification) => handleNotification(notification, workerId, true),
-        (status, error) => {
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            toast.error("Live notifications disconnected", { description: error?.message ?? "Check your connection." });
-          }
+        (status) => {
+          if (status === "SUBSCRIBED") toast.success("Live notifications connected");
         },
       );
     });

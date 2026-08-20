@@ -431,9 +431,9 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:items-start">
-        <Card className="overflow-hidden">
-          <CardContent className="space-y-5 p-4 lg:p-5">
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
+        <Card className="overflow-hidden lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px]">
+          <CardContent className="space-y-4 p-4 lg:p-5">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -491,7 +491,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                           : "No record — tap to set"
                       }
                       className={cn(
-                        "relative flex aspect-square flex-col items-center justify-center rounded-xl border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:min-h-16 lg:text-base",
+                        "relative flex aspect-square flex-col items-center justify-center rounded-xl border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:text-sm",
                         !st && "text-muted-foreground hover:border-primary/40 hover:bg-muted/50",
                         st === "present" &&
                           "border-success/30 bg-success/10 text-success hover:bg-success/20",
@@ -539,7 +539,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
           </CardContent>
         </Card>
 
-        <Card className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+        <Card className="lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px] lg:overflow-y-auto">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2">

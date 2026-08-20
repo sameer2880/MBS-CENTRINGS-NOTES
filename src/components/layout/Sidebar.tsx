@@ -185,7 +185,7 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
       )}
       {isWorkerSidebar && (
         <>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-hidden">
             <div className="flex flex-col items-center px-6 pt-8 text-center">
               <img
                 src={logo}
@@ -293,7 +293,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {worker && (
-        <aside className="hidden w-48 shrink-0 border-r border-sidebar-border lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-48 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
           <SidebarContent workerName={workerName} />
         </aside>
       )}

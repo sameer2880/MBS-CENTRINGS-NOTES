@@ -396,9 +396,11 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
             {Number(worker?.daily_wage ?? 0).toLocaleString("en-IN")}/day
           </p>
         </div>
-        <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={exportData}>
-          <Download className="h-4 w-4 mr-1.5" /> Export
-        </Button>
+        {!readOnly && (
+          <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={exportData}>
+            <Download className="h-4 w-4 mr-1.5" /> Export
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -33,6 +33,13 @@ export function Gate({ children }: { children: ReactNode }) {
   const [err, setErr] = useState("");
   const [worker, setWorker] = useState(false);
 
+  const disableWorkerSession = async () => {
+    localStorage.removeItem(WORKER_ID_KEY);
+    setWorker(false);
+    setErr("Your account is disabled");
+    await supabase.auth.signOut();
+  };
+
   useEffect(() => {
     let mounted = true;
     const loadSession = async () => {
@@ -54,15 +61,22 @@ export function Gate({ children }: { children: ReactNode }) {
         if (data.session?.user) {
           const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
           const { data: workerRecord } = workerId
-            ? await supabase.from("workers").select("id").eq("id", workerId).maybeSingle()
+            ? await supabase.from("workers").select("id, active").eq("id", workerId).maybeSingle()
             : { data: null };
-          if (workerRecord) setWorker(true);
-          else await supabase.auth.signOut();
+          if (workerRecord?.active) {
+            localStorage.setItem(WORKER_ID_KEY, workerRecord.id);
+            setWorker(true);
+          } else if (workerRecord) {
+            await disableWorkerSession();
+          } else {
+            await supabase.auth.signOut();
+          }
         } else {
           const workerId = localStorage.getItem(WORKER_ID_KEY);
           if (workerId) {
-            const { data: workerRecord } = await supabase.from("workers").select("id").eq("id", workerId).maybeSingle();
-            if (workerRecord) setWorker(true);
+            const { data: workerRecord } = await supabase.from("workers").select("id, active").eq("id", workerId).maybeSingle();
+            if (workerRecord?.active) setWorker(true);
+            else if (workerRecord) await disableWorkerSession();
             else localStorage.removeItem(WORKER_ID_KEY);
           }
         }
@@ -77,6 +91,36 @@ export function Gate({ children }: { children: ReactNode }) {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!worker) return;
+
+    let checking = false;
+    const checkWorkerStatus = async () => {
+      if (checking) return;
+      const workerId = localStorage.getItem(WORKER_ID_KEY);
+      if (!workerId) return;
+      checking = true;
+      try {
+        const { data: workerRecord, error } = await supabase
+          .from("workers")
+          .select("id, active")
+          .eq("id", workerId)
+          .maybeSingle();
+        if (!error && (!workerRecord || !workerRecord.active)) await disableWorkerSession();
+      } finally {
+        checking = false;
+      }
+    };
+
+    const interval = window.setInterval(() => void checkWorkerStatus(), 10000);
+    const onFocus = () => void checkWorkerStatus();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [worker]);
 
   useEffect(() => {
     if (worker && pathname !== "/worker") void navigate({ to: "/worker" });

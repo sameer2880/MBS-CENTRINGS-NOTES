@@ -163,14 +163,20 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
             <ExploreLinks />
           </div>
           <div className="space-y-2 border-t border-sidebar-border p-4">
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full justify-center rounded-lg bg-primary font-semibold"
-              onClick={lock}
+            <ConfirmDelete
+              onConfirm={lock}
+              title="Sign out of the admin account?"
+              description="You will need to sign in again to access the admin dashboard."
+              confirmLabel="Sign out"
             >
-              <LogOut className="mr-2 h-4 w-4" /> Sign out
-            </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full justify-center rounded-lg bg-primary font-semibold"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Sign out
+              </Button>
+            </ConfirmDelete>
             <div className="text-[11px] leading-relaxed text-sidebar-foreground/60">
               M.B.S Centring Works
             </div>

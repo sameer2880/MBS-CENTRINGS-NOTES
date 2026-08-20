@@ -148,9 +148,6 @@ export function Gate({ children }: { children: ReactNode }) {
           src="/splash-image.png"
           alt="M.B.S Centring Works"
           className="h-full w-full object-cover"
-          onError={(event) => {
-            event.currentTarget.src = logo;
-          }}
         />
       </div>
     );

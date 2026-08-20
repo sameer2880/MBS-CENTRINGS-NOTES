@@ -584,9 +584,9 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
       </Card>
 
       <Dialog open={dayOpen} onOpenChange={setDayOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-h-[92vh] w-[calc(100%-1.5rem)] max-w-lg overflow-y-auto rounded-2xl border-border/80 p-4 shadow-2xl sm:p-6">
+          <DialogHeader className="border-b border-border pb-4 pr-8">
+            <DialogTitle className="text-lg font-bold sm:text-xl">
               {dayStart(selectedDate).toLocaleDateString("en-IN", {
                 weekday: "long",
                 day: "numeric",
@@ -597,18 +597,22 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-3">
-              <div>
-                <div className="text-xs text-muted-foreground">Attendance</div>
-                <div className="font-semibold">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-primary/15 bg-primary/[0.06] p-3.5">
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Attendance
+                </div>
+                <div className="mt-1 font-semibold text-foreground">
                   {dayAtt
                     ? `${STATUS_LABEL[dayAtt.status]}${dayAtt.status === "present" ? ` · ${DAY_TYPE_LABEL[dayAtt.day_type ?? "full"]}` : ""}`
                     : "Not marked"}
                 </div>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Amount given</div>
-                <div className="font-semibold text-primary">
+              <div className="rounded-xl border border-success/20 bg-success/[0.06] p-3.5">
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Amount given
+                </div>
+                <div className="mt-1 font-semibold text-primary">
                   ₹{dayPaymentTotal.toLocaleString("en-IN")}
                 </div>
               </div>
@@ -706,9 +710,9 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
               </>
             )}
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Payments on this day</Label>
+            <div className="space-y-3 rounded-xl border border-border bg-card p-3.5 sm:p-4">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm font-semibold">Payments on this day</Label>
                 {!readOnly && (
                   <Button
                     size="sm"
@@ -720,13 +724,18 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                 )}
               </div>
               {dayPayments.length === 0 && (
-                <p className="text-sm text-muted-foreground">No payments on this day.</p>
+                <p className="rounded-lg bg-muted/50 px-3 py-4 text-center text-sm text-muted-foreground">
+                  No payments on this day.
+                </p>
               )}
-              <div className="divide-y divide-border">
+              <div className="space-y-2">
                 {dayPayments.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2 py-2">
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/20 p-3"
+                  >
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-primary">
+                      <div className="font-semibold text-primary sm:text-lg">
                         ₹{Number(p.amount).toLocaleString("en-IN")}
                       </div>
                       {p.note && (
@@ -757,13 +766,17 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
             </div>
 
             {readOnly && (
-              <div className="space-y-3 border-t border-border pt-4">
+              <div className="rounded-xl border border-border bg-muted/20 p-3.5 sm:p-4">
                 {!feedbackOpen ? (
-                  <Button variant="outline" onClick={() => setFeedbackOpen(true)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center bg-background sm:w-auto"
+                    onClick={() => setFeedbackOpen(true)}
+                  >
                     Give feedback
                   </Button>
                 ) : (
-                  <>
+                  <div className="space-y-3">
                     <div>
                       <Label htmlFor="attendance-feedback">Attendance feedback</Label>
                       <Textarea
@@ -784,17 +797,25 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                         placeholder="Share feedback about the payment given"
                       />
                     </div>
-                    <Button onClick={() => saveFeedback.mutate()} disabled={saveFeedback.isPending}>
+                    <Button
+                      className="w-full sm:w-auto"
+                      onClick={() => saveFeedback.mutate()}
+                      disabled={saveFeedback.isPending}
+                    >
                       {saveFeedback.isPending ? "Submitting…" : "Submit feedback"}
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDayOpen(false)}>
+          <DialogFooter className="border-t border-border pt-4 sm:justify-end">
+            <Button
+              className="w-full sm:w-auto"
+              variant="outline"
+              onClick={() => setDayOpen(false)}
+            >
               Close
             </Button>
           </DialogFooter>

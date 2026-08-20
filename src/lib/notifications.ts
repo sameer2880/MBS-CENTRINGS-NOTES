@@ -13,11 +13,13 @@ export type ActivityNotification = {
 };
 
 export async function currentWorkerId(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  const sessionWorkerId = data.session?.user.user_metadata?.worker_id;
-  return typeof sessionWorkerId === "string"
-    ? sessionWorkerId
-    : localStorage.getItem(WORKER_ID_KEY);
+  try {
+    const { data } = await supabase.auth.getSession();
+    const sessionWorkerId = data.session?.user.user_metadata?.worker_id;
+    return typeof sessionWorkerId === "string" ? sessionWorkerId : localStorage.getItem(WORKER_ID_KEY);
+  } catch {
+    return localStorage.getItem(WORKER_ID_KEY);
+  }
 }
 
 export function showMobileNotification(notification: ActivityNotification) {
@@ -39,8 +41,19 @@ export async function enableMobileNotifications(): Promise<NotificationPermissio
   return permission;
 }
 
+export async function listRecentNotifications(): Promise<ActivityNotification[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(25);
+  if (error) throw error;
+  return (data ?? []) as ActivityNotification[];
+}
+
 export function subscribeToActivityNotifications(
   onNotification: (notification: ActivityNotification) => void,
+  onStatus?: (status: string, error?: Error) => void,
 ) {
   const channel = supabase
     .channel(`activity-notifications-${crypto.randomUUID()}`)
@@ -49,6 +62,8 @@ export function subscribeToActivityNotifications(
       { event: "INSERT", schema: "public", table: "notifications" },
       (payload) => onNotification(payload.new as ActivityNotification),
     )
-    .subscribe();
+    .subscribe((status, error) => {
+      onStatus?.(status, error instanceof Error ? error : error ? new Error(String(error)) : undefined);
+    });
   return () => void supabase.removeChannel(channel);
 }

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
-import { currentWorkerId, enableMobileNotifications, showMobileNotification, subscribeToActivityNotifications } from "@/lib/notifications";
+import { currentWorkerId, enableMobileNotifications, listRecentNotifications, showMobileNotification, subscribeToActivityNotifications, type ActivityNotification } from "@/lib/notifications";
 import { toast } from "sonner";
 
 const nav = [
@@ -99,15 +99,30 @@ function NotificationButton() {
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | undefined;
+    const seen = new Set<string>();
+    const isRelevant = (notification: ActivityNotification, workerId: string | null) =>
+      workerId ? notification.worker_id === workerId : notification.notify_admin;
+    const handleNotification = (notification: ActivityNotification, workerId: string | null, announce: boolean) => {
+      if (!mounted || seen.has(notification.id) || !isRelevant(notification, workerId)) return;
+      seen.add(notification.id);
+      if (!announce) return;
+      setUnread((count) => count + 1);
+      showMobileNotification(notification);
+      toast.info(notification.title, { description: notification.body });
+    };
     void currentWorkerId().then((workerId) => {
       if (!mounted) return;
-      unsubscribe = subscribeToActivityNotifications((notification) => {
-        const relevant = workerId ? notification.worker_id === workerId : notification.notify_admin;
-        if (!relevant) return;
-        setUnread((count) => count + 1);
-        showMobileNotification(notification);
-        toast.info(notification.title, { description: notification.body });
-      });
+      void listRecentNotifications()
+        .then((notifications) => notifications.reverse().forEach((notification) => handleNotification(notification, workerId, false)))
+        .catch((error: Error) => toast.error("Notifications are unavailable", { description: error.message }));
+      unsubscribe = subscribeToActivityNotifications(
+        (notification) => handleNotification(notification, workerId, true),
+        (status, error) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            toast.error("Live notifications disconnected", { description: error?.message ?? "Check your connection." });
+          }
+        },
+      );
     });
     return () => {
       mounted = false;

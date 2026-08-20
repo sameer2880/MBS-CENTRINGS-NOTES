@@ -107,6 +107,7 @@ const exploreLinks = [
   },
   { href: "https://wa.me/918688285959", label: "WhatsApp", icon: MessageCircle },
   { href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6", label: "Visit location", icon: MapPin },
+  { href: "tel:+918688285959", label: "Call Now", icon: Phone },
 ];
 
 function ExploreLinks() {
@@ -120,8 +121,8 @@ function ExploreLinks() {
           <a
             key={href}
             href={href}
-            target="_blank"
-            rel="noreferrer"
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noreferrer" : undefined}
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
           >
             <Icon className="h-5 w-5" />
@@ -161,15 +162,6 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
           </div>
           <div className="space-y-2 border-t border-sidebar-border p-4">
             <Button
-              asChild
-              size="sm"
-              className="w-full justify-center rounded-lg bg-primary font-semibold"
-            >
-              <a href="tel:+918688285959">
-                <Phone className="mr-2 h-4 w-4" /> Call Now
-              </a>
-            </Button>
-            <Button
               variant="default"
               size="sm"
               className="w-full justify-center rounded-lg bg-primary font-semibold"
@@ -200,15 +192,6 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
             <ExploreLinks />
           </div>
           <div className="space-y-3 border-t border-sidebar-border p-4">
-            <Button
-              asChild
-              size="sm"
-              className="w-full justify-center rounded-lg bg-primary font-semibold"
-            >
-              <a href="tel:+918688285959">
-                <Phone className="mr-2 h-4 w-4" /> Call Now
-              </a>
-            </Button>
             <div className="min-w-0 text-sm">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
                 Signed in as
@@ -302,7 +285,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {worker && (
-        <aside className="hidden w-64 shrink-0 border-r border-sidebar-border lg:flex">
+        <aside className="hidden w-56 shrink-0 border-r border-sidebar-border lg:flex">
           <SidebarContent workerName={workerName} />
         </aside>
       )}
@@ -319,7 +302,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   </SheetTrigger>
                   <SheetContent
                     side="left"
-                    className="w-[min(86vw,400px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+                    className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
                   >
                     <SidebarContent
                       onNav={() => setOpen(false)}

@@ -12,10 +12,10 @@ import {
   Film,
   HardHat,
   RefreshCw,
-  UserCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 import logo from "@/assets/logo.png";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -87,38 +87,70 @@ function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horiz
   );
 }
 
-function SidebarContent({ onNav }: { onNav?: () => void }) {
+function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?: string }) {
+  const isWorkerSidebar = workerName !== undefined;
+
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4 lg:px-0 lg:py-0">
-        <img
-          src={logo}
-          alt="MBS"
-          className="block h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
-        />
-        <div className="min-w-0">
-          <div className="font-bold text-sm leading-tight tracking-tight">M.B.S CENTRING WORKS</div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/70">
-            Nereducherla
+      {!isWorkerSidebar && (
+        <>
+          <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4 lg:px-0 lg:py-0">
+            <img
+              src={logo}
+              alt="MBS"
+              className="block h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
+            />
+            <div className="min-w-0">
+              <div className="font-bold text-sm leading-tight tracking-tight">
+                M.B.S CENTRING WORKS
+              </div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/70">
+                Nereducherla
+              </div>
+            </div>
           </div>
+          <div className="flex-1 overflow-y-auto py-4">
+            <NavLinks onClick={onNav} />
+          </div>
+          <div className="space-y-2 border-t border-sidebar-border p-4">
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full justify-center rounded-lg bg-primary font-semibold"
+              onClick={lock}
+            >
+              <LogOut className="mr-2 h-4 w-4" /> Sign out
+            </Button>
+            <div className="text-[11px] leading-relaxed text-sidebar-foreground/60">
+              M.B.S Centring Works
+            </div>
+          </div>
+        </>
+      )}
+      {isWorkerSidebar && (
+        <div className="mt-auto space-y-3 border-t border-sidebar-border p-4">
+          <div className="min-w-0 text-sm">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
+              Signed in as
+            </div>
+            <div className="truncate font-semibold">{workerName || "Worker"}</div>
+          </div>
+          <ConfirmDelete
+            onConfirm={lock}
+            title="Sign out of this worker account?"
+            description="You will need to sign in again to view attendance and payment records."
+            confirmLabel="Sign out"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-center border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="mr-2 h-4 w-4" /> Sign out
+            </Button>
+          </ConfirmDelete>
         </div>
-      </div>
-      <div className="flex-1 py-4 overflow-y-auto">
-        <NavLinks onClick={onNav} />
-      </div>
-      <div className="border-t border-sidebar-border p-4 space-y-2">
-        <Button
-          variant="default"
-          size="sm"
-          className="w-full justify-center rounded-lg bg-primary font-semibold"
-          onClick={lock}
-        >
-          <LogOut className="h-4 w-4 mr-2" /> Sign out
-        </Button>
-        <div className="text-[11px] text-sidebar-foreground/60 leading-relaxed">
-          M.B.S Centring Works
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -128,8 +160,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
   const [workerName, setWorkerName] = useState("");
-  const [accountOpen, setAccountOpen] = useState(false);
-  const accountRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const workerId = localStorage.getItem(WORKER_ID_KEY);
     setWorker(Boolean(workerId));
@@ -147,25 +177,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       setDark(true);
     }
   }, []);
-  useEffect(() => {
-    if (!accountOpen) return;
-    const closeOnOutsidePress = (event: MouseEvent | TouchEvent) => {
-      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
-        setAccountOpen(false);
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setAccountOpen(false);
-    };
-    document.addEventListener("mousedown", closeOnOutsidePress);
-    document.addEventListener("touchstart", closeOnOutsidePress);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("mousedown", closeOnOutsidePress);
-      document.removeEventListener("touchstart", closeOnOutsidePress);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [accountOpen]);
   const toggleTheme = () => {
     const next = !dark;
     setDark(next);
@@ -209,11 +220,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {worker && (
+        <aside className="hidden w-64 shrink-0 border-r border-sidebar-border lg:flex">
+          <SidebarContent workerName={workerName} />
+        </aside>
+      )}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border bg-sidebar px-4 lg:px-6 sticky top-0 z-40">
           <div className="flex h-full items-center justify-between gap-4 lg:grid lg:grid-cols-[minmax(250px,1fr)_auto_minmax(180px,1fr)]">
             <div className="flex items-center gap-3 shrink-0 lg:justify-self-start">
-              {!worker && (
+              {
                 <Sheet open={open} onOpenChange={setOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden">
@@ -224,10 +240,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     side="left"
                     className="w-[min(86vw,400px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
                   >
-                    <SidebarContent onNav={() => setOpen(false)} />
+                    <SidebarContent
+                      onNav={() => setOpen(false)}
+                      workerName={worker ? workerName : undefined}
+                    />
                   </SheetContent>
                 </Sheet>
-              )}
+              }
               <div className="hidden lg:flex items-center gap-3">
                 <img
                   src={logo}
@@ -254,37 +273,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
               {!worker && <NavLinks horizontal />}
             </div>
             <div className="flex items-center gap-1 lg:justify-self-end">
-              {worker && (
-                <div ref={accountRef} className="relative mr-1 max-w-[45vw]">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAccountOpen((value) => !value)}
-                    aria-expanded={accountOpen}
-                    aria-label="Open account menu"
-                  >
-                    <UserCircle className="h-4 w-4 mr-1.5" />
-                    <span className="hidden max-w-[24rem] truncate sm:inline">
-                      Signed in as {workerName || "Worker"}
-                    </span>
-                    <span className="max-w-[7rem] truncate sm:hidden">
-                      {workerName || "Worker"}
-                    </span>
-                  </Button>
-                  {accountOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-1 min-w-44 rounded-md border border-border bg-card p-1 shadow-md">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start text-destructive hover:text-destructive"
-                        onClick={lock}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" /> Sign out
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
               <Button
                 variant="ghost"
                 size="icon"

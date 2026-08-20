@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
@@ -12,11 +11,6 @@ import { WORKER_ID_KEY } from "@/lib/worker-auth";
 const KEY = "mbs-gate";
 const USER = "mbsnotes";
 const PASS = "mbsnotes";
-
-type InstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
 
 export function isUnlocked() {
   if (typeof window === "undefined") return false;
@@ -41,28 +35,11 @@ export function Gate({ children }: { children: ReactNode }) {
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
   const [worker, setWorker] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
-
-  useEffect(() => {
-    if (!window.matchMedia("(max-width: 767px)").matches) return;
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
-    const onInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as InstallPromptEvent);
-    };
-    const onInstalled = () => setInstallPrompt(null);
-    window.addEventListener("beforeinstallprompt", onInstallPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 767px)").matches;
     if (!mobile) return;
-    const timer = window.setTimeout(() => setMobileSplash(false), 3500);
+    const timer = window.setTimeout(() => setMobileSplash(false), 4000);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -227,13 +204,6 @@ export function Gate({ children }: { children: ReactNode }) {
     })();
   };
 
-  const installApp = async () => {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm shadow-lg">
@@ -270,11 +240,6 @@ export function Gate({ children }: { children: ReactNode }) {
               Sign in
             </Button>
           </form>
-          {installPrompt && (
-            <Button type="button" variant="outline" className="w-full" onClick={installApp}>
-              <Download className="mr-2 h-4 w-4" /> Install app
-            </Button>
-          )}
         </CardContent>
       </Card>
     </div>

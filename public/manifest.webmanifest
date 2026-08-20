@@ -5,18 +5,18 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0873bd",
-  "theme_color": "#0873bd",
+  "background_color": "#ffffff",
+  "theme_color": "#0a1a2f",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/pwa-icon-192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/pwa-icon-512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

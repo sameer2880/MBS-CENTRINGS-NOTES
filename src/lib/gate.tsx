@@ -128,7 +128,7 @@ export function Gate({ children }: { children: ReactNode }) {
       <Card className="w-full max-w-sm shadow-lg">
         <CardContent className="p-6 space-y-5">
           <div className="flex flex-col items-center text-center gap-2">
-            <img src={logo} alt="MBS" className="h-16 w-16 rounded-full bg-white p-1 shadow" />
+            <img src={logo} alt="MBS" className="block h-16 w-16 overflow-hidden rounded-full bg-white object-cover p-1 shadow" />
             <h1 className="font-bold text-lg leading-tight">M.B.S CENTRING WORKS</h1>
           </div>
           <form onSubmit={submit} className="space-y-3">

@@ -67,7 +67,7 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border">
-        <img src={logo} alt="MBS" className="h-11 w-11 rounded-full bg-white p-0.5" />
+        <img src={logo} alt="MBS" className="block h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5" />
         <div className="min-w-0">
           <div className="font-bold text-sm leading-tight">M.B.S CENTRING WORKS</div>
           <div className="text-[11px] text-sidebar-foreground/70">Nereducherla</div>
@@ -194,7 +194,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 </SheetContent>
               </Sheet>
             )}
-            <img src={logo} alt="MBS" className="h-9 w-9 rounded-full lg:hidden" />
+            <img src={logo} alt="MBS" className="block h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover lg:hidden" />
             <div>
               <h1 className="font-bold text-sm sm:text-base leading-tight">M.B.S CENTRING WORKS</h1>
               <p className="text-[11px] text-muted-foreground">Nereducherla</p>

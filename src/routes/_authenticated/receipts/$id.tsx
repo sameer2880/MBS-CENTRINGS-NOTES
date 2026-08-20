@@ -49,7 +49,7 @@ function ReceiptPage() {
       <article className="receipt-sheet mx-auto max-w-3xl border border-border bg-card p-5 text-card-foreground shadow-lg sm:p-8 print:shadow-none">
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-primary pb-4">
           <div className="flex items-center gap-4">
-            <img src={logo} alt="M.B.S Centring Works logo" className="h-16 w-16 shrink-0 sm:h-20 sm:w-20" />
+            <img src={logo} alt="M.B.S Centring Works logo" className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover sm:h-20 sm:w-20" />
             <div>
               <h1 className="text-2xl font-black text-primary">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>

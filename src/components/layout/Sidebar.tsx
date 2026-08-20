@@ -128,28 +128,41 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
         </>
       )}
       {isWorkerSidebar && (
-        <div className="mt-auto space-y-3 border-t border-sidebar-border p-4">
-          <div className="min-w-0 text-sm">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
-              Signed in as
+        <>
+          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+            <img
+              src={logo}
+              alt="MBS Centring Works"
+              className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
+            />
+            <div className="mt-4 font-bold text-base tracking-tight">MBS CENTRING WORKS</div>
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/65">
+              NEREDUCHERLA
             </div>
-            <div className="truncate font-semibold">{workerName || "Worker"}</div>
           </div>
-          <ConfirmDelete
-            onConfirm={lock}
-            title="Sign out of this worker account?"
-            description="You will need to sign in again to view attendance and payment records."
-            confirmLabel="Sign out"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-center border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          <div className="space-y-3 border-t border-sidebar-border p-4">
+            <div className="min-w-0 text-sm">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
+                Signed in as
+              </div>
+              <div className="truncate font-semibold">{workerName || "Worker"}</div>
+            </div>
+            <ConfirmDelete
+              onConfirm={lock}
+              title="Sign out of this worker account?"
+              description="You will need to sign in again to view attendance and payment records."
+              confirmLabel="Sign out"
             >
-              <LogOut className="mr-2 h-4 w-4" /> Sign out
-            </Button>
-          </ConfirmDelete>
-        </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-center border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Sign out
+              </Button>
+            </ConfirmDelete>
+          </div>
+        </>
       )}
     </div>
   );

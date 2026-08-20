@@ -112,6 +112,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
   const [dayNote, setDayNote] = useState("");
   const [attendanceFeedback, setAttendanceFeedback] = useState("");
   const [paymentFeedback, setPaymentFeedback] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [editingPay, setEditingPay] = useState<Payment | null>(null);
   const [payForm, setPayForm] = useState({
@@ -354,6 +355,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
     const savedFeedback = feedback.find((item) => item.work_date === date);
     setAttendanceFeedback(savedFeedback?.attendance_feedback ?? "");
     setPaymentFeedback(savedFeedback?.payment_feedback ?? "");
+    setFeedbackOpen(Boolean(savedFeedback?.attendance_feedback || savedFeedback?.payment_feedback));
     setDayOpen(true);
   };
 
@@ -756,29 +758,37 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
 
             {readOnly && (
               <div className="space-y-3 border-t border-border pt-4">
-                <div>
-                  <Label htmlFor="attendance-feedback">Attendance feedback</Label>
-                  <Textarea
-                    id="attendance-feedback"
-                    rows={3}
-                    value={attendanceFeedback}
-                    onChange={(e) => setAttendanceFeedback(e.target.value)}
-                    placeholder="Share feedback about your attendance record"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="payment-feedback">Payment feedback</Label>
-                  <Textarea
-                    id="payment-feedback"
-                    rows={3}
-                    value={paymentFeedback}
-                    onChange={(e) => setPaymentFeedback(e.target.value)}
-                    placeholder="Share feedback about the payment given"
-                  />
-                </div>
-                <Button onClick={() => saveFeedback.mutate()} disabled={saveFeedback.isPending}>
-                  {saveFeedback.isPending ? "Submitting…" : "Submit feedback"}
-                </Button>
+                {!feedbackOpen ? (
+                  <Button variant="outline" onClick={() => setFeedbackOpen(true)}>
+                    Give feedback
+                  </Button>
+                ) : (
+                  <>
+                    <div>
+                      <Label htmlFor="attendance-feedback">Attendance feedback</Label>
+                      <Textarea
+                        id="attendance-feedback"
+                        rows={3}
+                        value={attendanceFeedback}
+                        onChange={(e) => setAttendanceFeedback(e.target.value)}
+                        placeholder="Share feedback about your attendance record"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="payment-feedback">Payment feedback</Label>
+                      <Textarea
+                        id="payment-feedback"
+                        rows={3}
+                        value={paymentFeedback}
+                        onChange={(e) => setPaymentFeedback(e.target.value)}
+                        placeholder="Share feedback about the payment given"
+                      />
+                    </div>
+                    <Button onClick={() => saveFeedback.mutate()} disabled={saveFeedback.isPending}>
+                      {saveFeedback.isPending ? "Submitting…" : "Submit feedback"}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </div>

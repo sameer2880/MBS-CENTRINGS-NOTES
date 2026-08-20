@@ -9,11 +9,11 @@ export const Route = createFileRoute("/_authenticated/worker")({
 });
 
 function WorkerHome() {
+  const workerId = typeof window !== "undefined" ? localStorage.getItem(WORKER_ID_KEY) : null;
   const { data: worker, isLoading } = useQuery({
     queryKey: ["my-worker"],
+    enabled: Boolean(workerId),
     queryFn: async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const workerId = sessionData.session?.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
       if (typeof workerId !== "string") throw new Error("Worker session not found");
       const { data, error } = await supabase
         .from("workers")
@@ -25,7 +25,9 @@ function WorkerHome() {
     },
   });
 
-  if (isLoading) return <p className="text-center py-10 text-muted-foreground">Loading your records...</p>;
-  if (!worker) return <p className="text-center py-10 text-destructive">Worker account is not linked.</p>;
+  if (!workerId) return null;
+  if (isLoading) return null;
+  if (!worker)
+    return <p className="text-center py-10 text-destructive">Worker account is not linked.</p>;
   return <WorkerOverview id={worker.id} readOnly />;
 }

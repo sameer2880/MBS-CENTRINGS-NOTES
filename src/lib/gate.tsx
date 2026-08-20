@@ -59,7 +59,8 @@ export function Gate({ children }: { children: ReactNode }) {
         ]);
         if (!mounted) return;
         if (data.session?.user) {
-          const workerId = data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
+          const workerId =
+            data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
           const { data: workerRecord } = workerId
             ? await supabase.from("workers").select("id, active").eq("id", workerId).maybeSingle()
             : { data: null };
@@ -74,7 +75,11 @@ export function Gate({ children }: { children: ReactNode }) {
         } else {
           const workerId = localStorage.getItem(WORKER_ID_KEY);
           if (workerId) {
-            const { data: workerRecord } = await supabase.from("workers").select("id, active").eq("id", workerId).maybeSingle();
+            const { data: workerRecord } = await supabase
+              .from("workers")
+              .select("id, active")
+              .eq("id", workerId)
+              .maybeSingle();
             if (workerRecord?.active) setWorker(true);
             else if (workerRecord) await disableWorkerSession();
             else localStorage.removeItem(WORKER_ID_KEY);
@@ -127,7 +132,11 @@ export function Gate({ children }: { children: ReactNode }) {
   }, [navigate, pathname, worker]);
 
   if (!ready) {
-    return <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">
+        Loading...
+      </div>
+    );
   }
   if (ok || worker) return <>{children}</>;
 
@@ -136,7 +145,10 @@ export function Gate({ children }: { children: ReactNode }) {
     setErr("");
     if (u.trim() === USER && p === PASS) {
       localStorage.setItem(KEY, "1");
+      localStorage.removeItem(WORKER_ID_KEY);
+      setWorker(false);
       setOk(true);
+      void navigate({ to: "/dashboard", replace: true });
       return;
     }
     void (async () => {
@@ -147,7 +159,11 @@ export function Gate({ children }: { children: ReactNode }) {
         .maybeSingle();
       const { data: workerByPhone } = workerByName
         ? { data: null }
-        : await supabase.from("workers").select("id, name, phone, active").eq("phone", u.trim()).maybeSingle();
+        : await supabase
+            .from("workers")
+            .select("id, name, phone, active")
+            .eq("phone", u.trim())
+            .maybeSingle();
       const workerRecord = workerByName ?? workerByPhone;
       if (!workerRecord?.phone) {
         setErr("Worker name or mobile number was not found");
@@ -172,20 +188,36 @@ export function Gate({ children }: { children: ReactNode }) {
       <Card className="w-full max-w-sm shadow-lg">
         <CardContent className="p-6 space-y-5">
           <div className="flex flex-col items-center text-center gap-2">
-            <img src={logo} alt="MBS" className="block h-16 w-16 overflow-hidden rounded-full bg-white object-cover p-1 shadow" />
+            <img
+              src={logo}
+              alt="MBS"
+              className="block h-16 w-16 overflow-hidden rounded-full bg-white object-cover p-1 shadow"
+            />
             <h1 className="font-bold text-lg leading-tight">M.B.S CENTRING WORKS</h1>
           </div>
           <form onSubmit={submit} className="space-y-3">
             <div className="space-y-1.5">
               <Label>Username</Label>
-              <Input value={u} onChange={(e) => setU(e.target.value)} autoFocus autoComplete="username" />
+              <Input
+                value={u}
+                onChange={(e) => setU(e.target.value)}
+                autoFocus
+                autoComplete="username"
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Password</Label>
-              <Input type="password" value={p} onChange={(e) => setP(e.target.value)} autoComplete="current-password" />
+              <Input
+                type="password"
+                value={p}
+                onChange={(e) => setP(e.target.value)}
+                autoComplete="current-password"
+              />
             </div>
             {err && <p className="text-xs text-destructive">{err}</p>}
-            <Button type="submit" className="w-full">Sign in</Button>
+            <Button type="submit" className="w-full">
+              Sign in
+            </Button>
           </form>
         </CardContent>
       </Card>

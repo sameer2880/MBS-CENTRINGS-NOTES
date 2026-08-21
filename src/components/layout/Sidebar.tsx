@@ -298,7 +298,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </aside>
       )}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border bg-sidebar px-4 lg:px-6 sticky top-0 z-40">
+        <header className="site-header h-16 border-b border-border px-4 lg:px-6 sticky top-0 z-40">
           <div className="flex h-full items-center justify-between gap-4 lg:grid lg:grid-cols-[minmax(250px,1fr)_auto_minmax(180px,1fr)]">
             <div className="flex items-center gap-3 shrink-0 lg:justify-self-start">
               {

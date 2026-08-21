@@ -48,19 +48,20 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: #ffffff;
+  --radius: 1rem;
+  --background: #eef3fb;
   --foreground: #0a1a2f;
-  --card: #ffffff;
+  /* Glass surfaces: translucent panels that blur the gradient canvas behind them */
+  --card: rgb(255 255 255 / 55%);
   --card-foreground: #0a1a2f;
-  --popover: #ffffff;
+  --popover: rgb(255 255 255 / 82%);
   --popover-foreground: #0a1a2f;
   /* Brand blue + white */
   --primary: #1d4ed8;
   --primary-foreground: #ffffff;
-  --secondary: #eef3fb;
+  --secondary: rgb(255 255 255 / 45%);
   --secondary-foreground: #1e3a5f;
-  --muted: #eef3fb;
+  --muted: rgb(238 243 251 / 70%);
   --muted-foreground: #5b7288;
   --accent: #2563eb;
   --accent-foreground: #ffffff;
@@ -70,37 +71,37 @@
   --warning-foreground: #0a1a2f;
   --success: #1a7a4c;
   --success-foreground: #ffffff;
-  --border: #dbe6f2;
-  --input: #dbe6f2;
+  --border: rgb(148 163 184 / 35%);
+  --input: rgb(148 163 184 / 40%);
   --ring: #1d4ed8;
   --chart-1: #1d4ed8;
   --chart-2: #60a5fa;
   --chart-3: #0a1a2f;
   --chart-4: #93c5fd;
   --chart-5: #1e3a5f;
-  --sidebar: #f7f9fc;
+  --sidebar: rgb(255 255 255 / 55%);
   --sidebar-foreground: #172033;
   --sidebar-primary: #173f87;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e0e8f3;
+  --sidebar-accent: rgb(29 78 216 / 12%);
   --sidebar-accent-foreground: #173f87;
-  --sidebar-border: #d7dfe9;
+  --sidebar-border: rgb(148 163 184 / 30%);
   --sidebar-ring: #173f87;
 }
 
 .dark {
-  --background: #000000;
+  --background: #06070c;
   --foreground: #ffffff;
-  --card: #0d0d0d;
+  /* Pure black + white, with muted semantic accents for legibility, now translucent for glass */
+  --card: rgb(24 24 28 / 50%);
   --card-foreground: #ffffff;
-  --popover: #0d0d0d;
+  --popover: rgb(20 20 24 / 80%);
   --popover-foreground: #ffffff;
-  /* Pure black + white, with muted semantic accents for legibility */
   --primary: #ffffff;
   --primary-foreground: #000000;
-  --secondary: #1a1a1a;
+  --secondary: rgb(255 255 255 / 8%);
   --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
+  --muted: rgb(255 255 255 / 6%);
   --muted-foreground: #a3a3a3;
   --accent: #e5e5e5;
   --accent-foreground: #000000;
@@ -110,28 +111,85 @@
   --warning-foreground: #000000;
   --success: #4ade80;
   --success-foreground: #000000;
-  --border: #262626;
-  --input: #262626;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
   --ring: #ffffff;
   --chart-1: #ffffff;
   --chart-2: #a3a3a3;
   --chart-3: #737373;
   --chart-4: #d4d4d4;
   --chart-5: #525252;
-  --sidebar: #000000;
+  --sidebar: rgb(8 8 12 / 55%);
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
   --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #1a1a1a;
+  --sidebar-accent: rgb(255 255 255 / 8%);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #262626;
+  --sidebar-border: rgb(255 255 255 / 10%);
   --sidebar-ring: #ffffff;
 }
 
 
 @layer base {
   * { border-color: var(--color-border); }
-  body { background-color: var(--color-background); color: var(--color-foreground); }
+
+  html { background-color: var(--color-background); }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(900px circle at 8% 8%, rgb(37 99 235 / 22%), transparent 55%),
+      radial-gradient(800px circle at 92% 18%, rgb(96 165 250 / 20%), transparent 50%),
+      radial-gradient(850px circle at 25% 95%, rgb(29 78 216 / 16%), transparent 50%),
+      radial-gradient(700px circle at 95% 90%, rgb(59 130 246 / 14%), transparent 50%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(900px circle at 8% 8%, rgb(37 99 235 / 30%), transparent 55%),
+      radial-gradient(800px circle at 92% 15%, rgb(147 51 234 / 20%), transparent 50%),
+      radial-gradient(850px circle at 25% 95%, rgb(14 165 233 / 18%), transparent 55%),
+      radial-gradient(700px circle at 95% 90%, rgb(56 189 248 / 12%), transparent 50%);
+  }
+}
+
+/* Glassmorphism: every surface built from these tokens becomes frosted glass
+   that blurs and tints whatever sits behind it (the gradient canvas on body,
+   or content scrolling underneath a sticky header/sidebar/modal). */
+.bg-card,
+.bg-popover,
+.bg-sidebar,
+.bg-background {
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Fixed dialogs/sheets/dropdowns get a touch more blur + a soft glass shadow
+   so they read as raised panels rather than flat tinted rectangles. */
+[data-slot="dialog-content"],
+[role="dialog"],
+[role="alertdialog"],
+[role="menu"],
+[role="listbox"] {
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  box-shadow:
+    0 8px 32px rgb(15 23 42 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 40%);
+}
+
+.dark [data-slot="dialog-content"],
+.dark [role="dialog"],
+.dark [role="alertdialog"],
+.dark [role="menu"],
+.dark [role="listbox"] {
+  box-shadow:
+    0 8px 32px rgb(0 0 0 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
 @media print {

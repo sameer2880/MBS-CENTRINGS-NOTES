@@ -163,7 +163,9 @@
 .bg-card,
 .bg-popover,
 .bg-sidebar,
-.bg-background {
+.bg-background,
+.bg-muted,
+.bg-secondary {
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }

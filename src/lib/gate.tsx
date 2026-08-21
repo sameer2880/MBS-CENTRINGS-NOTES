@@ -27,20 +27,11 @@ export function Gate({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [ready, setReady] = useState(false);
-  const [mobileSplash, setMobileSplash] = useState(
-    () => typeof window !== "undefined" && window.innerWidth < 768,
-  );
   const [ok, setOk] = useState(false);
   const [u, setU] = useState("");
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
   const [worker, setWorker] = useState(false);
-
-  useEffect(() => {
-    if (!mobileSplash) return;
-    const timer = window.setTimeout(() => setMobileSplash(false), 1300);
-    return () => window.clearTimeout(timer);
-  }, [mobileSplash]);
 
   const disableWorkerSession = async () => {
     localStorage.removeItem(WORKER_ID_KEY);
@@ -140,17 +131,6 @@ export function Gate({ children }: { children: ReactNode }) {
     if (worker && pathname !== "/worker") void navigate({ to: "/worker" });
   }, [navigate, pathname, worker]);
 
-  if (mobileSplash) {
-    return (
-      <div className="fixed inset-0 z-50 overflow-hidden bg-[#0873bd]">
-        <img
-          src="/splash-image.png"
-          alt="M.B.S Centring Works"
-          className="h-full w-full object-cover"
-        />
-      </div>
-    );
-  }
   if (!ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">

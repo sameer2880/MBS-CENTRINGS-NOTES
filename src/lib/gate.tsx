@@ -38,7 +38,7 @@ export function Gate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!mobileSplash) return;
-    const timer = window.setTimeout(() => setMobileSplash(false), 2000);
+    const timer = window.setTimeout(() => setMobileSplash(false), 1300);
     return () => window.clearTimeout(timer);
   }, [mobileSplash]);
 

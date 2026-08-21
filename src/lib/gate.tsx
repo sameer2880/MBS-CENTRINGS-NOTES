@@ -27,7 +27,9 @@ export function Gate({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [ready, setReady] = useState(false);
-  const [mobileSplash, setMobileSplash] = useState(() => typeof window !== "undefined");
+  const [mobileSplash, setMobileSplash] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768,
+  );
   const [ok, setOk] = useState(false);
   const [u, setU] = useState("");
   const [p, setP] = useState("");
@@ -35,9 +37,10 @@ export function Gate({ children }: { children: ReactNode }) {
   const [worker, setWorker] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setMobileSplash(false), 4000);
+    if (!mobileSplash) return;
+    const timer = window.setTimeout(() => setMobileSplash(false), 2000);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [mobileSplash]);
 
   const disableWorkerSession = async () => {
     localStorage.removeItem(WORKER_ID_KEY);

@@ -42,7 +42,7 @@ const nav = [
   { to: "/feedback", label: "Worker Feedback", icon: MessageSquare },
 ];
 
-function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horizontal?: boolean }) {
+function NavLinks({ onClick }: { onClick?: () => void }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [worker, setWorker] = useState(false);
   useEffect(() => {
@@ -61,13 +61,7 @@ function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horiz
     ? [{ to: "/worker", label: "My Attendance & Payments", icon: HardHat }]
     : nav;
   return (
-    <nav
-      className={cn(
-        horizontal
-          ? "hidden lg:flex items-center justify-center gap-1.5"
-          : "flex flex-col gap-1 px-4 py-5",
-      )}
-    >
+    <nav className="flex flex-col gap-1 px-4 py-5">
       {links.map(({ to, label, icon: Icon }) => {
         const active = path === to || path.startsWith(to + "/");
         return (
@@ -78,15 +72,11 @@ function NavLinks({ onClick, horizontal = false }: { onClick?: () => void; horiz
             className={cn(
               "flex items-center gap-3 text-sm font-semibold transition-all",
               active
-                ? horizontal
-                  ? "h-16 px-2.5 border-b-2 border-primary text-primary"
-                  : "rounded-xl bg-sidebar-accent px-4 py-3 text-primary"
-                : horizontal
-                  ? "h-16 px-2.5 border-b-2 border-transparent text-foreground hover:text-primary"
-                  : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent",
+                ? "rounded-xl bg-sidebar-accent px-4 py-3 text-primary"
+                : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent",
             )}
           >
-            <Icon className={cn("h-4 w-4", horizontal && "hidden")} />
+            <Icon className="h-4 w-4" />
             {label}
           </Link>
         );
@@ -137,14 +127,36 @@ function ExploreLinks() {
   );
 }
 
-function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?: string }) {
+function SidebarContent({
+  onNav,
+  workerName,
+  dark,
+  onToggleTheme,
+}: {
+  onNav?: () => void;
+  workerName?: string;
+  dark: boolean;
+  onToggleTheme: () => void;
+}) {
   const isWorkerSidebar = workerName !== undefined;
+
+  const ThemeToggle = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={onToggleTheme}
+      className="w-full justify-center gap-2 font-semibold"
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {dark ? "Light mode" : "Dark mode"}
+    </Button>
+  );
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       {!isWorkerSidebar && (
         <>
-          <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4 lg:px-0 lg:py-0">
+          <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4">
             <img
               src={logo}
               alt="MBS"
@@ -164,6 +176,7 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
             <ExploreLinks />
           </div>
           <div className="space-y-2 border-t border-sidebar-border p-4">
+            {ThemeToggle}
             <ConfirmDelete
               onConfirm={lock}
               title="Sign out of the admin account?"
@@ -201,6 +214,7 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
             <ExploreLinks />
           </div>
           <div className="space-y-3 border-t border-sidebar-border p-4">
+            {ThemeToggle}
             <div className="min-w-0 text-sm">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
                 Signed in as
@@ -293,75 +307,55 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {worker && (
-        <aside className="sticky top-0 hidden h-screen w-48 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
-          <SidebarContent workerName={workerName} />
-        </aside>
-      )}
+      {/* Desktop/laptop: same sidebar content as the mobile slide-in menu, always pinned open */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+        <SidebarContent
+          workerName={worker ? workerName : undefined}
+          dark={dark}
+          onToggleTheme={toggleTheme}
+        />
+      </aside>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="site-header h-16 border-b border-border px-4 lg:px-6 sticky top-0 z-40">
-          <div className="flex h-full items-center justify-between gap-4 lg:grid lg:grid-cols-[minmax(250px,1fr)_auto_minmax(180px,1fr)]">
-            <div className="flex items-center gap-3 shrink-0 lg:justify-self-start">
-              {
-                <Sheet open={open} onOpenChange={setOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent
-                    side="left"
-                    className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+          <div className="flex h-full items-center justify-between gap-4">
+            <div className="flex items-center gap-3 shrink-0">
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:hidden"
                   >
-                    <SidebarContent
-                      onNav={() => setOpen(false)}
-                      workerName={worker ? workerName : undefined}
-                    />
-                  </SheetContent>
-                </Sheet>
-              }
-              <div className="hidden lg:flex items-center gap-3">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+                >
+                  <SidebarContent
+                    onNav={() => setOpen(false)}
+                    workerName={worker ? workerName : undefined}
+                    dark={dark}
+                    onToggleTheme={toggleTheme}
+                  />
+                </SheetContent>
+              </Sheet>
+              <div className="flex items-center gap-2 lg:hidden">
                 <img
                   src={logo}
                   alt="MBS"
-                  className="block h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
+                  className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
                 />
                 <div>
-                  <h1 className="font-bold text-sm leading-tight tracking-tight">
+                  <h1 className="font-bold text-sm sm:text-base leading-tight">
                     M.B.S CENTRING WORKS
                   </h1>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                    Nereducherla
-                  </p>
+                  <p className="text-[11px] text-muted-foreground">Nereducherla</p>
                 </div>
               </div>
-              <div className="lg:hidden">
-                <h1 className="font-bold text-sm sm:text-base leading-tight">
-                  M.B.S CENTRING WORKS
-                </h1>
-                <p className="text-[11px] text-muted-foreground">Nereducherla</p>
-              </div>
             </div>
-            <div className="hidden lg:flex lg:justify-self-center">
-              {!worker && <NavLinks horizontal />}
-            </div>
-            <div className="flex items-center gap-1 lg:justify-self-end">
-              {!worker && (
-                <ConfirmDelete
-                  onConfirm={lock}
-                  title="Sign out of the admin account?"
-                  description="You will need to sign in again to access the admin dashboard."
-                  confirmLabel="Sign out"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="hidden items-center gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive lg:flex"
-                  >
-                    <LogOut className="h-4 w-4" /> Sign out
-                  </Button>
-                </ConfirmDelete>
-              )}
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -370,15 +364,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 aria-label="Refresh"
               >
                 <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                title={dark ? "Use light mode" : "Use dark mode"}
-                aria-label={dark ? "Use light mode" : "Use dark mode"}
-              >
-                {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
             </div>
           </div>

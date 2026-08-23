@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkerOverview } from "./labour/$id";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
-import { WorkerLocationToggle } from "@/components/WorkerLocationToggle";
 
 export const Route = createFileRoute("/_authenticated/worker")({
   component: WorkerHome,
@@ -30,10 +29,5 @@ function WorkerHome() {
   if (isLoading) return null;
   if (!worker)
     return <p className="text-center py-10 text-destructive">Worker account is not linked.</p>;
-  return (
-    <div className="space-y-4">
-      <WorkerLocationToggle workerId={worker.id} />
-      <WorkerOverview id={worker.id} readOnly />
-    </div>
-  );
+  return <WorkerOverview id={worker.id} readOnly />;
 }

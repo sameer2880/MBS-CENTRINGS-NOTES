@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
+import { WorkerLiveLocations } from "@/components/WorkerLiveLocations";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -118,6 +119,7 @@ function ExploreLinks() {
       <div className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65">
         Explore
       </div>
+
       <div className="mt-2 space-y-1">
         {exploreLinks.map(({ href, label, icon: Icon }) => (
           <a
@@ -160,6 +162,7 @@ function SidebarContent({ onNav, workerName }: { onNav?: () => void; workerName?
           </div>
           <div className="flex-1 overflow-y-auto py-4">
             <NavLinks onClick={onNav} />
+            <WorkerLiveLocations />
             <ExploreLinks />
           </div>
           <div className="space-y-2 border-t border-sidebar-border p-4">

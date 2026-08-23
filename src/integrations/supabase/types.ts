@@ -300,6 +300,41 @@ export type Database = {
         ];
       };
       workers: {
+              worker_locations: {
+        Row: {
+          accuracy_m: number | null;
+          latitude: number;
+          longitude: number;
+          sharing_enabled: boolean;
+          updated_at: string;
+          worker_id: string;
+        };
+        Insert: {
+          accuracy_m?: number | null;
+          latitude: number;
+          longitude: number;
+          sharing_enabled?: boolean;
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          accuracy_m?: number | null;
+          latitude?: number;
+          longitude?: number;
+          sharing_enabled?: boolean;
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "worker_locations_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: true;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
         Row: {
           active: boolean;
           created_at: string;

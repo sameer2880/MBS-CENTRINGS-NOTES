@@ -164,7 +164,7 @@ function SidebarContent({
             />
             <div className="min-w-0">
               <div className="font-bold text-sm leading-tight tracking-tight">
-                M.B.S CENTRING WORKS
+                MBS CENTRING WORKS
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/70">
                 Nereducherla
@@ -192,7 +192,7 @@ function SidebarContent({
               </Button>
             </ConfirmDelete>
             <div className="text-[11px] leading-relaxed text-sidebar-foreground/60">
-              M.B.S Centring Works
+              MBS Centring Works
             </div>
           </div>
         </>

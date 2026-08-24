@@ -164,10 +164,10 @@ function SidebarContent({
             />
             <div className="min-w-0">
               <div className="font-bold text-sm leading-tight tracking-tight">
-                MBS CENTRING WORKS
+                MBS సెంట్రింగ్ వర్క్స్
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/70">
-                Nereducherla
+                నేరేడుచర్ల
               </div>
             </div>
           </div>

@@ -20,50 +20,105 @@ import {
   MapPin,
   MessageSquare,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import logo from "@/assets/logo.png";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
 
 const nav = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/rentals", label: "Rentals", icon: Package },
-
-  { to: "/labour", label: "Labour Charges", icon: HardHat },
-  { to: "/diary", label: "Diary / Notes", icon: NotebookPen },
-  { to: "/reports", label: "Reports", icon: FileBarChart },
-  { to: "/receipts", label: "Receipts", icon: Receipt },
-  { to: "/reels", label: "Reel Management", icon: Film },
-  { to: "/feedback", label: "Worker Feedback", icon: MessageSquare },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/rentals",
+    label: "Rentals",
+    icon: Package,
+  },
+  {
+    to: "/labour",
+    label: "Labour Charges",
+    icon: HardHat,
+  },
+  {
+    to: "/diary",
+    label: "Diary / Notes",
+    icon: NotebookPen,
+  },
+  {
+    to: "/reports",
+    label: "Reports",
+    icon: FileBarChart,
+  },
+  {
+    to: "/receipts",
+    label: "Receipts",
+    icon: Receipt,
+  },
+  {
+    to: "/reels",
+    label: "Reel Management",
+    icon: Film,
+  },
+  {
+    to: "/feedback",
+    label: "Worker Feedback",
+    icon: MessageSquare,
+  },
 ];
 
 function NavLinks({ onClick }: { onClick?: () => void }) {
-  const path = useRouterState({ select: (s) => s.location.pathname });
+  const path = useRouterState({
+    select: (s) => s.location.pathname,
+  });
+
   const [worker, setWorker] = useState(false);
+
   useEffect(() => {
     void (async () => {
       const { data } = await supabase.auth.getSession();
+
       if (!data.session?.user) return;
+
       const workerId =
-        data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
+        data.session.user.user_metadata?.worker_id ??
+        localStorage.getItem(WORKER_ID_KEY);
+
       const { data: workerRecord } = workerId
-        ? await supabase.from("workers").select("id").eq("id", workerId).maybeSingle()
+        ? await supabase
+            .from("workers")
+            .select("id")
+            .eq("id", workerId)
+            .maybeSingle()
         : { data: null };
+
       setWorker(Boolean(workerRecord));
     })();
   }, []);
+
   const links = worker
-    ? [{ to: "/worker", label: "My Attendance & Payments", icon: HardHat }]
+    ? [
+        {
+          to: "/worker",
+          label: "My Attendance & Payments",
+          icon: HardHat,
+        },
+      ]
     : nav;
+
   return (
     <nav className="flex flex-col gap-1 px-4 py-5">
       {links.map(({ to, label, icon: Icon }) => {
-        const active = path === to || path.startsWith(to + "/");
+        const active =
+          path === to || path.startsWith(to + "/");
+
         return (
           <Link
             key={to}
@@ -73,7 +128,7 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
               "flex items-center gap-3 text-sm font-semibold transition-all",
               active
                 ? "rounded-xl bg-sidebar-accent px-4 py-3 text-primary"
-                : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent",
+                : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent"
             )}
           >
             <Icon className="h-4 w-4" />
@@ -86,7 +141,11 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
 }
 
 const exploreLinks = [
-  { href: "https://mbsndcl.vercel.app", label: "Official website", icon: Globe },
+  {
+    href: "https://mbsndcl.vercel.app",
+    label: "Official website",
+    icon: Globe,
+  },
   {
     href: "https://www.instagram.com/mbs_centrings_nereducherla/",
     label: "Instagram",
@@ -97,9 +156,21 @@ const exploreLinks = [
     label: "YouTube",
     icon: Youtube,
   },
-  { href: "https://wa.me/918688285959", label: "WhatsApp", icon: MessageCircle },
-  { href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6", label: "Visit location", icon: MapPin },
-  { href: "tel:+918688285959", label: "Call Now", icon: Phone },
+  {
+    href: "https://wa.me/918688285959",
+    label: "WhatsApp",
+    icon: MessageCircle,
+  },
+  {
+    href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6",
+    label: "Visit location",
+    icon: MapPin,
+  },
+  {
+    href: "tel:+918688285959",
+    label: "Call Now",
+    icon: Phone,
+  },
 ];
 
 function ExploreLinks() {
@@ -147,7 +218,12 @@ function SidebarContent({
       onClick={onToggleTheme}
       className="w-full justify-center gap-2 font-semibold"
     >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {dark ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
+
       {dark ? "Light mode" : "Dark mode"}
     </Button>
   );
@@ -162,21 +238,26 @@ function SidebarContent({
               alt="MBS"
               className="block h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
             />
+
             <div className="min-w-0">
               <div className="font-bold text-sm leading-tight tracking-tight">
                 MBS CENTRING WORKS
               </div>
+
               <div className="text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/70">
                 Nereducherla
               </div>
             </div>
           </div>
+
           <div className="flex-1 overflow-y-auto py-4">
             <NavLinks onClick={onNav} />
             <ExploreLinks />
           </div>
+
           <div className="space-y-2 border-t border-sidebar-border p-4">
             {ThemeToggle}
+
             <ConfirmDelete
               onConfirm={lock}
               title="Sign out of the admin account?"
@@ -188,15 +269,18 @@ function SidebarContent({
                 size="sm"
                 className="w-full justify-center rounded-lg bg-primary font-semibold"
               >
-                <LogOut className="mr-2 h-4 w-4" /> Sign out
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
               </Button>
             </ConfirmDelete>
+
             <div className="text-[11px] leading-relaxed text-sidebar-foreground/60">
               MBS Centring Works
             </div>
           </div>
         </>
       )}
+
       {isWorkerSidebar && (
         <>
           <div className="flex-1 overflow-hidden">
@@ -206,21 +290,32 @@ function SidebarContent({
                 alt="MBS Centring Works"
                 className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
               />
-              <div className="mt-4 font-bold text-base tracking-tight">MBS CENTRING WORKS</div>
+
+              <div className="mt-4 font-bold text-base tracking-tight">
+                MBS CENTRING WORKS
+              </div>
+
               <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/65">
                 NEREDUCHERLA
               </div>
             </div>
+
             <ExploreLinks />
           </div>
+
           <div className="space-y-3 border-t border-sidebar-border p-4">
             {ThemeToggle}
+
             <div className="min-w-0 text-sm">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
                 Signed in as
               </div>
-              <div className="truncate font-semibold">{workerName || "Worker"}</div>
+
+              <div className="truncate font-semibold">
+                {workerName || "Worker"}
+              </div>
             </div>
+
             <ConfirmDelete
               onConfirm={lock}
               title="Sign out of this worker account?"
@@ -232,7 +327,8 @@ function SidebarContent({
                 size="sm"
                 className="w-full justify-center border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <LogOut className="mr-2 h-4 w-4" /> Sign out
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
               </Button>
             </ConfirmDelete>
           </div>
@@ -242,124 +338,249 @@ function SidebarContent({
   );
 }
 
-export function AppLayout({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function AppLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // Sidebar is OPEN by default on laptop/desktop.
+  const [open, setOpen] = useState(true);
+
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
   const [workerName, setWorkerName] = useState("");
+
   useEffect(() => {
     const workerId = localStorage.getItem(WORKER_ID_KEY);
+
     setWorker(Boolean(workerId));
+
     if (workerId) {
       void supabase
         .from("workers")
         .select("name")
         .eq("id", workerId)
         .maybeSingle()
-        .then(({ data }) => setWorkerName(data?.name ?? "Worker"));
+        .then(({ data }) => {
+          setWorkerName(data?.name ?? "Worker");
+        });
     }
+
     const stored = localStorage.getItem("mbs-theme");
+
     if (stored === "dark") {
       document.documentElement.classList.add("dark");
       setDark(true);
     }
   }, []);
+
   const toggleTheme = () => {
     const next = !dark;
+
     setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("mbs-theme", next ? "dark" : "light");
+
+    document.documentElement.classList.toggle(
+      "dark",
+      next
+    );
+
+    localStorage.setItem(
+      "mbs-theme",
+      next ? "dark" : "light"
+    );
   };
 
-  // Mobile: swipe right from the left half of the screen opens the sidebar,
-  // swipe left closes it. Tapping outside closes it (handled by Sheet overlay).
+  /*
+   * Mobile:
+   * Swipe right -> open sidebar
+   * Swipe left  -> close sidebar
+   */
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     let startX = 0;
     let startY = 0;
     let tracking = false;
+
     const onStart = (e: TouchEvent) => {
+      // Swipe handling only on mobile/tablet.
       if (window.innerWidth >= 1024) return;
+
       const t = e.touches[0];
+
       if (!t) return;
+
       startX = t.clientX;
       startY = t.clientY;
-      tracking = startX < window.innerWidth * 0.6;
+
+      tracking =
+        startX < window.innerWidth * 0.6;
     };
+
     const onEnd = (e: TouchEvent) => {
       if (!tracking) return;
+
       tracking = false;
+
       const t = e.changedTouches[0];
+
       if (!t) return;
+
       const dx = t.clientX - startX;
       const dy = Math.abs(t.clientY - startY);
+
       if (dy > 60) return;
-      if (dx > 60) setOpen(true);
-      else if (dx < -60) setOpen(false);
+
+      if (dx > 60) {
+        setOpen(true);
+      } else if (dx < -60) {
+        setOpen(false);
+      }
     };
-    window.addEventListener("touchstart", onStart, { passive: true });
-    window.addEventListener("touchend", onEnd, { passive: true });
+
+    window.addEventListener(
+      "touchstart",
+      onStart,
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "touchend",
+      onEnd,
+      { passive: true }
+    );
+
     return () => {
-      window.removeEventListener("touchstart", onStart);
-      window.removeEventListener("touchend", onEnd);
+      window.removeEventListener(
+        "touchstart",
+        onStart
+      );
+
+      window.removeEventListener(
+        "touchend",
+        onEnd
+      );
     };
   }, []);
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop/laptop: same sidebar content as the mobile slide-in menu, always pinned open */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
-        <SidebarContent
-          workerName={worker ? workerName : undefined}
-          dark={dark}
-          onToggleTheme={toggleTheme}
-        />
-      </aside>
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="site-header h-16 border-b border-border px-4 lg:px-6 sticky top-0 z-40">
+      {/* =========================================
+          LAPTOP / DESKTOP SIDEBAR
+          Opens and closes using the same `open`
+          state as the mobile sidebar.
+         ========================================= */}
+
+      {open && (
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+          <SidebarContent
+            workerName={
+              worker ? workerName : undefined
+            }
+            dark={dark}
+            onToggleTheme={toggleTheme}
+          />
+        </aside>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="site-header sticky top-0 z-40 h-16 border-b border-border px-4 lg:px-6">
           <div className="flex h-full items-center justify-between gap-4">
-            <div className="flex items-center gap-3 shrink-0">
-              <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:hidden"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+
+            {/* LEFT SIDE */}
+            <div className="flex shrink-0 items-center gap-3">
+
+              {/* =====================================
+                  MOBILE MENU
+                 ===================================== */}
+              <div className="lg:hidden">
+                <Sheet
+                  open={open}
+                  onOpenChange={setOpen}
                 >
-                  <SidebarContent
-                    onNav={() => setOpen(false)}
-                    workerName={worker ? workerName : undefined}
-                    dark={dark}
-                    onToggleTheme={toggleTheme}
-                  />
-                </SheetContent>
-              </Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05]"
+                      aria-label="Open sidebar"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+
+                  <SheetContent
+                    side="left"
+                    className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+                  >
+                    <SidebarContent
+                      onNav={() => setOpen(false)}
+                      workerName={
+                        worker
+                          ? workerName
+                          : undefined
+                      }
+                      dark={dark}
+                      onToggleTheme={
+                        toggleTheme
+                      }
+                    />
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              {/* =====================================
+                  LAPTOP / DESKTOP MENU
+                 ===================================== */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
+                onClick={() =>
+                  setOpen((prev) => !prev)
+                }
+                aria-label={
+                  open
+                    ? "Close sidebar"
+                    : "Open sidebar"
+                }
+                title={
+                  open
+                    ? "Close sidebar"
+                    : "Open sidebar"
+                }
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              {/* MOBILE LOGO / TITLE */}
               <div className="flex items-center gap-2 lg:hidden">
                 <img
                   src={logo}
                   alt="MBS"
                   className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
                 />
+
                 <div>
-                  <h1 className="font-bold text-sm sm:text-base leading-tight">
+                  <h1 className="font-bold text-sm leading-tight sm:text-base">
                     M.B.S CENTRING WORKS
                   </h1>
-                  <p className="text-[11px] text-muted-foreground">Nereducherla</p>
+
+                  <p className="text-[11px] text-muted-foreground">
+                    Nereducherla
+                  </p>
                 </div>
               </div>
             </div>
+
+            {/* RIGHT SIDE */}
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => window.location.reload()}
+                onClick={() =>
+                  window.location.reload()
+                }
                 title="Refresh"
                 aria-label="Refresh"
               >
@@ -368,10 +589,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </header>
+
         <main
           className={cn(
             "flex-1 overflow-x-hidden p-4 lg:p-6",
-            worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
+            worker &&
+              "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden"
           )}
         >
           {children}

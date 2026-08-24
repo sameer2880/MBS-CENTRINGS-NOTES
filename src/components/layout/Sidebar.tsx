@@ -22,7 +22,12 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
@@ -181,18 +186,28 @@ function ExploreLinks() {
       </div>
 
       <div className="mt-2 space-y-1">
-        {exploreLinks.map(({ href, label, icon: Icon }) => (
-          <a
-            key={href}
-            href={href}
-            target={href.startsWith("http") ? "_blank" : undefined}
-            rel={href.startsWith("http") ? "noreferrer" : undefined}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </a>
-        ))}
+        {exploreLinks.map(
+          ({ href, label, icon: Icon }) => (
+            <a
+              key={href}
+              href={href}
+              target={
+                href.startsWith("http")
+                  ? "_blank"
+                  : undefined
+              }
+              rel={
+                href.startsWith("http")
+                  ? "noreferrer"
+                  : undefined
+              }
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+            >
+              <Icon className="h-5 w-5" />
+              {label}
+            </a>
+          )
+        )}
       </div>
     </div>
   );
@@ -230,6 +245,9 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      {/* ================================
+          ADMIN SIDEBAR
+         ================================ */}
       {!isWorkerSidebar && (
         <>
           <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4">
@@ -281,6 +299,9 @@ function SidebarContent({
         </>
       )}
 
+      {/* ================================
+          WORKER SIDEBAR
+         ================================ */}
       {isWorkerSidebar && (
         <>
           <div className="flex-1 overflow-hidden">
@@ -343,15 +364,24 @@ export function AppLayout({
 }: {
   children: ReactNode;
 }) {
-  // Sidebar is OPEN by default on laptop/desktop.
-  const [open, setOpen] = useState(true);
+  /*
+   * IMPORTANT:
+   * false = sidebar CLOSED after login/refresh.
+   *
+   * Clicking the desktop ☰ button opens it.
+   */
+  const [open, setOpen] = useState(false);
 
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
   const [workerName, setWorkerName] = useState("");
 
+  /* ================================
+     LOAD WORKER + THEME
+     ================================ */
   useEffect(() => {
-    const workerId = localStorage.getItem(WORKER_ID_KEY);
+    const workerId =
+      localStorage.getItem(WORKER_ID_KEY);
 
     setWorker(Boolean(workerId));
 
@@ -366,14 +396,21 @@ export function AppLayout({
         });
     }
 
-    const stored = localStorage.getItem("mbs-theme");
+    const stored =
+      localStorage.getItem("mbs-theme");
 
     if (stored === "dark") {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add(
+        "dark"
+      );
+
       setDark(true);
     }
   }, []);
 
+  /* ================================
+     THEME TOGGLE
+     ================================ */
   const toggleTheme = () => {
     const next = !dark;
 
@@ -390,25 +427,32 @@ export function AppLayout({
     );
   };
 
-  /*
-   * Mobile:
-   * Swipe right -> open sidebar
-   * Swipe left  -> close sidebar
-   */
+  /* ================================
+     MOBILE SWIPE
+     ================================ */
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     let startX = 0;
     let startY = 0;
     let tracking = false;
 
     const onStart = (e: TouchEvent) => {
-      // Swipe handling only on mobile/tablet.
-      if (window.innerWidth >= 1024) return;
+      /*
+       * Only enable swipe behavior below
+       * the laptop breakpoint.
+       */
+      if (window.innerWidth >= 1024) {
+        return;
+      }
 
       const t = e.touches[0];
 
-      if (!t) return;
+      if (!t) {
+        return;
+      }
 
       startX = t.clientX;
       startY = t.clientY;
@@ -418,22 +462,41 @@ export function AppLayout({
     };
 
     const onEnd = (e: TouchEvent) => {
-      if (!tracking) return;
+      if (!tracking) {
+        return;
+      }
 
       tracking = false;
 
       const t = e.changedTouches[0];
 
-      if (!t) return;
+      if (!t) {
+        return;
+      }
 
       const dx = t.clientX - startX;
-      const dy = Math.abs(t.clientY - startY);
+      const dy = Math.abs(
+        t.clientY - startY
+      );
 
-      if (dy > 60) return;
+      /*
+       * Ignore vertical scrolling.
+       */
+      if (dy > 60) {
+        return;
+      }
 
+      /*
+       * Swipe right -> open.
+       */
       if (dx > 60) {
         setOpen(true);
-      } else if (dx < -60) {
+      }
+
+      /*
+       * Swipe left -> close.
+       */
+      else if (dx < -60) {
         setOpen(false);
       }
     };
@@ -465,11 +528,15 @@ export function AppLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* =========================================
+      {/* ==========================================
           LAPTOP / DESKTOP SIDEBAR
-          Opens and closes using the same `open`
-          state as the mobile sidebar.
-         ========================================= */}
+
+          IMPORTANT:
+          `open` controls whether it exists.
+
+          false -> hidden
+          true  -> visible
+         ========================================== */}
 
       {open && (
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
@@ -483,16 +550,28 @@ export function AppLayout({
         </aside>
       )}
 
+      {/* ==========================================
+          MAIN CONTENT AREA
+
+          flex-1 automatically takes the remaining
+          width when sidebar is closed.
+         ========================================== */}
+
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="site-header sticky top-0 z-40 h-16 border-b border-border px-4 lg:px-6">
           <div className="flex h-full items-center justify-between gap-4">
 
-            {/* LEFT SIDE */}
+            {/* =====================================
+                LEFT SIDE
+               ===================================== */}
+
             <div className="flex shrink-0 items-center gap-3">
 
-              {/* =====================================
+              {/* ===================================
                   MOBILE MENU
-                 ===================================== */}
+                  Only visible below lg.
+                 =================================== */}
+
               <div className="lg:hidden">
                 <Sheet
                   open={open}
@@ -514,7 +593,9 @@ export function AppLayout({
                     className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
                   >
                     <SidebarContent
-                      onNav={() => setOpen(false)}
+                      onNav={() =>
+                        setOpen(false)
+                      }
                       workerName={
                         worker
                           ? workerName
@@ -529,15 +610,21 @@ export function AppLayout({
                 </Sheet>
               </div>
 
-              {/* =====================================
+              {/* ===================================
                   LAPTOP / DESKTOP MENU
-                 ===================================== */}
+
+                  This is the button that opens
+                  and closes the sidebar.
+                 =================================== */}
+
               <Button
                 variant="outline"
                 size="icon"
                 className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
                 onClick={() =>
-                  setOpen((prev) => !prev)
+                  setOpen(
+                    (previous) => !previous
+                  )
                 }
                 aria-label={
                   open
@@ -553,7 +640,10 @@ export function AppLayout({
                 <Menu className="h-5 w-5" />
               </Button>
 
-              {/* MOBILE LOGO / TITLE */}
+              {/* ===================================
+                  MOBILE LOGO + TITLE
+                 =================================== */}
+
               <div className="flex items-center gap-2 lg:hidden">
                 <img
                   src={logo}
@@ -573,7 +663,10 @@ export function AppLayout({
               </div>
             </div>
 
-            {/* RIGHT SIDE */}
+            {/* =====================================
+                RIGHT SIDE
+               ===================================== */}
+
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -589,6 +682,10 @@ export function AppLayout({
             </div>
           </div>
         </header>
+
+        {/* ========================================
+            PAGE CONTENT
+           ======================================== */}
 
         <main
           className={cn(

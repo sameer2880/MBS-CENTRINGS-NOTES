@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { HardHat, Search, ChevronRight, Download, UserCog } from "lucide-react";
 import { downloadCsv } from "@/lib/export";
 import { toast } from "sonner";
+import { getRole, getVisibleNotes } from "@/lib/user-role";
 
 export const Route = createFileRoute("/_authenticated/labour/")({
   head: () => ({
@@ -36,12 +37,15 @@ export type Worker = {
 function LabourList() {
   const [q, setQ] = useState("");
 
+  // Labour Charges only ever shows "worker" role users. There's no role
+  // column — admins are marked with a hidden marker inside `notes` (see
+  // @/lib/user-role) — so the split happens client-side after the fetch.
   const { data: workers = [], isLoading } = useQuery({
     queryKey: ["workers"],
     queryFn: async () => {
       const { data, error } = await supabase.from("workers").select("*").order("name");
       if (error) throw error;
-      return data as Worker[];
+      return (data as Worker[]).filter((w) => getRole(w.notes) === "worker");
     },
   });
 
@@ -71,7 +75,7 @@ function LabourList() {
                   Name: w.name,
                   Mobile: w.phone ?? "",
                   "Daily wage": w.daily_wage,
-                  Notes: w.notes ?? "",
+                  Notes: getVisibleNotes(w.notes),
                   Added: new Date(w.created_at).toLocaleString("en-IN"),
                 })),
               );
@@ -82,7 +86,7 @@ function LabourList() {
           </Button>
           <Button asChild>
             <Link to="/manage-worker">
-              <UserCog className="h-4 w-4 mr-1.5" /> Manage Workers
+              <UserCog className="h-4 w-4 mr-1.5" /> Manage Users
             </Link>
           </Button>
         </div>
@@ -120,7 +124,7 @@ function LabourList() {
                     {w.phone ? `${w.phone} · ` : ""}₹{Number(w.daily_wage).toLocaleString("en-IN")}/day
                     {!w.active && " · Login disabled"}
                   </div>
-                  {w.notes && <div className="text-xs text-muted-foreground truncate mt-0.5">{w.notes}</div>}
+                  {w.notes && <div className="text-xs text-muted-foreground truncate mt-0.5">{getVisibleNotes(w.notes)}</div>}
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
               </Link>

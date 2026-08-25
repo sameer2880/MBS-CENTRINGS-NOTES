@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
+import { getRole } from "@/lib/user-role";
 
 const KEY = "mbs-gate";
 const USER = "mbsnotes";
@@ -152,33 +153,42 @@ export function Gate({ children }: { children: ReactNode }) {
       return;
     }
     void (async () => {
-      const { data: workerByName } = await supabase
+      const { data: userByName } = await supabase
         .from("workers")
-        .select("id, name, phone, active")
+        .select("id, name, phone, active, notes")
         .ilike("name", u.trim())
         .maybeSingle();
-      const { data: workerByPhone } = workerByName
+      const { data: userByPhone } = userByName
         ? { data: null }
         : await supabase
             .from("workers")
-            .select("id, name, phone, active")
+            .select("id, name, phone, active, notes")
             .eq("phone", u.trim())
             .maybeSingle();
-      const workerRecord = workerByName ?? workerByPhone;
-      if (!workerRecord?.phone) {
-        setErr("Worker name or mobile number was not found");
+      const userRecord = userByName ?? userByPhone;
+      if (!userRecord?.phone) {
+        setErr("Name or mobile number was not found");
         return;
       }
-      if (!workerRecord.active) {
-        setErr("This worker account is deactivated");
+      if (!userRecord.active) {
+        setErr("This account is deactivated");
         return;
       }
       const password = p.trim();
-      if (password !== workerRecord.phone.trim()) {
+      if (password !== userRecord.phone.trim()) {
         setErr("Incorrect mobile number");
         return;
       }
-      localStorage.setItem(WORKER_ID_KEY, workerRecord.id);
+      if (getRole(userRecord.notes) === "admin") {
+        // Admin-role users get the same full access as the master login.
+        localStorage.setItem(KEY, "1");
+        localStorage.removeItem(WORKER_ID_KEY);
+        setWorker(false);
+        setOk(true);
+        void navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+      localStorage.setItem(WORKER_ID_KEY, userRecord.id);
       setWorker(true);
     })();
   };

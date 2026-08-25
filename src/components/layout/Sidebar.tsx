@@ -50,7 +50,7 @@ const nav = [
   },
   {
     to: "/manage-worker",
-    label: "Manage Worker",
+    label: "Manage Users",
     icon: UserCog,
   },
   {
@@ -93,25 +93,10 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   const [worker, setWorker] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (!data.session?.user) return;
-
-      const workerId =
-        data.session.user.user_metadata?.worker_id ??
-        localStorage.getItem(WORKER_ID_KEY);
-
-      const { data: workerRecord } = workerId
-        ? await supabase
-            .from("workers")
-            .select("id")
-            .eq("id", workerId)
-            .maybeSingle()
-        : { data: null };
-
-      setWorker(Boolean(workerRecord));
-    })();
+    // Worker (and admin) logins here are tracked locally, not via a real
+    // Supabase auth session — WORKER_ID_KEY is only ever set for role
+    // "worker" accounts, so its presence is enough to restrict the nav.
+    setWorker(Boolean(localStorage.getItem(WORKER_ID_KEY)));
   }, []);
 
   const links = worker

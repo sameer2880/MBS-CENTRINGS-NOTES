@@ -90,6 +90,66 @@ Please return it on time or contact us if you need an extension.
 Thank you.`;
 }
 
+function daysBetween(a: Date, b: Date) {
+  const ms = a.setHours(0, 0, 0, 0) - b.setHours(0, 0, 0, 0);
+  return Math.round(ms / 86400000);
+}
+
+/** Sent while a rental is still within its return date — a friendly status update. */
+export function buildActiveMessage(r: Rental) {
+  const today = new Date();
+  const ret = new Date(r.return_date);
+  const daysLeft = daysBetween(ret, today);
+  const dueText =
+    daysLeft === 0
+      ? "due today"
+      : daysLeft === 1
+        ? "due tomorrow"
+        : daysLeft > 1
+          ? `due in ${daysLeft} days`
+          : "due soon";
+
+  return `Hello ${r.customer_name},
+
+This is a status update from M.B.S CENTRING WORKS, Nereducherla.
+
+Your rented material ${r.material_name} (Qty: ${r.quantity} ${r.unit}) is currently active and ${dueText} on ${r.return_date}.
+
+Please plan to return it on or before the due date.
+
+Thank you.`;
+}
+
+/** Sent once a rental has crossed its return date — a first overdue notice. */
+export function buildOverdueMessage(r: Rental) {
+  const today = new Date();
+  const ret = new Date(r.return_date);
+  const daysLate = Math.max(1, daysBetween(today, ret));
+
+  return `Hello ${r.customer_name},
+
+This is an overdue notice from M.B.S CENTRING WORKS, Nereducherla.
+
+Your rented material ${r.material_name} (Qty: ${r.quantity} ${r.unit}) was due for return on ${r.return_date} and is now ${daysLate} day${daysLate > 1 ? "s" : ""} overdue.
+
+Kindly return the material at the earliest or contact us to extend the rental.
+
+Thank you.`;
+}
+
+/** A stronger follow-up for material that is still not returned after an earlier notice. */
+export function buildNotReturnedMessage(r: Rental) {
+  return `Hello ${r.customer_name},
+
+This is a follow-up from M.B.S CENTRING WORKS, Nereducherla.
+
+As per our records, the material ${r.material_name} (Qty: ${r.quantity} ${r.unit}) rented on ${r.issue_date} has still not been returned.
+
+Please arrange to return it immediately or contact us to avoid further charges/action.
+
+Thank you.`;
+}
+
 export function buildReturnMessage(r: Rental) {
   const returnedOn = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
   return `Hello ${r.customer_name},

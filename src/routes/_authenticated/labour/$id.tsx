@@ -498,7 +498,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                         st === "absent" &&
                           "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20",
                         st === "holiday" &&
-                          "border-border bg-muted text-muted-foreground hover:bg-muted/80",
+                          "border-warning/40 bg-warning/20 text-warning font-bold hover:bg-warning/30",
                         isToday &&
                           !st &&
                           "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
@@ -530,7 +530,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                 Absent
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-md bg-muted" /> Holiday
+                <span className="h-3 w-3 rounded-md border border-warning/40 bg-warning/30" /> Holiday
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Payment on that day

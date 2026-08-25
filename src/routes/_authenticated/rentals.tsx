@@ -3,7 +3,14 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  listRentals, buildConfirmMessage, buildReminderMessage, buildReturnMessage, whatsappUrl, type Rental,
+  listRentals,
+  buildConfirmMessage,
+  buildActiveMessage,
+  buildOverdueMessage,
+  buildNotReturnedMessage,
+  buildReturnMessage,
+  whatsappUrl,
+  type Rental,
 } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,9 +173,26 @@ function RentalsPage() {
                           <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
                             <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReminderMessage(r)), "_blank")}>
-                            <Bell className="h-4 w-4 mr-2" /> WhatsApp reminder
-                          </DropdownMenuItem>
+                          {r.status === "active" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildActiveMessage(r)), "_blank")}>
+                              <Bell className="h-4 w-4 mr-2" /> WhatsApp active status
+                            </DropdownMenuItem>
+                          )}
+                          {r.status === "overdue" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildOverdueMessage(r)), "_blank")}>
+                              <Bell className="h-4 w-4 mr-2" /> WhatsApp overdue notice
+                            </DropdownMenuItem>
+                          )}
+                          {r.status !== "returned" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildNotReturnedMessage(r)), "_blank")}>
+                              <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp not returned
+                            </DropdownMenuItem>
+                          )}
+                          {r.status === "returned" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReturnMessage(r)), "_blank")}>
+                              <CheckCircle2 className="h-4 w-4 mr-2" /> WhatsApp return confirmation
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={async () => {
                               await navigator.clipboard.writeText(buildConfirmMessage(r));

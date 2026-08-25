@@ -19,6 +19,7 @@ import {
   Phone,
   MapPin,
   MessageSquare,
+  UserCog,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,11 @@ const nav = [
     to: "/rentals",
     label: "Rentals",
     icon: Package,
+  },
+  {
+    to: "/manage-worker",
+    label: "Manage Worker",
+    icon: UserCog,
   },
   {
     to: "/labour",
@@ -133,7 +139,7 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
               "flex items-center gap-3 text-sm font-semibold transition-all",
               active
                 ? "rounded-xl bg-sidebar-accent px-4 py-3 text-primary"
-                : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent"
+                : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent",
             )}
           >
             <Icon className="h-4 w-4" />
@@ -186,28 +192,18 @@ function ExploreLinks() {
       </div>
 
       <div className="mt-2 space-y-1">
-        {exploreLinks.map(
-          ({ href, label, icon: Icon }) => (
-            <a
-              key={href}
-              href={href}
-              target={
-                href.startsWith("http")
-                  ? "_blank"
-                  : undefined
-              }
-              rel={
-                href.startsWith("http")
-                  ? "noreferrer"
-                  : undefined
-              }
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </a>
-          )
-        )}
+        {exploreLinks.map(({ href, label, icon: Icon }) => (
+          <a
+            key={href}
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noreferrer" : undefined}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+          >
+            <Icon className="h-5 w-5" />
+            {label}
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -258,7 +254,7 @@ function SidebarContent({
             />
 
             <div className="min-w-0">
-              <div className="font-bold text-sm leading-tight tracking-tight">
+              <div className="text-sm font-bold leading-tight tracking-tight">
                 MBS CENTRING WORKS
               </div>
 
@@ -312,7 +308,7 @@ function SidebarContent({
                 className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
               />
 
-              <div className="mt-4 font-bold text-base tracking-tight">
+              <div className="mt-4 text-base font-bold tracking-tight">
                 MBS CENTRING WORKS
               </div>
 
@@ -400,10 +396,7 @@ export function AppLayout({
       localStorage.getItem("mbs-theme");
 
     if (stored === "dark") {
-      document.documentElement.classList.add(
-        "dark"
-      );
-
+      document.documentElement.classList.add("dark");
       setDark(true);
     }
   }, []);
@@ -418,12 +411,12 @@ export function AppLayout({
 
     document.documentElement.classList.toggle(
       "dark",
-      next
+      next,
     );
 
     localStorage.setItem(
       "mbs-theme",
-      next ? "dark" : "light"
+      next ? "dark" : "light",
     );
   };
 
@@ -476,7 +469,7 @@ export function AppLayout({
 
       const dx = t.clientX - startX;
       const dy = Math.abs(
-        t.clientY - startY
+        t.clientY - startY,
       );
 
       /*
@@ -504,24 +497,24 @@ export function AppLayout({
     window.addEventListener(
       "touchstart",
       onStart,
-      { passive: true }
+      { passive: true },
     );
 
     window.addEventListener(
       "touchend",
       onEnd,
-      { passive: true }
+      { passive: true },
     );
 
     return () => {
       window.removeEventListener(
         "touchstart",
-        onStart
+        onStart,
       );
 
       window.removeEventListener(
         "touchend",
-        onEnd
+        onEnd,
       );
     };
   }, []);
@@ -552,9 +545,6 @@ export function AppLayout({
 
       {/* ==========================================
           MAIN CONTENT AREA
-
-          flex-1 automatically takes the remaining
-          width when sidebar is closed.
          ========================================== */}
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -593,9 +583,9 @@ export function AppLayout({
                     className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
                   >
                     <SidebarContent
-                      onNav={() =>
-                        setOpen(false)
-                      }
+                      onNav={() => {
+                        setOpen(false);
+                      }}
                       workerName={
                         worker
                           ? workerName
@@ -613,7 +603,7 @@ export function AppLayout({
               {/* ===================================
                   LAPTOP / DESKTOP MENU
 
-                  This is the button that opens
+                  This button opens
                   and closes the sidebar.
                  =================================== */}
 
@@ -621,11 +611,9 @@ export function AppLayout({
                 variant="outline"
                 size="icon"
                 className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
-                onClick={() =>
-                  setOpen(
-                    (previous) => !previous
-                  )
-                }
+                onClick={() => {
+                  setOpen((previous) => !previous);
+                }}
                 aria-label={
                   open
                     ? "Close sidebar"
@@ -652,7 +640,7 @@ export function AppLayout({
                 />
 
                 <div>
-                  <h1 className="font-bold text-sm leading-tight sm:text-base">
+                  <h1 className="text-sm font-bold leading-tight sm:text-base">
                     M.B.S CENTRING WORKS
                   </h1>
 
@@ -671,9 +659,9 @@ export function AppLayout({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() =>
-                  window.location.reload()
-                }
+                onClick={() => {
+                  window.location.reload();
+                }}
                 title="Refresh"
                 aria-label="Refresh"
               >
@@ -691,7 +679,7 @@ export function AppLayout({
           className={cn(
             "flex-1 overflow-x-hidden p-4 lg:p-6",
             worker &&
-              "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden"
+              "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
           )}
         >
           {children}

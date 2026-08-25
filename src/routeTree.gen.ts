@@ -17,6 +17,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDiaryRouteImport } from './routes/_authenticated/diary'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
+import { Route as AuthenticatedManageWorkerRouteImport } from './routes/_authenticated/manage-worker'
 import { Route as AuthenticatedReelsRouteImport } from './routes/_authenticated/reels'
 import { Route as AuthenticatedRentalsRouteImport } from './routes/_authenticated/rentals'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
@@ -68,6 +69,12 @@ const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
   path: '/feedback',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedManageWorkerRoute =
+  AuthenticatedManageWorkerRouteImport.update({
+    id: '/manage-worker',
+    path: '/manage-worker',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReelsRoute = AuthenticatedReelsRouteImport.update({
   id: '/reels',
   path: '/reels',
@@ -125,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diary': typeof AuthenticatedDiaryRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/manage-worker': typeof AuthenticatedManageWorkerRoute
   '/reels': typeof AuthenticatedReelsRoute
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
@@ -143,6 +151,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/diary': typeof AuthenticatedDiaryRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/manage-worker': typeof AuthenticatedManageWorkerRoute
   '/reels': typeof AuthenticatedReelsRoute
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
@@ -163,6 +172,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/diary': typeof AuthenticatedDiaryRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
+  '/_authenticated/manage-worker': typeof AuthenticatedManageWorkerRoute
   '/_authenticated/reels': typeof AuthenticatedReelsRoute
   '/_authenticated/rentals': typeof AuthenticatedRentalsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diary'
     | '/feedback'
+    | '/manage-worker'
     | '/reels'
     | '/rentals'
     | '/reports'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diary'
     | '/feedback'
+    | '/manage-worker'
     | '/reels'
     | '/rentals'
     | '/reports'
@@ -220,6 +232,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/diary'
     | '/_authenticated/feedback'
+    | '/_authenticated/manage-worker'
     | '/_authenticated/reels'
     | '/_authenticated/rentals'
     | '/_authenticated/reports'
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/manage-worker': {
+      id: '/_authenticated/manage-worker'
+      path: '/manage-worker'
+      fullPath: '/manage-worker'
+      preLoaderRoute: typeof AuthenticatedManageWorkerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reels': {
       id: '/_authenticated/reels'
       path: '/reels'
@@ -368,6 +388,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDiaryRoute: typeof AuthenticatedDiaryRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
+  AuthenticatedManageWorkerRoute: typeof AuthenticatedManageWorkerRoute
   AuthenticatedReelsRoute: typeof AuthenticatedReelsRoute
   AuthenticatedRentalsRoute: typeof AuthenticatedRentalsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
@@ -382,6 +403,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDiaryRoute: AuthenticatedDiaryRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
+  AuthenticatedManageWorkerRoute: AuthenticatedManageWorkerRoute,
   AuthenticatedReelsRoute: AuthenticatedReelsRoute,
   AuthenticatedRentalsRoute: AuthenticatedRentalsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,

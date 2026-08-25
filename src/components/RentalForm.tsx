@@ -74,6 +74,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
 
   const itemTotal = (it: Item) => Number(it.quantity || 0) * Number(it.rate_per_unit || 0);
   const grandTotal = form.items.reduce((s, it) => s + itemTotal(it), 0);
+  const balanceDue = grandTotal - Number(form.security_deposit || 0);
 
   const updateItem = (idx: number, patch: Partial<Item>) => {
     setForm((f) => ({ ...f, items: f.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) }));
@@ -107,7 +108,31 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         };
         const { data, error } = await supabase.from("rentals").update(payload).eq("id", editing.id).select().single();
         if (error) throw error;
-        return [data as Rental];
+        const results: Rental[] = [data as Rental];
+
+        // Any extra material rows added while editing are saved as new rentals
+        const extraItems = form.items.slice(1);
+        if (extraItems.length > 0) {
+          const extraRows = extraItems.map((extra) => ({
+            customer_name: form.customer_name,
+            customer_phone: form.customer_phone,
+            customer_address: form.customer_address,
+            material_name: extra.material_name,
+            quantity: Number(extra.quantity),
+            unit: extra.unit,
+            rate_per_unit: Number(extra.rate_per_unit),
+            total_amount: itemTotal(extra),
+            security_deposit: 0,
+            issue_date: form.issue_date,
+            return_date: form.return_date,
+            status: form.status,
+            notes: form.notes,
+          }));
+          const { data: extraData, error: extraError } = await supabase.from("rentals").insert(extraRows).select();
+          if (extraError) throw extraError;
+          results.push(...(extraData as Rental[]));
+        }
+        return results;
       }
 
       // Split security deposit only on the first row to avoid double counting
@@ -133,16 +158,21 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
     onSuccess: (rows) => {
       qc.invalidateQueries({ queryKey: ["rentals"] });
       const first = rows[0];
-      const message = editing
-        ? buildConfirmMessage(first)
-        : buildGroupConfirmMessage(rows);
+      const message = rows.length > 1 ? buildGroupConfirmMessage(rows) : buildConfirmMessage(first);
       const link = first ? whatsappUrl(first.customer_phone, message) : null;
 
-      toast.success(editing ? "Rental updated" : `Saved ${rows.length} material${rows.length > 1 ? "s" : ""}`, {
-        action: link
-          ? { label: "Send WhatsApp", onClick: () => window.open(link, "_blank") }
-          : undefined,
-      });
+      toast.success(
+        editing
+          ? rows.length > 1
+            ? `Rental updated · ${rows.length} materials`
+            : "Rental updated"
+          : `Saved ${rows.length} material${rows.length > 1 ? "s" : ""}`,
+        {
+          action: link
+            ? { label: "Send WhatsApp", onClick: () => window.open(link, "_blank") }
+            : undefined,
+        },
+      );
       onOpenChange(false);
     },
 
@@ -184,7 +214,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
               <div key={idx} className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-muted-foreground">Material #{idx + 1}</span>
-                  {!editing && form.items.length > 1 && (
+                  {form.items.length > 1 && (!editing || idx > 0) && (
                     <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(idx)} className="h-7 text-destructive">
                       <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
                     </Button>
@@ -212,20 +242,35 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
                 </div>
               </div>
             ))}
-            {!editing && (
-              <Button type="button" size="sm" variant="outline" onClick={addItem} className="w-full">
-                <Plus className="h-4 w-4 mr-1" /> Add more
-              </Button>
+            {(!editing || form.items.length > 1) && (
+              <p className="text-[11px] text-muted-foreground">
+                {editing ? "Extra materials added here are saved as new rentals for this customer." : ""}
+              </p>
             )}
+            <Button type="button" size="sm" variant="outline" onClick={addItem} className="w-full">
+              <Plus className="h-4 w-4 mr-1" /> Add more
+            </Button>
           </div>
 
-          <Field label="Security Deposit ₹">
-            <Input type="number" min="0" step="0.01" value={form.security_deposit} onChange={(e) => setForm({ ...form, security_deposit: e.target.value })} />
+          <Field label="Advance Received ₹">
+            <Input type="number" min="0" step="0.01" value={form.security_deposit} onChange={(e) => setForm({ ...form, security_deposit: e.target.value })} placeholder="Advance money given by the customer" />
           </Field>
 
-          <div className="rounded-lg bg-primary/10 border-2 border-primary/30 px-4 py-3 flex items-center justify-between">
-            <span className="text-sm font-medium">Grand Total</span>
-            <span className="text-2xl font-bold text-primary">₹{grandTotal.toLocaleString("en-IN")}</span>
+          <div className="rounded-lg bg-primary/10 border-2 border-primary/30 px-4 py-3 space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Materials Total</span>
+              <span className="font-medium">₹{grandTotal.toLocaleString("en-IN")}</span>
+            </div>
+            {Number(form.security_deposit || 0) > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Advance Received</span>
+                <span className="font-medium text-success">- ₹{Number(form.security_deposit || 0).toLocaleString("en-IN")}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t border-primary/20 pt-1.5">
+              <span className="text-sm font-medium">Balance Due</span>
+              <span className="text-2xl font-bold text-primary">₹{balanceDue.toLocaleString("en-IN")}</span>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">

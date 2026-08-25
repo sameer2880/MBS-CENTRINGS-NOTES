@@ -16,7 +16,7 @@ export default defineTool({
     unit: z.string().optional().describe("Unit of measure, default 'pcs'."),
     rate_per_unit: z.number().nonnegative(),
     total_amount: z.number().nonnegative().optional(),
-    security_deposit: z.number().nonnegative().optional(),
+    security_deposit: z.number().nonnegative().optional().describe("Advance amount received from the customer."),
     issue_date: z.string().describe("Issue date, YYYY-MM-DD."),
     return_date: z.string().describe("Expected return date, YYYY-MM-DD."),
     notes: z.string().optional(),

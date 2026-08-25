@@ -14,7 +14,7 @@ export default defineTool({
     quantity: z.number().positive().optional(),
     rate_per_unit: z.number().nonnegative().optional(),
     total_amount: z.number().nonnegative().optional(),
-    security_deposit: z.number().nonnegative().optional(),
+    security_deposit: z.number().nonnegative().optional().describe("Advance amount received from the customer."),
     notes: z.string().optional(),
   },
   annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },

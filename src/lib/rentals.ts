@@ -34,6 +34,8 @@ export async function listRentals(): Promise<Rental[]> {
 }
 
 export function buildConfirmMessage(r: Rental) {
+  const advance = Number(r.security_deposit || 0);
+  const balance = Number(r.total_amount || 0) - advance;
   return `Hello ${r.customer_name},
 
 Welcome to M.B.S CENTRING WORKS, Nereducherla.
@@ -41,7 +43,7 @@ Welcome to M.B.S CENTRING WORKS, Nereducherla.
 Rental Details:
 Material: ${r.material_name}
 Quantity: ${r.quantity} ${r.unit}
-Amount: ₹${r.total_amount}
+Amount: ₹${r.total_amount}${advance ? `\nAdvance Received: ₹${advance.toLocaleString("en-IN")}\nBalance Due: ₹${balance.toLocaleString("en-IN")}` : ""}
 Issue Date: ${r.issue_date}
 Return Date: ${r.return_date}
 
@@ -57,7 +59,8 @@ export function buildGroupConfirmMessage(rows: Rental[]) {
     .map((r, i) => `${i + 1}. ${r.material_name} — ${r.quantity} ${r.unit} — ₹${Number(r.total_amount).toLocaleString("en-IN")}`)
     .join("\n");
   const total = rows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
-  const deposit = rows.reduce((s, r) => s + Number(r.security_deposit || 0), 0);
+  const advance = rows.reduce((s, r) => s + Number(r.security_deposit || 0), 0);
+  const balance = total - advance;
   return `Hello ${first.customer_name},
 
 Welcome to M.B.S CENTRING WORKS, Nereducherla.
@@ -65,7 +68,7 @@ Welcome to M.B.S CENTRING WORKS, Nereducherla.
 Rental Details:
 ${lines}
 
-Total Amount: ₹${total.toLocaleString("en-IN")}${deposit ? `\nSecurity Deposit: ₹${deposit.toLocaleString("en-IN")}` : ""}
+Total Amount: ₹${total.toLocaleString("en-IN")}${advance ? `\nAdvance Received: ₹${advance.toLocaleString("en-IN")}\nBalance Due: ₹${balance.toLocaleString("en-IN")}` : ""}
 Issue Date: ${first.issue_date}
 Return Date: ${first.return_date}
 

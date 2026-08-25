@@ -143,15 +143,15 @@ function ReceiptPage() {
             </div>
             {r.security_deposit ? (
               <div className="flex justify-between text-sm">
-                <span>Security Deposit</span>
-                <span>₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
+                <span>Advance Received</span>
+                <span>- ₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
               </div>
             ) : null}
             <div className="mt-2 flex justify-between border-t-2 border-primary pt-2 text-lg font-bold text-primary">
-              <span>Total</span>
+              <span>Balance Due</span>
               <span>
                 ₹
-                {(Number(r.total_amount) + Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}
+                {(Number(r.total_amount) - Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}
               </span>
             </div>
           </div>

@@ -88,9 +88,12 @@ Thank you.`;
 }
 
 export function buildReturnMessage(r: Rental) {
+  const returnedOn = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
   return `Hello ${r.customer_name},
 
 Thank you for returning the rented material ${r.material_name}.
+
+The rental material is returned on ${returnedOn}.
 
 We appreciate your business.
 

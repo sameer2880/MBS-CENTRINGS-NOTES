@@ -39,6 +39,8 @@ export type Worker = {
 
 const emptyWorker = () => ({ name: "", phone: "", daily_wage: "" as string | number, notes: "" });
 
+const MOBILE_REGEX = /^[6789]\d{9}$/;
+
 function LabourList() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -64,6 +66,9 @@ function LabourList() {
         notes: form.notes.trim() || null,
       };
       if (!payload.name) throw new Error("Worker name is required");
+      if (payload.phone && !MOBILE_REGEX.test(payload.phone)) {
+        throw new Error("Mobile number must be 10 digits and start with 6, 7, 8 or 9");
+      }
       if (editing) {
         const { error } = await supabase.from("workers").update(payload).eq("id", editing.id);
         if (error) throw error;
@@ -117,7 +122,7 @@ function LabourList() {
     onSuccess: (_, worker) => {
       qc.invalidateQueries({ queryKey: ["workers"] });
       setEditing((current) => (current?.id === worker.id ? { ...current, active: false } : current));
-      toast.success("Worker account disabled");
+      toast.success("Worker account deactivated");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -236,8 +241,21 @@ function LabourList() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Mobile</Label>
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Optional" />
+                <Label>Mobile (used as password)</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) =>
+                    setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })
+                  }
+                  placeholder="10-digit mobile, e.g. 9876543210"
+                  inputMode="numeric"
+                  maxLength={10}
+                />
+                {form.phone.length > 0 && !MOBILE_REGEX.test(form.phone) && (
+                  <p className="mt-1 text-xs text-destructive">
+                    Must be 10 digits, starting with 6, 7, 8 or 9
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Daily wage (₹)</Label>
@@ -269,12 +287,12 @@ function LabourList() {
                 {editing.active && (
                   <ConfirmDelete
                     onConfirm={() => disableAccount.mutate(editing)}
-                    title={`Disable ${editing.name}'s account?`}
+                    title={`Deactivate ${editing.name}'s account?`}
                     description="This worker will no longer be able to log in. Their attendance and payment records will remain available to staff."
-                    confirmLabel="Disable account"
+                    confirmLabel="Deactivate account"
                   >
                     <Button type="button" variant="destructive">
-                      Disable account
+                      Deactivate account
                     </Button>
                   </ConfirmDelete>
                 )}

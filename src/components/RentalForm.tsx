@@ -29,6 +29,8 @@ type Item = {
 
 const emptyItem = (): Item => ({ material_name: "", quantity: 1, unit: "pcs", rate_per_unit: 0 });
 
+const MOBILE_REGEX = /^[6789]\d{9}$/;
+
 const emptyForm = () => ({
   customer_name: "",
   customer_phone: "",
@@ -82,7 +84,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!/^\d{10}$/.test(form.customer_phone)) throw new Error("Enter a valid 10-digit mobile number");
+      if (!MOBILE_REGEX.test(form.customer_phone)) throw new Error("Mobile number must be 10 digits and start with 6, 7, 8 or 9");
       if (!form.customer_name) throw new Error("Customer name is required");
       if (form.items.some((it) => !it.material_name)) throw new Error("Every material row needs a name");
 
@@ -136,12 +138,8 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         : buildGroupConfirmMessage(rows);
       const link = first ? whatsappUrl(first.customer_phone, message) : null;
 
-      // Auto-send the WhatsApp confirmation to the customer
-      const opened = link ? window.open(link, "_blank") : null;
-
       toast.success(editing ? "Rental updated" : `Saved ${rows.length} material${rows.length > 1 ? "s" : ""}`, {
-        description: opened ? "WhatsApp confirmation opened for the customer." : undefined,
-        action: link && !opened
+        action: link
           ? { label: "Send WhatsApp", onClick: () => window.open(link, "_blank") }
           : undefined,
       });
@@ -164,7 +162,16 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
               <Input value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} required />
             </Field>
             <Field label="Mobile Number *">
-              <Input maxLength={10} value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value.replace(/\D/g, "") })} required />
+              <Input
+                maxLength={10}
+                inputMode="numeric"
+                value={form.customer_phone}
+                onChange={(e) => setForm({ ...form, customer_phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                required
+              />
+              {form.customer_phone.length > 0 && !MOBILE_REGEX.test(form.customer_phone) && (
+                <p className="text-xs text-destructive">Must be 10 digits, starting with 6, 7, 8 or 9</p>
+              )}
             </Field>
           </div>
           <Field label="Village / Address">
@@ -172,14 +179,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
           </Field>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Materials</Label>
-              {!editing && (
-                <Button type="button" size="sm" variant="outline" onClick={addItem}>
-                  <Plus className="h-4 w-4 mr-1" /> Add more
-                </Button>
-              )}
-            </div>
+            <Label>Materials</Label>
             {form.items.map((it, idx) => (
               <div key={idx} className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
                 <div className="flex items-center justify-between">
@@ -212,6 +212,11 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
                 </div>
               </div>
             ))}
+            {!editing && (
+              <Button type="button" size="sm" variant="outline" onClick={addItem} className="w-full">
+                <Plus className="h-4 w-4 mr-1" /> Add more
+              </Button>
+            )}
           </div>
 
           <Field label="Security Deposit ₹">
@@ -252,7 +257,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
           </DialogFooter>
           {!editing && form.customer_phone && (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <MessageCircle className="h-3 w-3 text-success" /> A WhatsApp confirmation link will be offered after saving.
+              <MessageCircle className="h-3 w-3 text-success" /> A "Send WhatsApp" option will be offered after saving — it won't open automatically.
             </p>
           )}
         </form>

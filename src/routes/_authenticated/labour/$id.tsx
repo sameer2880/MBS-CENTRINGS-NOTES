@@ -403,36 +403,36 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         )}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: "Present this month", value: `${presentDays} days`, tone: "text-success" },
-          {
-            label: "Absent / Holiday",
-            value: `${absentDays} / ${holidayDays} days`,
-            tone: "text-destructive",
-          },
-          {
-            label: "Wage earned (month)",
-            value: `₹${earned.toLocaleString("en-IN")}`,
-            tone: "text-primary",
-          },
-          {
-            label: "Paid (month / total)",
-            value: `₹${monthPaid.toLocaleString("en-IN")} / ₹${totalPaid.toLocaleString("en-IN")}`,
-            tone: "text-primary",
-          },
-        ].map((s) => (
-          <Card key={s.label}>
-            <CardContent className="p-4">
-              <div className="text-xs text-muted-foreground">{s.label}</div>
-              <div className={cn("text-lg font-bold", s.tone)}>{s.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1.4fr)] lg:items-start">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:self-start">
+          {[
+            { label: "Present this month", value: `${presentDays} days`, tone: "text-success" },
+            {
+              label: "Absent / Holiday",
+              value: `${absentDays} / ${holidayDays} days`,
+              tone: "text-destructive",
+            },
+            {
+              label: "Wage earned (month)",
+              value: `₹${earned.toLocaleString("en-IN")}`,
+              tone: "text-primary",
+            },
+            {
+              label: "Paid (month / total)",
+              value: `₹${monthPaid.toLocaleString("en-IN")} / ₹${totalPaid.toLocaleString("en-IN")}`,
+              tone: "text-primary",
+            },
+          ].map((s) => (
+            <Card key={s.label}>
+              <CardContent className="p-4">
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+                <div className={cn("text-lg font-bold", s.tone)}>{s.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-        <Card className="overflow-y-auto lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px]">
+        <Card className="overflow-y-auto lg:h-[calc(100vh-9rem)] lg:min-h-[420px] lg:max-h-[640px]">
           <CardContent className="space-y-4 p-4 lg:p-5">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
@@ -539,7 +539,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
           </CardContent>
         </Card>
 
-        <Card className="lg:h-[calc(100vh-13rem)] lg:min-h-[420px] lg:max-h-[520px] lg:overflow-y-auto">
+        <Card className="lg:h-[calc(100vh-9rem)] lg:min-h-[420px] lg:max-h-[640px] lg:overflow-y-auto">
           <CardContent className="space-y-3 p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2">

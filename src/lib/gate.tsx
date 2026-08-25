@@ -36,7 +36,7 @@ export function Gate({ children }: { children: ReactNode }) {
   const disableWorkerSession = async () => {
     localStorage.removeItem(WORKER_ID_KEY);
     setWorker(false);
-    setErr("Your account is disabled");
+    setErr("Your account is deactivated");
     await supabase.auth.signOut();
   };
 
@@ -170,7 +170,7 @@ export function Gate({ children }: { children: ReactNode }) {
         return;
       }
       if (!workerRecord.active) {
-        setErr("This worker account is disabled");
+        setErr("This worker account is deactivated");
         return;
       }
       const password = p.trim();

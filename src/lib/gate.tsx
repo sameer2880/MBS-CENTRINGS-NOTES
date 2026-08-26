@@ -10,8 +10,8 @@ import { WORKER_ID_KEY, ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { getRole } from "@/lib/user-role";
 
 const KEY = "mbs-gate";
-const USER = "mbsnotes";
-const PASS = "mbsnotes";
+const USER = "mbscentringworks";
+const PASS = "mbs";
 
 export function isUnlocked() {
   if (typeof window === "undefined") return false;

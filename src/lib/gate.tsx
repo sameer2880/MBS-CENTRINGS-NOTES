@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
-import { WORKER_ID_KEY } from "@/lib/worker-auth";
+import { WORKER_ID_KEY, ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { getRole } from "@/lib/user-role";
 
 const KEY = "mbs-gate";
@@ -21,6 +21,7 @@ export function isUnlocked() {
 export function lock() {
   localStorage.removeItem(KEY);
   localStorage.removeItem(WORKER_ID_KEY);
+  localStorage.removeItem(ADMIN_ID_KEY);
   void supabase.auth.signOut().finally(() => window.location.reload());
 }
 
@@ -41,11 +42,39 @@ export function Gate({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const disableAdminSession = async () => {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(ADMIN_ID_KEY);
+    setOk(false);
+    setErr("Your account is deactivated");
+    await supabase.auth.signOut();
+  };
+
   useEffect(() => {
     let mounted = true;
     const loadSession = async () => {
       try {
         if (isUnlocked()) {
+          const adminId = localStorage.getItem(ADMIN_ID_KEY);
+          if (adminId) {
+            // This full-access session came from an admin-role row (not the
+            // master login) — re-check it's still active before trusting it.
+            const { data: adminRecord, error } = await supabase
+              .from("workers")
+              .select("id, active")
+              .eq("id", adminId)
+              .maybeSingle();
+            if (!error && adminRecord?.active) {
+              if (mounted) {
+                setOk(true);
+                setReady(true);
+              }
+              return;
+            }
+            await disableAdminSession();
+            if (mounted) setReady(true);
+            return;
+          }
           if (mounted) {
             setOk(true);
             setReady(true);
@@ -129,6 +158,38 @@ export function Gate({ children }: { children: ReactNode }) {
   }, [worker]);
 
   useEffect(() => {
+    if (!ok) return;
+    const adminId = localStorage.getItem(ADMIN_ID_KEY);
+    if (!adminId) return; // master login has no row to watch
+
+    let checking = false;
+    const checkAdminStatus = async () => {
+      if (checking) return;
+      const id = localStorage.getItem(ADMIN_ID_KEY);
+      if (!id) return;
+      checking = true;
+      try {
+        const { data: adminRecord, error } = await supabase
+          .from("workers")
+          .select("id, active")
+          .eq("id", id)
+          .maybeSingle();
+        if (!error && (!adminRecord || !adminRecord.active)) await disableAdminSession();
+      } finally {
+        checking = false;
+      }
+    };
+
+    const interval = window.setInterval(() => void checkAdminStatus(), 10000);
+    const onFocus = () => void checkAdminStatus();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [ok]);
+
+  useEffect(() => {
     if (worker && pathname !== "/worker") void navigate({ to: "/worker" });
   }, [navigate, pathname, worker]);
 
@@ -147,6 +208,7 @@ export function Gate({ children }: { children: ReactNode }) {
     if (u.trim() === USER && p === PASS) {
       localStorage.setItem(KEY, "1");
       localStorage.removeItem(WORKER_ID_KEY);
+      localStorage.removeItem(ADMIN_ID_KEY);
       setWorker(false);
       setOk(true);
       void navigate({ to: "/dashboard", replace: true });
@@ -180,8 +242,11 @@ export function Gate({ children }: { children: ReactNode }) {
         return;
       }
       if (getRole(userRecord.notes) === "admin") {
-        // Admin-role users get the same full access as the master login.
+        // Admin-role users get the same full access as the master login,
+        // but we keep their row id so their status can be re-checked and
+        // they can change their own password later.
         localStorage.setItem(KEY, "1");
+        localStorage.setItem(ADMIN_ID_KEY, userRecord.id);
         localStorage.removeItem(WORKER_ID_KEY);
         setWorker(false);
         setOk(true);

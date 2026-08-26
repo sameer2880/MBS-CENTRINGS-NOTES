@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -256,6 +257,8 @@ function SidebarContent({
 
           <div className="space-y-2 border-t border-sidebar-border p-4">
             {ThemeToggle}
+
+            <ChangePasswordDialog />
 
             <ConfirmDelete
               onConfirm={lock}

@@ -30,21 +30,21 @@ export function computeStatus(r: Pick<Rental, "status" | "return_date">): Rental
 
 /**
  * Row highlight colors for the rentals table:
- * - Active + paid       -> blue
- * - Overdue, or unpaid  -> red   (unpaid takes priority except when returned)
- * - Returned + paid     -> green
- * - Returned + unpaid   -> orange
+ * - Active                -> blue   (payment doesn't change this)
+ * - Overdue               -> red
+ * - Returned + paid       -> green
+ * - Returned + not paid   -> orange
  */
 export function getRentalRowTheme(r: Pick<Rental, "status" | "payment_status">) {
   if (r.status === "returned") {
     return r.payment_status === "paid"
-      ? { key: "green", rowClass: "bg-success/5 hover:bg-success/10 border-l-4 border-l-success" }
-      : { key: "orange", rowClass: "bg-orange-500/5 hover:bg-orange-500/10 border-l-4 border-l-orange-500" };
+      ? { key: "green", bgClass: "bg-success/10 hover:bg-success/15" }
+      : { key: "orange", bgClass: "bg-orange-500/10 hover:bg-orange-500/15" };
   }
-  if (r.status === "overdue" || r.payment_status === "unpaid") {
-    return { key: "red", rowClass: "bg-destructive/5 hover:bg-destructive/10 border-l-4 border-l-destructive" };
+  if (r.status === "overdue") {
+    return { key: "red", bgClass: "bg-destructive/10 hover:bg-destructive/15" };
   }
-  return { key: "blue", rowClass: "bg-blue-500/5 hover:bg-blue-500/10 border-l-4 border-l-blue-500" };
+  return { key: "blue", bgClass: "bg-blue-500/10 hover:bg-blue-500/15" };
 }
 
 export async function listRentals(): Promise<Rental[]> {

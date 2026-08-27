@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell, IndianRupee, CircleDollarSign } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell, IndianRupee, CircleDollarSign, SlidersHorizontal, X } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { RentalForm } from "@/components/RentalForm";
@@ -42,16 +42,38 @@ function RentalsPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | Rental["status"]>("all");
   const [payment, setPayment] = useState<"all" | Rental["payment_status"]>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [takenDate, setTakenDate] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [placeFilter, setPlaceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Rental | null>(null);
   const [delId, setDelId] = useState<string | null>(null);
 
+  const activeFilterCount = [takenDate, phoneFilter, nameFilter, placeFilter].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setTakenDate("");
+    setPhoneFilter("");
+    setNameFilter("");
+    setPlaceFilter("");
+    setPage(1);
+  };
+
   const filtered = useMemo(() => {
     const ql = q.toLowerCase();
+    const nameQl = nameFilter.toLowerCase();
+    const placeQl = placeFilter.toLowerCase();
+    const phoneQl = phoneFilter.replace(/\D/g, "");
     return rentals.filter((r) => {
       if (status !== "all" && r.status !== status) return false;
       if (payment !== "all" && r.payment_status !== payment) return false;
+      if (takenDate && r.issue_date !== takenDate) return false;
+      if (phoneQl && !r.customer_phone.includes(phoneQl)) return false;
+      if (nameFilter && !r.customer_name.toLowerCase().includes(nameQl)) return false;
+      if (placeFilter && !(r.customer_address ?? "").toLowerCase().includes(placeQl)) return false;
       if (!ql) return true;
       return (
         r.customer_name.toLowerCase().includes(ql) ||
@@ -59,7 +81,7 @@ function RentalsPage() {
         r.material_name.toLowerCase().includes(ql)
       );
     });
-  }, [rentals, q, status, payment]);
+  }, [rentals, q, status, payment, takenDate, phoneFilter, nameFilter, placeFilter]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice((page - 1) * PAGE, page * PAGE);
@@ -153,12 +175,66 @@ function RentalsPage() {
                 {p === "unpaid" ? "Not Paid" : p} <span className="ml-1.5 text-[10px] opacity-70">({paymentCounts[p]})</span>
               </Button>
             ))}
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilters((v) => !v)}
+              className="ml-auto"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="ml-1.5 text-[10px] opacity-70">({activeFilterCount})</span>
+              )}
+            </Button>
           </div>
+
+          {showFilters && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Date Taken (Issue Date)</label>
+                  <Input type="date" value={takenDate} onChange={(e) => { setTakenDate(e.target.value); setPage(1); }} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Phone Number</label>
+                  <Input
+                    inputMode="numeric"
+                    placeholder="e.g. 9876543210"
+                    value={phoneFilter}
+                    onChange={(e) => { setPhoneFilter(e.target.value); setPage(1); }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Customer Name</label>
+                  <Input
+                    placeholder="e.g. Salman"
+                    value={nameFilter}
+                    onChange={(e) => { setNameFilter(e.target.value); setPage(1); }}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Place</label>
+                  <Input
+                    placeholder="e.g. Nereducherla"
+                    value={placeFilter}
+                    onChange={(e) => { setPlaceFilter(e.target.value); setPage(1); }}
+                  />
+                </div>
+              </div>
+              {activeFilterCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2 h-7 text-xs text-muted-foreground">
+                  <X className="h-3 w-3 mr-1" /> Clear filters
+                </Button>
+              )}
+            </div>
+          )}
 
           <div className="overflow-x-auto -mx-4">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">S.No</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Mobile</TableHead>
                   <TableHead>Material</TableHead>
@@ -172,12 +248,15 @@ function RentalsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading && <TableRow><TableCell colSpan={10} className="text-center py-10">Loading…</TableCell></TableRow>}
+                {isLoading && <TableRow><TableCell colSpan={11} className="text-center py-10">Loading…</TableCell></TableRow>}
                 {!isLoading && pageRows.length === 0 && (
-                  <TableRow><TableCell colSpan={10} className="text-center py-10 text-muted-foreground">No rentals found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">No rentals found</TableCell></TableRow>
                 )}
-                {pageRows.map((r) => (
-                  <TableRow key={r.id} className={getRentalRowTheme(r).rowClass}>
+                {pageRows.map((r, idx) => {
+                  const theme = getRentalRowTheme(r);
+                  return (
+                  <TableRow key={r.id} className={theme.bgClass}>
+                    <TableCell className="text-muted-foreground">{(page - 1) * PAGE + idx + 1}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">
                       <div>{r.customer_name}</div>
                       <div className="text-[10px] text-muted-foreground font-normal">
@@ -198,7 +277,12 @@ function RentalsPage() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">Actions</Button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          >
+                            Actions
+                          </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => { setEditing(r); setOpen(true); }}>
@@ -262,7 +346,8 @@ function RentalsPage() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

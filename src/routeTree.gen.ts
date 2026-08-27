@@ -22,6 +22,7 @@ import { Route as AuthenticatedReelsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedRentalsRouteImport } from './routes/_authenticated/rentals'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedWorkerRouteImport } from './routes/_authenticated/worker'
+import { Route as AuthenticatedWorkerLocationsRouteImport } from './routes/_authenticated/worker-locations'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedLabourIndexRouteImport } from './routes/_authenticated/labour/index'
 import { Route as AuthenticatedLabourIdRouteImport } from './routes/_authenticated/labour/$id'
@@ -95,6 +96,12 @@ const AuthenticatedWorkerRoute = AuthenticatedWorkerRouteImport.update({
   path: '/worker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkerLocationsRoute =
+  AuthenticatedWorkerLocationsRouteImport.update({
+    id: '/worker-locations',
+    path: '/worker-locations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -137,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/worker-locations': typeof AuthenticatedWorkerLocationsRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labour/$id': typeof AuthenticatedLabourIdRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -156,6 +164,7 @@ export interface FileRoutesByTo {
   '/rentals': typeof AuthenticatedRentalsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/worker': typeof AuthenticatedWorkerRoute
+  '/worker-locations': typeof AuthenticatedWorkerLocationsRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/labour/$id': typeof AuthenticatedLabourIdRoute
   '/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -177,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/rentals': typeof AuthenticatedRentalsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/worker': typeof AuthenticatedWorkerRoute
+  '/_authenticated/worker-locations': typeof AuthenticatedWorkerLocationsRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/labour/$id': typeof AuthenticatedLabourIdRoute
   '/_authenticated/receipts/$id': typeof AuthenticatedReceiptsIdRoute
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/reports'
     | '/worker'
+    | '/worker-locations'
     | '/.mcp/invoke-tool/$tool'
     | '/labour/$id'
     | '/receipts/$id'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/rentals'
     | '/reports'
     | '/worker'
+    | '/worker-locations'
     | '/.mcp/invoke-tool/$tool'
     | '/labour/$id'
     | '/receipts/$id'
@@ -237,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rentals'
     | '/_authenticated/reports'
     | '/_authenticated/worker'
+    | '/_authenticated/worker-locations'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/labour/$id'
     | '/_authenticated/receipts/$id'
@@ -346,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/worker-locations': {
+      id: '/_authenticated/worker-locations'
+      path: '/worker-locations'
+      fullPath: '/worker-locations'
+      preLoaderRoute: typeof AuthenticatedWorkerLocationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -393,6 +413,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRentalsRoute: typeof AuthenticatedRentalsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedWorkerRoute: typeof AuthenticatedWorkerRoute
+  AuthenticatedWorkerLocationsRoute: typeof AuthenticatedWorkerLocationsRoute
   AuthenticatedLabourIdRoute: typeof AuthenticatedLabourIdRoute
   AuthenticatedReceiptsIdRoute: typeof AuthenticatedReceiptsIdRoute
   AuthenticatedLabourIndexRoute: typeof AuthenticatedLabourIndexRoute
@@ -408,6 +429,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRentalsRoute: AuthenticatedRentalsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedWorkerRoute: AuthenticatedWorkerRoute,
+  AuthenticatedWorkerLocationsRoute: AuthenticatedWorkerLocationsRoute,
   AuthenticatedLabourIdRoute: AuthenticatedLabourIdRoute,
   AuthenticatedReceiptsIdRoute: AuthenticatedReceiptsIdRoute,
   AuthenticatedLabourIndexRoute: AuthenticatedLabourIndexRoute,

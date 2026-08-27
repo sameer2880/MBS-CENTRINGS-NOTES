@@ -299,28 +299,27 @@ export type Database = {
           },
         ];
       };
-      workers: {
-              worker_locations: {
+      worker_locations: {
         Row: {
           accuracy_m: number | null;
-          latitude: number;
-          longitude: number;
+          latitude: number | null;
+          longitude: number | null;
           sharing_enabled: boolean;
           updated_at: string;
           worker_id: string;
         };
         Insert: {
           accuracy_m?: number | null;
-          latitude: number;
-          longitude: number;
+          latitude?: number | null;
+          longitude?: number | null;
           sharing_enabled?: boolean;
           updated_at?: string;
           worker_id: string;
         };
         Update: {
           accuracy_m?: number | null;
-          latitude?: number;
-          longitude?: number;
+          latitude?: number | null;
+          longitude?: number | null;
           sharing_enabled?: boolean;
           updated_at?: string;
           worker_id?: string;
@@ -335,6 +334,7 @@ export type Database = {
           },
         ];
       };
+      workers: {
         Row: {
           active: boolean;
           created_at: string;

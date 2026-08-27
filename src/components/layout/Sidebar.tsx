@@ -18,19 +18,17 @@ import {
   MessageCircle,
   Phone,
   MapPin,
+  MapPinned,
   MessageSquare,
   UserCog,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { WorkerLocationToggle } from "@/components/WorkerLocationToggle";
 import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -58,6 +56,11 @@ const nav = [
     to: "/labour",
     label: "Labour Charges",
     icon: HardHat,
+  },
+  {
+    to: "/worker-locations",
+    label: "Worker Locations",
+    icon: MapPinned,
   },
   {
     to: "/diary",
@@ -113,8 +116,7 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   return (
     <nav className="flex flex-col gap-1 px-4 py-5">
       {links.map(({ to, label, icon: Icon }) => {
-        const active =
-          path === to || path.startsWith(to + "/");
+        const active = path === to || path.startsWith(to + "/");
 
         return (
           <Link
@@ -198,11 +200,13 @@ function ExploreLinks() {
 function SidebarContent({
   onNav,
   workerName,
+  workerId,
   dark,
   onToggleTheme,
 }: {
   onNav?: () => void;
   workerName?: string;
+  workerId?: string | null;
   dark: boolean;
   onToggleTheme: () => void;
 }) {
@@ -215,11 +219,7 @@ function SidebarContent({
       onClick={onToggleTheme}
       className="w-full justify-center gap-2 font-semibold"
     >
-      {dark ? (
-        <Sun className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
 
       {dark ? "Light mode" : "Dark mode"}
     </Button>
@@ -296,9 +296,7 @@ function SidebarContent({
                 className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
               />
 
-              <div className="mt-4 text-base font-bold tracking-tight">
-                MBS CENTRING WORKS
-              </div>
+              <div className="mt-4 text-base font-bold tracking-tight">MBS CENTRING WORKS</div>
 
               <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sidebar-foreground/65">
                 NEREDUCHERLA
@@ -311,14 +309,14 @@ function SidebarContent({
           <div className="space-y-3 border-t border-sidebar-border p-4">
             {ThemeToggle}
 
+            <WorkerLocationToggle workerId={workerId ?? null} />
+
             <div className="min-w-0 text-sm">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
                 Signed in as
               </div>
 
-              <div className="truncate font-semibold">
-                {workerName || "Worker"}
-              </div>
+              <div className="truncate font-semibold">{workerName || "Worker"}</div>
             </div>
 
             <ConfirmDelete
@@ -343,11 +341,7 @@ function SidebarContent({
   );
 }
 
-export function AppLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function AppLayout({ children }: { children: ReactNode }) {
   /*
    * IMPORTANT:
    * false = sidebar CLOSED after login/refresh.
@@ -359,15 +353,16 @@ export function AppLayout({
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
   const [workerName, setWorkerName] = useState("");
+  const [workerId, setWorkerId] = useState<string | null>(null);
 
   /* ================================
      LOAD WORKER + THEME
      ================================ */
   useEffect(() => {
-    const workerId =
-      localStorage.getItem(WORKER_ID_KEY);
+    const workerId = localStorage.getItem(WORKER_ID_KEY);
 
     setWorker(Boolean(workerId));
+    setWorkerId(workerId);
 
     if (workerId) {
       void supabase
@@ -380,8 +375,7 @@ export function AppLayout({
         });
     }
 
-    const stored =
-      localStorage.getItem("mbs-theme");
+    const stored = localStorage.getItem("mbs-theme");
 
     if (stored === "dark") {
       document.documentElement.classList.add("dark");
@@ -397,15 +391,9 @@ export function AppLayout({
 
     setDark(next);
 
-    document.documentElement.classList.toggle(
-      "dark",
-      next,
-    );
+    document.documentElement.classList.toggle("dark", next);
 
-    localStorage.setItem(
-      "mbs-theme",
-      next ? "dark" : "light",
-    );
+    localStorage.setItem("mbs-theme", next ? "dark" : "light");
   };
 
   /* ================================
@@ -438,8 +426,7 @@ export function AppLayout({
       startX = t.clientX;
       startY = t.clientY;
 
-      tracking =
-        startX < window.innerWidth * 0.6;
+      tracking = startX < window.innerWidth * 0.6;
     };
 
     const onEnd = (e: TouchEvent) => {
@@ -456,9 +443,7 @@ export function AppLayout({
       }
 
       const dx = t.clientX - startX;
-      const dy = Math.abs(
-        t.clientY - startY,
-      );
+      const dy = Math.abs(t.clientY - startY);
 
       /*
        * Ignore vertical scrolling.
@@ -482,28 +467,14 @@ export function AppLayout({
       }
     };
 
-    window.addEventListener(
-      "touchstart",
-      onStart,
-      { passive: true },
-    );
+    window.addEventListener("touchstart", onStart, { passive: true });
 
-    window.addEventListener(
-      "touchend",
-      onEnd,
-      { passive: true },
-    );
+    window.addEventListener("touchend", onEnd, { passive: true });
 
     return () => {
-      window.removeEventListener(
-        "touchstart",
-        onStart,
-      );
+      window.removeEventListener("touchstart", onStart);
 
-      window.removeEventListener(
-        "touchend",
-        onEnd,
-      );
+      window.removeEventListener("touchend", onEnd);
     };
   }, []);
 
@@ -522,9 +493,8 @@ export function AppLayout({
       {open && (
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
           <SidebarContent
-            workerName={
-              worker ? workerName : undefined
-            }
+            workerName={worker ? workerName : undefined}
+            workerId={worker ? workerId : undefined}
             dark={dark}
             onToggleTheme={toggleTheme}
           />
@@ -538,23 +508,18 @@ export function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="site-header sticky top-0 z-40 h-16 border-b border-border px-4 lg:px-6">
           <div className="flex h-full items-center justify-between gap-4">
-
             {/* =====================================
                 LEFT SIDE
                ===================================== */}
 
             <div className="flex shrink-0 items-center gap-3">
-
               {/* ===================================
                   MOBILE MENU
                   Only visible below lg.
                  =================================== */}
 
               <div className="lg:hidden">
-                <Sheet
-                  open={open}
-                  onOpenChange={setOpen}
-                >
+                <Sheet open={open} onOpenChange={setOpen}>
                   <SheetTrigger asChild>
                     <Button
                       variant="outline"
@@ -574,15 +539,10 @@ export function AppLayout({
                       onNav={() => {
                         setOpen(false);
                       }}
-                      workerName={
-                        worker
-                          ? workerName
-                          : undefined
-                      }
+                      workerName={worker ? workerName : undefined}
+                      workerId={worker ? workerId : undefined}
                       dark={dark}
-                      onToggleTheme={
-                        toggleTheme
-                      }
+                      onToggleTheme={toggleTheme}
                     />
                   </SheetContent>
                 </Sheet>
@@ -602,16 +562,8 @@ export function AppLayout({
                 onClick={() => {
                   setOpen((previous) => !previous);
                 }}
-                aria-label={
-                  open
-                    ? "Close sidebar"
-                    : "Open sidebar"
-                }
-                title={
-                  open
-                    ? "Close sidebar"
-                    : "Open sidebar"
-                }
+                aria-label={open ? "Close sidebar" : "Open sidebar"}
+                title={open ? "Close sidebar" : "Open sidebar"}
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -632,9 +584,7 @@ export function AppLayout({
                     M.B.S CENTRING WORKS
                   </h1>
 
-                  <p className="text-[11px] text-muted-foreground">
-                    Nereducherla
-                  </p>
+                  <p className="text-[11px] text-muted-foreground">Nereducherla</p>
                 </div>
               </div>
             </div>
@@ -666,8 +616,7 @@ export function AppLayout({
         <main
           className={cn(
             "flex-1 overflow-x-hidden p-4 lg:p-6",
-            worker &&
-              "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
+            worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
           )}
         >
           {children}

@@ -39,6 +39,7 @@ const emptyForm = () => ({
   issue_date: new Date().toISOString().slice(0, 10),
   return_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
   status: "active" as "active" | "returned",
+  payment_status: "unpaid" as "paid" | "unpaid",
   notes: "",
   items: [emptyItem()] as Item[],
 });
@@ -58,6 +59,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         issue_date: editing.issue_date,
         return_date: editing.return_date,
         status: editing.status === "overdue" ? "active" : (editing.status as "active" | "returned"),
+        payment_status: editing.payment_status ?? "unpaid",
         notes: editing.notes ?? "",
         items: [{
           material_name: editing.material_name,
@@ -104,6 +106,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
           issue_date: form.issue_date,
           return_date: form.return_date,
           status: form.status,
+          payment_status: form.payment_status,
           notes: form.notes,
         };
         const { data, error } = await supabase.from("rentals").update(payload).eq("id", editing.id).select().single();
@@ -126,6 +129,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
             issue_date: form.issue_date,
             return_date: form.return_date,
             status: form.status,
+            payment_status: form.payment_status,
             notes: form.notes,
           }));
           const { data: extraData, error: extraError } = await supabase.from("rentals").insert(extraRows).select();
@@ -149,6 +153,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         issue_date: form.issue_date,
         return_date: form.return_date,
         status: form.status,
+        payment_status: form.payment_status,
         notes: form.notes,
       }));
       const { data, error } = await supabase.from("rentals").insert(rows).select();
@@ -281,16 +286,28 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
               <Input type="date" value={form.return_date} onChange={(e) => setForm({ ...form, return_date: e.target.value })} required />
             </Field>
           </div>
-          <Field label="Status">
-            <select
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "returned" })}
-            >
-              <option value="active">Active</option>
-              <option value="returned">Returned</option>
-            </select>
-          </Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Status">
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as "active" | "returned" })}
+              >
+                <option value="active">Active</option>
+                <option value="returned">Returned</option>
+              </select>
+            </Field>
+            <Field label="Payment">
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.payment_status}
+                onChange={(e) => setForm({ ...form, payment_status: e.target.value as "paid" | "unpaid" })}
+              >
+                <option value="unpaid">Not Paid</option>
+                <option value="paid">Paid</option>
+              </select>
+            </Field>
+          </div>
           <Field label="Notes">
             <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </Field>

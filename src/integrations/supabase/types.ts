@@ -109,6 +109,7 @@ export type Database = {
           issue_date: string;
           material_name: string;
           notes: string | null;
+          payment_status: string;
           quantity: number;
           rate_per_unit: number;
           return_date: string;
@@ -128,6 +129,7 @@ export type Database = {
           issue_date: string;
           material_name: string;
           notes?: string | null;
+          payment_status?: string;
           quantity: number;
           rate_per_unit: number;
           return_date: string;
@@ -147,6 +149,7 @@ export type Database = {
           issue_date?: string;
           material_name?: string;
           notes?: string | null;
+          payment_status?: string;
           quantity?: number;
           rate_per_unit?: number;
           return_date?: string;

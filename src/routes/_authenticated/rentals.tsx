@@ -10,14 +10,16 @@ import {
   buildNotReturnedMessage,
   buildReturnMessage,
   whatsappUrl,
+  getRentalRowTheme,
   type Rental,
 } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell, IndianRupee, CircleDollarSign } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PaymentBadge } from "@/components/PaymentBadge";
 import { RentalForm } from "@/components/RentalForm";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -39,6 +41,7 @@ function RentalsPage() {
   const { data: rentals = [], isLoading } = useQuery({ queryKey: ["rentals"], queryFn: listRentals });
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | Rental["status"]>("all");
+  const [payment, setPayment] = useState<"all" | Rental["payment_status"]>("all");
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Rental | null>(null);
@@ -48,6 +51,7 @@ function RentalsPage() {
     const ql = q.toLowerCase();
     return rentals.filter((r) => {
       if (status !== "all" && r.status !== status) return false;
+      if (payment !== "all" && r.payment_status !== payment) return false;
       if (!ql) return true;
       return (
         r.customer_name.toLowerCase().includes(ql) ||
@@ -55,7 +59,7 @@ function RentalsPage() {
         r.material_name.toLowerCase().includes(ql)
       );
     });
-  }, [rentals, q, status]);
+  }, [rentals, q, status, payment]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice((page - 1) * PAGE, page * PAGE);
@@ -74,6 +78,19 @@ function RentalsPage() {
     },
   });
 
+  const togglePayment = useMutation({
+    mutationFn: async (r: Rental) => {
+      const next = r.payment_status === "paid" ? "unpaid" : "paid";
+      const { error } = await supabase.from("rentals").update({ payment_status: next }).eq("id", r.id);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (next) => {
+      qc.invalidateQueries({ queryKey: ["rentals"] });
+      toast.success(next === "paid" ? "Marked as paid" : "Marked as not paid");
+    },
+  });
+
   const del = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("rentals").delete().eq("id", id);
@@ -87,6 +104,12 @@ function RentalsPage() {
     active: rentals.filter((r) => r.status === "active").length,
     overdue: rentals.filter((r) => r.status === "overdue").length,
     returned: rentals.filter((r) => r.status === "returned").length,
+  };
+
+  const paymentCounts = {
+    all: rentals.length,
+    paid: rentals.filter((r) => r.payment_status === "paid").length,
+    unpaid: rentals.filter((r) => r.payment_status === "unpaid").length,
   };
 
   return (
@@ -117,6 +140,21 @@ function RentalsPage() {
             </div>
           </div>
 
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">Payment:</span>
+            {(["all", "paid", "unpaid"] as const).map((p) => (
+              <Button
+                key={p}
+                variant={payment === p ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setPayment(p); setPage(1); }}
+                className="capitalize"
+              >
+                {p === "unpaid" ? "Not Paid" : p} <span className="ml-1.5 text-[10px] opacity-70">({paymentCounts[p]})</span>
+              </Button>
+            ))}
+          </div>
+
           <div className="overflow-x-auto -mx-4">
             <Table>
               <TableHeader>
@@ -129,16 +167,17 @@ function RentalsPage() {
                   <TableHead>Issue</TableHead>
                   <TableHead>Return</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading && <TableRow><TableCell colSpan={9} className="text-center py-10">Loading…</TableCell></TableRow>}
+                {isLoading && <TableRow><TableCell colSpan={10} className="text-center py-10">Loading…</TableCell></TableRow>}
                 {!isLoading && pageRows.length === 0 && (
-                  <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">No rentals found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center py-10 text-muted-foreground">No rentals found</TableCell></TableRow>
                 )}
                 {pageRows.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className={getRentalRowTheme(r).rowClass}>
                     <TableCell className="font-medium whitespace-nowrap">
                       <div>{r.customer_name}</div>
                       <div className="text-[10px] text-muted-foreground font-normal">
@@ -155,6 +194,7 @@ function RentalsPage() {
                     <TableCell className="whitespace-nowrap">{r.issue_date}</TableCell>
                     <TableCell className="whitespace-nowrap">{r.return_date}</TableCell>
                     <TableCell><StatusBadge status={r.status} /></TableCell>
+                    <TableCell><PaymentBadge status={r.payment_status} /></TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -169,6 +209,13 @@ function RentalsPage() {
                               <CheckCircle2 className="h-4 w-4 mr-2" /> Mark returned
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem onClick={() => togglePayment.mutate(r)}>
+                            {r.payment_status === "paid" ? (
+                              <><CircleDollarSign className="h-4 w-4 mr-2" /> Mark as not paid</>
+                            ) : (
+                              <><IndianRupee className="h-4 w-4 mr-2" /> Mark as paid</>
+                            )}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
                             <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation

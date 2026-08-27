@@ -256,8 +256,15 @@ function RentalsPage() {
                 {pageRows.map((r, idx) => {
                   const theme = getRentalRowTheme(r);
                   return (
-                  <TableRow key={r.id} className={theme.bgClass}>
-                    <TableCell className="text-muted-foreground">{(page - 1) * PAGE + idx + 1}</TableCell>
+                  <TableRow key={r.id}>
+                    <TableCell className="relative text-muted-foreground">
+                      <span
+                        aria-hidden="true"
+                        title={`${theme.key} status marker`}
+                        className={`absolute left-0 top-0 h-0 w-0 border-t-[14px] border-r-[14px] border-r-transparent ${theme.cornerClass}`}
+                      />
+                      {(page - 1) * PAGE + idx + 1}
+                    </TableCell>
                     <TableCell className="font-medium whitespace-nowrap">
                       <div>{r.customer_name}</div>
                       <div className="text-[10px] text-muted-foreground font-normal">

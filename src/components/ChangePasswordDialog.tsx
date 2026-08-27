@@ -6,13 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UserCog, Shield, Crown } from "lucide-react";
+import { UserCog, Shield, Crown, KeyRound } from "lucide-react";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { getRole } from "@/lib/user-role";
-
-const MOBILE_REGEX = /^[6789]\d{9}$/;
-
-const digitsOnly = (v: string) => v.replace(/\D/g, "").slice(0, 10);
 
 const ROLE_DISPLAY = {
   manager: { label: "Manager", icon: Shield, className: "bg-primary/10 text-primary" },
@@ -28,6 +24,7 @@ const ROLE_DISPLAY = {
  */
 export function ChangePasswordDialog() {
   const [open, setOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -56,13 +53,13 @@ export function ChangePasswordDialog() {
         .eq("id", adminId)
         .maybeSingle();
       if (fetchError) throw fetchError;
-      if (!record?.phone || current.trim() !== record.phone.trim()) {
+      if (!record?.phone || current !== record.phone) {
         throw new Error("Current password is incorrect");
       }
-      if (!MOBILE_REGEX.test(next.trim())) {
-        throw new Error("New password must be a 10-digit mobile number starting with 6, 7, 8 or 9");
+      if (next.length < 4) {
+        throw new Error("New password must be at least 4 characters");
       }
-      if (next.trim() !== confirm.trim()) {
+      if (next !== confirm) {
         throw new Error("New passwords do not match");
       }
       const { error } = await supabase.from("workers").update({ phone: next.trim() }).eq("id", adminId);
@@ -72,6 +69,7 @@ export function ChangePasswordDialog() {
       qc.invalidateQueries({ queryKey: ["workers"] });
       toast.success("Password changed successfully");
       setOpen(false);
+      setShowForm(false);
       setCurrent("");
       setNext("");
       setConfirm("");
@@ -106,6 +104,7 @@ export function ChangePasswordDialog() {
         onOpenChange={(v) => {
           setOpen(v);
           if (!v) {
+            setShowForm(false);
             setErr("");
             setCurrent("");
             setNext("");
@@ -134,62 +133,86 @@ export function ChangePasswordDialog() {
               </div>
             </div>
 
-            <div className="space-y-3 border-t border-border pt-4">
-              <div>
-                <p className="text-sm font-semibold">Change password</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Your password is your mobile number. Enter your current mobile number and the new one you want to use.
-                </p>
+            {!showForm ? (
+              <div className="border-t border-border pt-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-center gap-2 font-semibold"
+                  onClick={() => setShowForm(true)}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Change password
+                </Button>
               </div>
-              <div>
-                <Label>Current password</Label>
-                <Input
-                  type="password"
-                  value={current}
-                  onChange={(e) => setCurrent(digitsOnly(e.target.value))}
-                  inputMode="numeric"
-                  maxLength={10}
-                  autoComplete="current-password"
-                />
+            ) : (
+              <div className="space-y-3 border-t border-border pt-4">
+                <div>
+                  <p className="text-sm font-semibold">Change password</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Enter your current password and the new password you want to use.
+                  </p>
+                </div>
+                <div>
+                  <Label>Current password</Label>
+                  <Input
+                    type="password"
+                    value={current}
+                    onChange={(e) => setCurrent(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                </div>
+                <div>
+                  <Label>New password</Label>
+                  <Input
+                    type="password"
+                    value={next}
+                    onChange={(e) => setNext(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div>
+                  <Label>Confirm new password</Label>
+                  <Input
+                    type="password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {err && <p className="text-xs text-destructive">{err}</p>}
               </div>
-              <div>
-                <Label>New password</Label>
-                <Input
-                  type="password"
-                  value={next}
-                  onChange={(e) => setNext(digitsOnly(e.target.value))}
-                  inputMode="numeric"
-                  maxLength={10}
-                  autoComplete="new-password"
-                />
-              </div>
-              <div>
-                <Label>Confirm new password</Label>
-                <Input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(digitsOnly(e.target.value))}
-                  inputMode="numeric"
-                  maxLength={10}
-                  autoComplete="new-password"
-                />
-              </div>
-              {err && <p className="text-xs text-destructive">{err}</p>}
-            </div>
+            )}
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                setErr("");
-                save.mutate();
-              }}
-              disabled={save.isPending}
-            >
-              {save.isPending ? "Saving…" : "Save"}
-            </Button>
+            {!showForm ? (
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Close
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowForm(false);
+                    setErr("");
+                    setCurrent("");
+                    setNext("");
+                    setConfirm("");
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={() => {
+                    setErr("");
+                    save.mutate();
+                  }}
+                  disabled={save.isPending}
+                >
+                  {save.isPending ? "Saving…" : "Save"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

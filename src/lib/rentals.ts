@@ -29,7 +29,10 @@ export function computeStatus(r: Pick<Rental, "status" | "return_date">): Rental
 }
 
 /**
- * Row highlight colors for the rentals table:
+ * Row indicator colors for the rentals table. Rows are no longer tinted —
+ * instead, a small color marker is shown in the corner of the row's first
+ * cell so the status is still visible at a glance without coloring the
+ * whole row:
  * - Active                -> blue   (payment doesn't change this)
  * - Overdue               -> red
  * - Returned + paid       -> green
@@ -38,13 +41,13 @@ export function computeStatus(r: Pick<Rental, "status" | "return_date">): Rental
 export function getRentalRowTheme(r: Pick<Rental, "status" | "payment_status">) {
   if (r.status === "returned") {
     return r.payment_status === "paid"
-      ? { key: "green", bgClass: "bg-success/10 hover:bg-success/15" }
-      : { key: "orange", bgClass: "bg-orange-500/10 hover:bg-orange-500/15" };
+      ? { key: "green", dotClass: "bg-success", cornerClass: "border-t-success" }
+      : { key: "orange", dotClass: "bg-orange-500", cornerClass: "border-t-orange-500" };
   }
   if (r.status === "overdue") {
-    return { key: "red", bgClass: "bg-destructive/10 hover:bg-destructive/15" };
+    return { key: "red", dotClass: "bg-destructive", cornerClass: "border-t-destructive" };
   }
-  return { key: "blue", bgClass: "bg-blue-500/10 hover:bg-blue-500/15" };
+  return { key: "blue", dotClass: "bg-blue-500", cornerClass: "border-t-blue-500" };
 }
 
 export async function listRentals(): Promise<Rental[]> {

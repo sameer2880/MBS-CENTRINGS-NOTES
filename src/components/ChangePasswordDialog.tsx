@@ -1,17 +1,23 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { UserCog } from "lucide-react";
+import { UserCog, Shield, Crown } from "lucide-react";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
+import { getRole } from "@/lib/user-role";
 
 const MOBILE_REGEX = /^[6789]\d{9}$/;
 
 const digitsOnly = (v: string) => v.replace(/\D/g, "").slice(0, 10);
+
+const ROLE_DISPLAY = {
+  manager: { label: "Manager", icon: Shield, className: "bg-primary/10 text-primary" },
+  admin: { label: "Admin", icon: Crown, className: "bg-amber-500/10 text-amber-600" },
+} as const;
 
 /**
  * Only renders for the currently logged-in user when they logged in as an
@@ -29,6 +35,17 @@ export function ChangePasswordDialog() {
   const qc = useQueryClient();
 
   const adminId = typeof window !== "undefined" ? localStorage.getItem(ADMIN_ID_KEY) : null;
+
+  const { data: me } = useQuery({
+    queryKey: ["workers", "me", adminId],
+    queryFn: async () => {
+      if (!adminId) return null;
+      const { data, error } = await supabase.from("workers").select("name, notes").eq("id", adminId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!adminId,
+  });
 
   const save = useMutation({
     mutationFn: async () => {
@@ -66,6 +83,12 @@ export function ChangePasswordDialog() {
   // Master shared login — nothing to self-manage here.
   if (!adminId) return null;
 
+  // Role comes from the live row (falls back to nothing while loading —
+  // this component only ever renders for admin/manager sessions).
+  const role = me ? getRole(me.notes) : null;
+  const roleInfo = role === "admin" || role === "manager" ? ROLE_DISPLAY[role] : null;
+  const RoleIcon = roleInfo?.icon;
+
   return (
     <>
       <Button
@@ -94,44 +117,65 @@ export function ChangePasswordDialog() {
           <DialogHeader>
             <DialogTitle>Manage my account</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Your password is your mobile number. Enter your current mobile number and the new one you want to use.
-            </p>
-            <div>
-              <Label>Current password</Label>
-              <Input
-                type="password"
-                value={current}
-                onChange={(e) => setCurrent(digitsOnly(e.target.value))}
-                inputMode="numeric"
-                maxLength={10}
-                autoComplete="current-password"
-              />
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <UserCog className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate font-semibold">{me?.name ?? "…"}</div>
+                {roleInfo && RoleIcon && (
+                  <span
+                    className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${roleInfo.className}`}
+                  >
+                    <RoleIcon className="h-3 w-3" /> {roleInfo.label}
+                  </span>
+                )}
+              </div>
             </div>
-            <div>
-              <Label>New password</Label>
-              <Input
-                type="password"
-                value={next}
-                onChange={(e) => setNext(digitsOnly(e.target.value))}
-                inputMode="numeric"
-                maxLength={10}
-                autoComplete="new-password"
-              />
+
+            <div className="space-y-3 border-t border-border pt-4">
+              <div>
+                <p className="text-sm font-semibold">Change password</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Your password is your mobile number. Enter your current mobile number and the new one you want to use.
+                </p>
+              </div>
+              <div>
+                <Label>Current password</Label>
+                <Input
+                  type="password"
+                  value={current}
+                  onChange={(e) => setCurrent(digitsOnly(e.target.value))}
+                  inputMode="numeric"
+                  maxLength={10}
+                  autoComplete="current-password"
+                />
+              </div>
+              <div>
+                <Label>New password</Label>
+                <Input
+                  type="password"
+                  value={next}
+                  onChange={(e) => setNext(digitsOnly(e.target.value))}
+                  inputMode="numeric"
+                  maxLength={10}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div>
+                <Label>Confirm new password</Label>
+                <Input
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(digitsOnly(e.target.value))}
+                  inputMode="numeric"
+                  maxLength={10}
+                  autoComplete="new-password"
+                />
+              </div>
+              {err && <p className="text-xs text-destructive">{err}</p>}
             </div>
-            <div>
-              <Label>Confirm new password</Label>
-              <Input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(digitsOnly(e.target.value))}
-                inputMode="numeric"
-                maxLength={10}
-                autoComplete="new-password"
-              />
-            </div>
-            {err && <p className="text-xs text-destructive">{err}</p>}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>

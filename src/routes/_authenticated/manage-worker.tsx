@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
@@ -258,48 +257,25 @@ function ManageUsers() {
             )}
           </div>
 
-          <div className="overflow-x-auto -mx-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">S.No</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Wage / Access</TableHead>
-                  <TableHead>Login</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && (
-                  <TableRow><TableCell colSpan={8} className="text-center py-10">Loading…</TableCell></TableRow>
-                )}
-                {!isLoading && filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                      No users found. Add your first user.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {filtered.map((u, idx) => {
-                  const badge = ROLE_BADGE[u.role];
-                  const BadgeIcon = badge.icon;
-                  return (
-                  <TableRow key={u.id}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">{u.name}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}>
+          {isLoading && <p className="text-center py-10 text-muted-foreground">Loading…</p>}
+          {!isLoading && filtered.length === 0 && (
+            <p className="text-center py-10 text-muted-foreground">No users found. Add your first user.</p>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {filtered.map((u) => {
+              const badge = ROLE_BADGE[u.role];
+              const BadgeIcon = badge.icon;
+              return (
+                <div key={u.id} className="rounded-lg border border-border p-3 flex items-start gap-3">
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-semibold truncate">{u.name}</span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}
+                      >
                         <BadgeIcon className="h-3 w-3" /> {badge.label}
                       </span>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">{u.phone || "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {u.role === "worker" ? `₹${Number(u.daily_wage).toLocaleString("en-IN")}/day` : "Management access"}
-                    </TableCell>
-                    <TableCell>
                       {u.active ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">
                           <ShieldCheck className="h-3 w-3" /> Enabled
@@ -309,55 +285,56 @@ function ManageUsers() {
                           <ShieldOff className="h-3 w-3" /> No login
                         </span>
                       )}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
-                      {getVisibleNotes(u.notes) || "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                          >
-                            Actions
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditing(u);
-                              setForm({
-                                name: u.name,
-                                phone: u.phone ?? "",
-                                daily_wage: u.daily_wage,
-                                notes: getVisibleNotes(u.notes),
-                                role: u.role,
-                              });
-                              setOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4 mr-2" /> Edit
-                          </DropdownMenuItem>
-                          {u.role === "worker" && (
-                            <DropdownMenuItem asChild>
-                              <Link to="/labour/$id" params={{ id: u.id }}>
-                                <ChevronRight className="h-4 w-4 mr-2" /> View attendance
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDelUser(u)}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {u.phone ? `${u.phone} · ` : ""}
+                      {u.role === "worker" ? `₹${Number(u.daily_wage).toLocaleString("en-IN")}/day` : "Management access"}
+                    </div>
+                    {getVisibleNotes(u.notes) && (
+                      <div className="text-xs text-muted-foreground truncate">{getVisibleNotes(u.notes)}</div>
+                    )}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex shrink-0 items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      >
+                        Actions
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setEditing(u);
+                          setForm({
+                            name: u.name,
+                            phone: u.phone ?? "",
+                            daily_wage: u.daily_wage,
+                            notes: getVisibleNotes(u.notes),
+                            role: u.role,
+                          });
+                          setOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      {u.role === "worker" && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/labour/$id" params={{ id: u.id }}>
+                            <ChevronRight className="h-4 w-4 mr-2" /> View attendance
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onClick={() => setDelUser(u)}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

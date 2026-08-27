@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { MapPinned, RadioTower, Clock, ExternalLink } from "lucide-react";
+import { MapPinned, RadioTower, Clock, ExternalLink, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { isWithinWorkingHours, WORK_HOURS_LABEL } from "@/hooks/use-worker-location-sharing";
 
 export const Route = createFileRoute("/_authenticated/worker-locations")({
@@ -49,7 +51,12 @@ function WorkerLocationsPage() {
 
   const withinHours = isWithinWorkingHours(now);
 
-  const { data: rows = [], isLoading } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["worker-locations-admin"],
     refetchInterval: REFRESH_INTERVAL_MS,
     queryFn: async () => {
@@ -128,6 +135,20 @@ function WorkerLocationsPage() {
             <RadioTower className="h-3 w-3 text-primary" />
             {liveCount} live
           </Badge>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setNow(new Date());
+              void refetch();
+            }}
+            disabled={isFetching}
+            className="gap-1.5"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
+            Refresh
+          </Button>
         </div>
       </div>
 

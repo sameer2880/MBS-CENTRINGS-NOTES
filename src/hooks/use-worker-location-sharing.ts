@@ -8,8 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
 const WORK_START_MINUTES = 5 * 60 + 30;
 const WORK_END_MINUTES = 19 * 60;
 
-// Minimum gap between two writes to Supabase while actively sharing.
-const MIN_WRITE_INTERVAL_MS = 20_000;
+// How often we send a fresh location while sharing is active. A worker's
+// position gets pushed at least this often even if they haven't moved,
+// since watchPosition alone can go quiet for a stationary device.
+const UPDATE_INTERVAL_MS = 60_000;
+
+// How often we re-check whether we've crossed the 5:30 AM / 7:00 PM
+// boundary, so sharing pauses/resumes on its own without any action
+// from the worker.
+const HOURS_CHECK_INTERVAL_MS = 30_000;
 
 export function isWithinWorkingHours(date: Date = new Date()) {
   const minutes = date.getHours() * 60 + date.getMinutes();
@@ -31,7 +38,10 @@ type Coords = {
 };
 
 export function useWorkerLocationSharing(workerId: string | null) {
-  const [enabled, setEnabled] = useState(false);
+  // Sharing is ON by default — workers don't need to flip anything for
+  // tracking to run during working hours. The switch is there so a
+  // worker can pause it for the current session if they want to.
+  const [enabled, setEnabled] = useState(true);
   const [status, setStatus] = useState<LocationSharingStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -41,7 +51,9 @@ export function useWorkerLocationSharing(workerId: string | null) {
   const lastCoordsRef = useRef<Coords | null>(null);
 
   /* ================================
-     LOAD EXISTING PREFERENCE
+     LOAD LAST KNOWN POSITION
+     (sharing itself always starts enabled — this just seeds the map
+     with the last known fix while we wait for a fresh one)
      ================================ */
   useEffect(() => {
     if (!workerId) {
@@ -53,7 +65,7 @@ export function useWorkerLocationSharing(workerId: string | null) {
 
     void supabase
       .from("worker_locations")
-      .select("sharing_enabled, latitude, longitude, accuracy_m")
+      .select("latitude, longitude, accuracy_m")
       .eq("worker_id", workerId)
       .maybeSingle()
       .then(({ data }) => {
@@ -67,7 +79,6 @@ export function useWorkerLocationSharing(workerId: string | null) {
           };
         }
 
-        setEnabled(Boolean(data?.sharing_enabled));
         setLoaded(true);
       });
 
@@ -77,7 +88,7 @@ export function useWorkerLocationSharing(workerId: string | null) {
   }, [workerId]);
 
   /* ================================
-     WRITE HELPERS
+     WRITE HELPER
      ================================ */
   const writeRow = useCallback(
     async (patch: { sharing_enabled?: boolean; coords?: Coords }) => {
@@ -110,8 +121,39 @@ export function useWorkerLocationSharing(workerId: string | null) {
     [workerId],
   );
 
+  const sendFix = useCallback(
+    (position: GeolocationPosition) => {
+      lastWriteRef.current = Date.now();
+      setErrorMessage(null);
+      setStatus("sharing");
+
+      void writeRow({
+        sharing_enabled: true,
+        coords: {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy_m: position.coords.accuracy ?? null,
+        },
+      }).catch(() => {
+        // Non-fatal: we'll retry on the next tick.
+      });
+    },
+    [writeRow],
+  );
+
+  const handleGeoError = useCallback((geoError: GeolocationPositionError) => {
+    setErrorMessage(
+      geoError.code === geoError.PERMISSION_DENIED
+        ? "Location permission was denied. Enable it in your browser/app settings to share your location."
+        : "Could not get your location. Make sure GPS is turned on.",
+    );
+    setStatus("error");
+  }, []);
+
   /* ================================
-     GEOLOCATION WATCH
+     GEOLOCATION: WATCH (for responsiveness) +
+     FORCED TICK EVERY MINUTE (guarantees a fresh
+     ping even when the device hasn't moved)
      ================================ */
   const stopWatch = useCallback(() => {
     if (watchIdRef.current !== null && typeof navigator !== "undefined") {
@@ -131,44 +173,49 @@ export function useWorkerLocationSharing(workerId: string | null) {
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
-        setErrorMessage(null);
-
         if (!isWithinWorkingHours()) {
           setStatus("paused");
           return;
         }
 
-        setStatus("sharing");
-
-        const now = Date.now();
-        if (now - lastWriteRef.current < MIN_WRITE_INTERVAL_MS) return;
-        lastWriteRef.current = now;
-
-        void writeRow({
-          sharing_enabled: true,
-          coords: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy_m: position.coords.accuracy ?? null,
-          },
-        }).catch(() => {
-          // Non-fatal: we'll retry on the next position update.
-        });
+        // watchPosition can fire often while moving — still only write
+        // at most once a minute so we don't hammer the database.
+        if (Date.now() - lastWriteRef.current < UPDATE_INTERVAL_MS) return;
+        sendFix(position);
       },
-      (geoError) => {
-        setErrorMessage(
-          geoError.code === geoError.PERMISSION_DENIED
-            ? "Location permission was denied. Enable it in your browser/app settings to share your location."
-            : "Could not get your location. Make sure GPS is turned on.",
-        );
-        setStatus("error");
-      },
+      handleGeoError,
       { enableHighAccuracy: true, maximumAge: 15_000, timeout: 25_000 },
     );
-  }, [writeRow]);
+  }, [handleGeoError, sendFix]);
+
+  // Forces one fresh fix a minute, independent of watchPosition, so a
+  // stationary worker's "last updated" time never goes stale beyond 60s.
+  useEffect(() => {
+    if (!loaded || !enabled) return;
+
+    const tick = () => {
+      if (!isWithinWorkingHours()) {
+        setStatus("paused");
+        return;
+      }
+
+      if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(sendFix, handleGeoError, {
+        enableHighAccuracy: true,
+        maximumAge: 10_000,
+        timeout: 20_000,
+      });
+    };
+
+    tick();
+    const interval = window.setInterval(tick, UPDATE_INTERVAL_MS);
+    return () => window.clearInterval(interval);
+  }, [enabled, loaded, sendFix, handleGeoError]);
 
   /* ================================
-     REACT TO enabled TOGGLING
+     REACT TO enabled TOGGLING +
+     WORKING-HOURS BOUNDARY
      ================================ */
   useEffect(() => {
     if (!loaded) return;
@@ -179,18 +226,18 @@ export function useWorkerLocationSharing(workerId: string | null) {
       return;
     }
 
-    setStatus(isWithinWorkingHours() ? "sharing" : "paused");
-    startWatch();
+    const sync = () => {
+      if (isWithinWorkingHours()) {
+        startWatch();
+        setStatus((current) => (current === "error" ? current : "sharing"));
+      } else {
+        stopWatch();
+        setStatus("paused");
+      }
+    };
 
-    // Re-check the working-hours window every minute so sharing
-    // automatically pauses/resumes at 5:30 AM / 7:00 PM without the
-    // worker needing to touch the toggle.
-    const interval = window.setInterval(() => {
-      setStatus((current) => {
-        if (current === "error") return current;
-        return isWithinWorkingHours() ? "sharing" : "paused";
-      });
-    }, 60_000);
+    sync();
+    const interval = window.setInterval(sync, HOURS_CHECK_INTERVAL_MS);
 
     return () => {
       window.clearInterval(interval);
@@ -201,7 +248,7 @@ export function useWorkerLocationSharing(workerId: string | null) {
   useEffect(() => stopWatch, [stopWatch]);
 
   /* ================================
-     PUBLIC TOGGLE
+     PUBLIC TOGGLE (manual pause / resume)
      ================================ */
   const toggle = useCallback(async () => {
     if (!workerId) return;

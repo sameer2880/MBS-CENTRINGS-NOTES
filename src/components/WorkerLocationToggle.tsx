@@ -10,12 +10,12 @@ export function WorkerLocationToggle({ workerId }: { workerId: string | null }) 
 
   const statusText =
     status === "sharing"
-      ? "Sharing your live location"
+      ? "Sharing your live location (updates every minute)"
       : status === "paused"
-        ? "On, but paused (outside working hours)"
+        ? "Auto-resumes when working hours start"
         : status === "error"
           ? errorMessage || "Couldn't access your location"
-          : "Location sharing is off";
+          : "Location sharing is off for now";
 
   const Icon = status === "sharing" ? MapPinned : status === "error" ? MapPinOff : MapPin;
 
@@ -66,7 +66,7 @@ export function WorkerLocationToggle({ workerId }: { workerId: string | null }) 
       </p>
 
       <p className="mt-0.5 text-[10px] leading-snug text-sidebar-foreground/50">
-        Visible to admins only between {WORK_HOURS_LABEL}.
+        Turns on automatically each day. Visible to admins only between {WORK_HOURS_LABEL}.
       </p>
     </div>
   );

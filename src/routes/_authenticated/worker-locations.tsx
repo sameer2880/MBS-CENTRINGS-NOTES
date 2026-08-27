@@ -126,12 +126,15 @@ function WorkerLocationsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant={withinHours ? "default" : "secondary"} className="gap-1.5">
+          <Badge
+            variant={withinHours ? "default" : "secondary"}
+            className="h-8 gap-1.5 px-3 text-xs"
+          >
             <Clock className="h-3 w-3" />
             {withinHours ? "Working hours" : "Outside working hours"}
           </Badge>
 
-          <Badge variant="outline" className="gap-1.5">
+          <Badge variant="outline" className="h-8 gap-1.5 px-3 text-xs">
             <RadioTower className="h-3 w-3 text-primary" />
             {liveCount} live
           </Badge>
@@ -144,7 +147,7 @@ function WorkerLocationsPage() {
               void refetch();
             }}
             disabled={isFetching}
-            className="gap-1.5"
+            className="h-8 gap-1.5 px-3 text-xs"
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
             Refresh

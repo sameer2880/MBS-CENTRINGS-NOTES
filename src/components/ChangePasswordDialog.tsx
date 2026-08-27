@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { KeyRound } from "lucide-react";
+import { UserCog } from "lucide-react";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 
 const MOBILE_REGEX = /^[6789]\d{9}$/;
@@ -14,10 +14,11 @@ const MOBILE_REGEX = /^[6789]\d{9}$/;
 const digitsOnly = (v: string) => v.replace(/\D/g, "").slice(0, 10);
 
 /**
- * Only renders for the currently logged-in admin when they logged in as an
- * admin-role row (i.e. ADMIN_ID_KEY is set). The single shared master login
- * (mbsnotes/mbsnotes) has no row in the database, so there's nothing here
- * for it to update — that credential is fixed in the app's code.
+ * Only renders for the currently logged-in user when they logged in as an
+ * admin- or manager-role row (i.e. ADMIN_ID_KEY is set). The single shared
+ * master login (mbscentringworks/mbs) has no row in the database, so
+ * there's nothing here for it to update — that credential is fixed in the
+ * app's code.
  */
 export function ChangePasswordDialog() {
   const [open, setOpen] = useState(false);
@@ -73,8 +74,8 @@ export function ChangePasswordDialog() {
         className="w-full justify-center gap-2 font-semibold"
         onClick={() => setOpen(true)}
       >
-        <KeyRound className="h-4 w-4" />
-        Change password
+        <UserCog className="h-4 w-4" />
+        Manage my account
       </Button>
 
       <Dialog
@@ -91,7 +92,7 @@ export function ChangePasswordDialog() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change password</DialogTitle>
+            <DialogTitle>Manage my account</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground">

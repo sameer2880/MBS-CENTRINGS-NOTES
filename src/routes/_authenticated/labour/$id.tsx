@@ -578,6 +578,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                         onConfirm={() => delPayment.mutate(p.id)}
                         title="Delete this payment?"
                         description="This payment record will be permanently removed."
+                        restricted
                       />
                     </>
                   )}
@@ -675,6 +676,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                     title="Clear attendance for this day?"
                     description="The attendance mark and its note for this day will be removed. Payments are not affected."
                     confirmLabel="Clear"
+                    restricted
                   >
                     <Button
                       variant="outline"
@@ -762,6 +764,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                           onConfirm={() => delPayment.mutate(p.id)}
                           title="Delete this payment?"
                           description="This payment record will be permanently removed."
+                          restricted
                         />
                       </>
                     )}

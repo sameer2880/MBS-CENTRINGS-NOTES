@@ -29,10 +29,13 @@ import {
   ShieldCheck,
   HardHat,
   Shield,
+  ShieldAlert,
+  Crown,
 } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import type { Worker } from "./labour";
 import { type UserRole, getRole, getVisibleNotes, encodeNotes } from "@/lib/user-role";
+import { isMasterAdmin, isManager } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/manage-worker")({
   head: () => ({
@@ -41,10 +44,13 @@ export const Route = createFileRoute("/_authenticated/manage-worker")({
       {
         name: "description",
         content:
-          "Create, update or remove worker and admin users, and control their login access for M.B.S Centring Works.",
+          "Create, update or remove worker, manager and admin users, and control their login access for M.B.S Centring Works.",
       },
       { property: "og:title", content: "Manage Users — M.B.S Centring Works" },
-      { property: "og:description", content: "Create, update, remove and grant access to worker and admin users." },
+      {
+        property: "og:description",
+        content: "Create, update, remove and grant access to worker, manager and admin users.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -66,11 +72,30 @@ const emptyForm = () => ({
 
 const MOBILE_REGEX = /^[6789]\d{9}$/;
 
-const ROLE_FILTERS: { value: "all" | UserRole; label: string }[] = [
+const ALL_ROLE_FILTERS: { value: "all" | UserRole; label: string }[] = [
   { value: "all", label: "All" },
   { value: "worker", label: "Workers" },
+  { value: "manager", label: "Managers" },
   { value: "admin", label: "Admins" },
 ];
+
+const ROLE_BADGE: Record<UserRole, { label: string; icon: typeof Shield; className: string }> = {
+  worker: {
+    label: "Worker",
+    icon: HardHat,
+    className: "bg-muted text-muted-foreground",
+  },
+  manager: {
+    label: "Manager",
+    icon: Shield,
+    className: "bg-primary/10 text-primary",
+  },
+  admin: {
+    label: "Admin",
+    icon: Crown,
+    className: "bg-amber-500/10 text-amber-600",
+  },
+};
 
 function ManageUsers() {
   const qc = useQueryClient();
@@ -80,6 +105,11 @@ function ManageUsers() {
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [delUser, setDelUser] = useState<ManagedUser | null>(null);
+
+  // A manager only ever gets to see (and add) Workers here — Admins and
+  // other Managers are hidden from them entirely. The full admin (master
+  // login or an "admin"-role row) sees everyone.
+  const managerView = isManager();
 
   // Manage Users is the single place that sees every row in the "workers"
   // table, whatever its role — Labour Charges only ever sees role="worker".
@@ -94,17 +124,23 @@ function ManageUsers() {
 
   const save = useMutation({
     mutationFn: async () => {
+      // A manager can only ever create/edit Workers, no matter what the
+      // form state says — enforced here as well as in the UI.
+      const role: UserRole = managerView ? "worker" : form.role;
       const payload = {
         name: form.name.trim(),
         phone: form.phone.trim() || null,
-        daily_wage: form.role === "worker" ? Number(form.daily_wage) || 0 : 0,
-        notes: encodeNotes(form.role, form.notes),
+        daily_wage: role === "worker" ? Number(form.daily_wage) || 0 : 0,
+        notes: encodeNotes(role, form.notes),
       };
       if (!payload.name) throw new Error("Name is required");
       if (payload.phone && !MOBILE_REGEX.test(payload.phone)) {
         throw new Error("Mobile number must be 10 digits and start with 6, 7, 8 or 9");
       }
       if (editing) {
+        if (managerView && editing.role !== "worker") {
+          throw new Error("You can only manage worker accounts. Ask the admin for this change.");
+        }
         const { error } = await supabase.from("workers").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
@@ -169,9 +205,10 @@ function ManageUsers() {
   const filtered = useMemo(() => {
     const ql = q.toLowerCase();
     return users
-      .filter((u) => roleFilter === "all" || u.role === roleFilter)
+      // Managers only ever see Workers here, regardless of the filter UI.
+      .filter((u) => (managerView ? u.role === "worker" : roleFilter === "all" || u.role === roleFilter))
       .filter((u) => !ql || u.name.toLowerCase().includes(ql) || (u.phone ?? "").includes(ql));
-  }, [users, q, roleFilter]);
+  }, [users, q, roleFilter, managerView]);
 
   return (
     <div className="space-y-5">
@@ -181,7 +218,9 @@ function ManageUsers() {
             <UserCog className="h-6 w-6 text-primary" /> Manage Users
           </h2>
           <p className="text-sm text-muted-foreground">
-            Create, edit or remove users, assign a Worker or Admin role, and turn login access on or off
+            {managerView
+              ? "Add workers and turn their login access on or off. Ask the admin to add or remove a manager or admin, or to delete any user."
+              : "Create, edit or remove users, assign a Worker, Manager or Admin role, and turn login access on or off"}
           </p>
         </div>
         <Button
@@ -191,7 +230,7 @@ function ManageUsers() {
             setOpen(true);
           }}
         >
-          <Plus className="h-4 w-4 mr-1.5" /> Add User
+          <Plus className="h-4 w-4 mr-1.5" /> {managerView ? "Add Worker" : "Add User"}
         </Button>
       </div>
 
@@ -202,19 +241,21 @@ function ManageUsers() {
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Search by name or mobile" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
             </div>
-            <div className="flex gap-1.5">
-              {ROLE_FILTERS.map((f) => (
-                <Button
-                  key={f.value}
-                  type="button"
-                  size="sm"
-                  variant={roleFilter === f.value ? "default" : "outline"}
-                  onClick={() => setRoleFilter(f.value)}
-                >
-                  {f.label}
-                </Button>
-              ))}
-            </div>
+            {!managerView && (
+              <div className="flex gap-1.5">
+                {ALL_ROLE_FILTERS.map((f) => (
+                  <Button
+                    key={f.value}
+                    type="button"
+                    size="sm"
+                    variant={roleFilter === f.value ? "default" : "outline"}
+                    onClick={() => setRoleFilter(f.value)}
+                  >
+                    {f.label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="overflow-x-auto -mx-4">
@@ -242,20 +283,17 @@ function ManageUsers() {
                     </TableCell>
                   </TableRow>
                 )}
-                {filtered.map((u, idx) => (
+                {filtered.map((u, idx) => {
+                  const badge = ROLE_BADGE[u.role];
+                  const BadgeIcon = badge.icon;
+                  return (
                   <TableRow key={u.id}>
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">{u.name}</TableCell>
                     <TableCell>
-                      {u.role === "admin" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                          <Shield className="h-3 w-3" /> Admin
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                          <HardHat className="h-3 w-3" /> Worker
-                        </span>
-                      )}
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}>
+                        <BadgeIcon className="h-3 w-3" /> {badge.label}
+                      </span>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{u.phone || "—"}</TableCell>
                     <TableCell className="whitespace-nowrap">
@@ -316,7 +354,8 @@ function ManageUsers() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -325,23 +364,41 @@ function ManageUsers() {
 
       <AlertDialog open={!!delUser} onOpenChange={(v) => !v && setDelUser(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {delUser?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {delUser?.role === "worker"
-                ? "All attendance and payment records for this worker will also be removed."
-                : "This admin user will lose access immediately."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => delUser && del.mutate(delUser.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
+          {isMasterAdmin() ? (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {delUser?.name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {delUser?.role === "worker"
+                    ? "All attendance and payment records for this worker will also be removed."
+                    : "This user will lose access immediately."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => delUser && del.mutate(delUser.id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-muted-foreground" /> Ask the admin
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Managers can't delete users. To delete this, please ask the admin.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>Got it</AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
         </AlertDialogContent>
       </AlertDialog>
 
@@ -351,32 +408,48 @@ function ManageUsers() {
             <DialogTitle>{editing ? "Edit user" : "Add user"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div>
-              <Label>Role</Label>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={form.role === "worker" ? "default" : "outline"}
-                  className="justify-center"
-                  onClick={() => setForm({ ...form, role: "worker" })}
-                >
-                  <HardHat className="h-4 w-4 mr-1.5" /> Worker
-                </Button>
-                <Button
-                  type="button"
-                  variant={form.role === "admin" ? "default" : "outline"}
-                  className="justify-center"
-                  onClick={() => setForm({ ...form, role: "admin" })}
-                >
-                  <Shield className="h-4 w-4 mr-1.5" /> Admin
-                </Button>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {form.role === "worker"
-                  ? "Shows up in Labour Charges for attendance and payments."
-                  : "Management access only — won't appear in Labour Charges."}
+            {managerView ? (
+              <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                Managers can only add or edit Workers. Ask the admin to create a Manager or Admin account.
               </p>
-            </div>
+            ) : (
+              <div>
+                <Label>Role</Label>
+                <div className="mt-1.5 grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={form.role === "worker" ? "default" : "outline"}
+                    className="justify-center"
+                    onClick={() => setForm({ ...form, role: "worker" })}
+                  >
+                    <HardHat className="h-4 w-4 mr-1.5" /> Worker
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={form.role === "manager" ? "default" : "outline"}
+                    className="justify-center"
+                    onClick={() => setForm({ ...form, role: "manager" })}
+                  >
+                    <Shield className="h-4 w-4 mr-1.5" /> Manager
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={form.role === "admin" ? "default" : "outline"}
+                    className="justify-center"
+                    onClick={() => setForm({ ...form, role: "admin" })}
+                  >
+                    <Crown className="h-4 w-4 mr-1.5" /> Admin
+                  </Button>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {form.role === "worker"
+                    ? "Shows up in Labour Charges for attendance and payments."
+                    : form.role === "manager"
+                      ? "Full management access, but deletions (other than Rentals) need the admin."
+                      : "Full management access, including deleting anything — same rights as the admin."}
+                </p>
+              </div>
+            )}
             <div>
               <Label>Name</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
@@ -399,7 +472,7 @@ function ManageUsers() {
                   </p>
                 )}
               </div>
-              {form.role === "worker" && (
+              {(managerView || form.role === "worker") && (
                 <div>
                   <Label>Daily wage (₹)</Label>
                   <Input

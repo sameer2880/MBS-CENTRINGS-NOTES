@@ -262,8 +262,8 @@ function SidebarContent({
 
             <ConfirmDelete
               onConfirm={lock}
-              title="Sign out of the admin account?"
-              description="You will need to sign in again to access the admin dashboard."
+              title="Sign out of this account?"
+              description="You will need to sign in again to access the dashboard."
               confirmLabel="Sign out"
             >
               <Button

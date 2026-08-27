@@ -252,6 +252,7 @@ function Diary() {
                             onConfirm={() => remove.mutate(n.id)}
                             title="Delete this note?"
                             description="This diary note will be permanently removed."
+                            restricted
                           >
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Delete note">
                               <Trash2 className="h-3.5 w-3.5" />

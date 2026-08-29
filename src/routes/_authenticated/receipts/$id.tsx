@@ -9,18 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
-import signatureMbs from "@/assets/signature-mbs.png";
-import signatureHafiza from "@/assets/signature-hafiza.png";
-import signatureSalman from "@/assets/signature-salman.png";
-import signatureSameer from "@/assets/signature-sameer.png";
-
-const SIGNATURES = [
-  { id: "mbs", label: "MBS sign", src: signatureMbs },
-  { id: "hafiza", label: "Hafiza sign", src: signatureHafiza },
-  { id: "salman", label: "Salman sign", src: signatureSalman },
-  { id: "sameer", label: "Sameer sign", src: signatureSameer },
-] as const;
-type SignatureId = (typeof SIGNATURES)[number]["id"];
+import signature from "@/assets/signature-mbs.png";
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
@@ -43,7 +32,6 @@ function ReceiptPage() {
   const { id } = Route.useParams();
   const [showStamp, setShowStamp] = useState(true);
   const [showSignature, setShowSignature] = useState(true);
-  const [signatureId, setSignatureId] = useState<SignatureId>("mbs");
   const { data: r, isLoading } = useQuery({
     queryKey: ["rental", id],
     queryFn: async () => {
@@ -121,25 +109,6 @@ function ReceiptPage() {
                   </Button>
                 </div>
               </div>
-
-              {showSignature && (
-                <div>
-                  <div className="mb-2 text-xs font-medium text-muted-foreground">Signature</div>
-                  <div className="flex flex-wrap gap-2">
-                    {SIGNATURES.map((s) => (
-                      <Button
-                        key={s.id}
-                        type="button"
-                        size="sm"
-                        variant={signatureId === s.id ? "default" : "outline"}
-                        onClick={() => setSignatureId(s.id)}
-                      >
-                        {s.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </PopoverContent>
           </Popover>
           <Button onClick={() => window.print()}>
@@ -265,7 +234,7 @@ function ReceiptPage() {
           <div className="relative w-64 pt-16">
             {showSignature && (
               <img
-                src={SIGNATURES.find((s) => s.id === signatureId)?.src}
+                src={signature}
                 alt="Authorized signature"
                 className="pointer-events-none absolute left-1/2 top-2 h-16 w-40 -translate-x-1/2 object-contain opacity-80 print:opacity-80"
               />

@@ -64,12 +64,15 @@ function ReceiptPage() {
               <h1 className="text-2xl font-black text-black">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>
               <p className="mt-1 text-xs text-gray-500">
+                Prop: Sk.M.Sharif  Ph.no: 8688285959
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
                 Construction Material Rental Services
               </p>
             </div>
           </div>
           <div className="text-right">
-            <div className="inline-block rounded border border-black bg-black px-3 py-1 text-xs font-bold uppercase text-white">
+            <div className="text-sm font-bold uppercase text-black">
               Receipt
             </div>
             <div className="text-xs mt-2 font-mono">#{r.id.slice(0, 8).toUpperCase()}</div>
@@ -110,12 +113,18 @@ function ReceiptPage() {
             <div className="text-sm">
               Status: <span className="font-semibold capitalize">{r.status}</span>
             </div>
+            <div className="text-sm">
+              Payment:{" "}
+              <span className="font-semibold capitalize">
+                {r.payment_status === "paid" ? "Paid" : "Not Paid"}
+              </span>
+            </div>
           </div>
         </div>
 
         <table className="mb-6 w-full border-collapse border-2 border-black">
           <thead>
-            <tr className="bg-black text-white">
+            <tr className="bg-white text-black border-b-2 border-black">
               <th className="text-left p-2 text-xs uppercase">Material</th>
               <th className="text-right p-2 text-xs uppercase">Qty</th>
               <th className="text-right p-2 text-xs uppercase">Rate</th>
@@ -149,7 +158,7 @@ function ReceiptPage() {
               </div>
             ) : null}
             <div className="mt-2 flex justify-between border-t-2 border-black pt-2 text-lg font-bold text-black">
-              <span>Balance Due</span>
+              <span>TOTAL</span>
               <span>
                 ₹
                 {(Number(r.total_amount) - Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}

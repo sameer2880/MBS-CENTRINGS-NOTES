@@ -11,7 +11,7 @@ import { getRole } from "@/lib/user-role";
 
 export const KEY = "mbs-gate";
 const USER = "mbscentringworks";
-const PASS = "mbs@";
+const PASS = "mbs";
 
 export function isUnlocked() {
   if (typeof window === "undefined") return false;
@@ -209,7 +209,7 @@ export function Gate({ children }: { children: ReactNode }) {
   if (!ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">
-        Welcome to MBS Centrings, Loading...
+        Loading...
       </div>
     );
   }
@@ -243,16 +243,16 @@ export function Gate({ children }: { children: ReactNode }) {
             .maybeSingle();
       const userRecord = userByName ?? userByPhone;
       if (!userRecord?.phone) {
-        setErr("Incorrect Credentials, Contact admin to get login credentials");
+        setErr("Name or mobile number was not found");
         return;
       }
       if (!userRecord.active) {
-        setErr("This account is deactivated — contact the admin for help");
+        setErr("This account is deactivated");
         return;
       }
       const password = p.trim();
       if (password !== userRecord.phone.trim()) {
-        setErr("Incorrect Credentials, Contact admin to get login credentials");
+        setErr("Incorrect mobile number");
         return;
       }
       const role = getRole(userRecord.notes);
@@ -312,7 +312,7 @@ export function Gate({ children }: { children: ReactNode }) {
             </Button>
           </form>
           <p className="text-center text-xs font-medium text-red-600">
-            <i>If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your login credentials.</i>
+            <i><b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your login credentials.</i>
           </p>
         </CardContent>
       </Card>

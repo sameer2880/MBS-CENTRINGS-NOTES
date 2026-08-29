@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useQuery } from "@tanstack/react-query";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
@@ -37,7 +38,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
-import { WORKER_ID_KEY } from "@/lib/worker-auth";
+import { WORKER_ID_KEY, ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { isMasterAdmin } from "@/lib/access";
 
 const nav = [
@@ -224,6 +225,43 @@ function ExploreLinks() {
   );
 }
 
+/**
+ * "Signed in as" text block for the admin/manager sidebar — same plain
+ * style as the worker sidebar's version, just above Sign out. Covers both
+ * a workers-table row login (admin or manager role) and the single shared
+ * master login, which has no row and is always full admin.
+ */
+function SignedInLabel() {
+  const adminId = typeof window !== "undefined" ? localStorage.getItem(ADMIN_ID_KEY) : null;
+
+  const { data: me } = useQuery({
+    queryKey: ["workers", "me", adminId],
+    queryFn: async () => {
+      if (!adminId) return null;
+      const { data, error } = await supabase
+        .from("workers")
+        .select("name")
+        .eq("id", adminId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!adminId,
+  });
+
+  const name = adminId ? me?.name ?? "…" : "Master Admin";
+
+  return (
+    <div className="min-w-0 text-sm">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
+        Signed in as
+      </div>
+
+      <div className="truncate font-semibold">{name}</div>
+    </div>
+  );
+}
+
 function SidebarContent({
   onNav,
   workerName,
@@ -286,6 +324,8 @@ function SidebarContent({
             {ThemeToggle}
 
             <ChangePasswordDialog />
+
+            <SignedInLabel />
 
             <ConfirmDelete
               onConfirm={lock}

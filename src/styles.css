@@ -229,7 +229,7 @@
   .receipt-sheet {
     width: 100% !important;
     max-width: none !important;
-    border-color: #0d9488 !important;
+    border-color: #111827 !important;
     background: #ffffff !important;
     color: #111827 !important;
     padding: 8mm !important;
@@ -237,12 +237,13 @@
     -webkit-print-color-adjust: exact;
   }
 
-  .receipt-sheet .text-muted-foreground { color: #4b5563 !important; }
-  .receipt-sheet .text-primary { color: #0d9488 !important; }
-  .receipt-sheet .bg-primary { background-color: #0d9488 !important; }
-  .receipt-sheet .text-primary-foreground { color: #ffffff !important; }
-  .receipt-sheet .border-primary { border-color: #0d9488 !important; }
-  .receipt-sheet .border-border { border-color: #cbd5e1 !important; }
-  .receipt-sheet .border-foreground { border-color: #111827 !important; }
+  /* The receipt uses fixed black/white/gray classes (not theme
+     variables), so it already looks the same in light and dark mode.
+     This just forces those backgrounds to actually print instead of
+     being stripped by the browser's default print color handling. */
+  .receipt-sheet * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }
 }

@@ -51,28 +51,28 @@ function ReceiptPage() {
         </Button>
       </div>
 
-      <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-border/80 bg-card p-4 text-card-foreground shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
-        <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-primary pb-4">
+      <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
+        <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">
           <div className="flex items-center gap-4">
             <img
               src={logo}
               alt="M.B.S Centring Works logo"
-              className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover sm:h-20 sm:w-20"
+              className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover grayscale sm:h-20 sm:w-20"
             />
             <div>
-              <h1 className="text-2xl font-black text-primary">M.B.S CENTRING WORKS</h1>
+              <h1 className="text-2xl font-black text-black">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-gray-500">
                 Construction Material Rental Services
               </p>
             </div>
           </div>
           <div className="text-right">
-            <div className="inline-block rounded bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground">
+            <div className="inline-block rounded border border-black bg-black px-3 py-1 text-xs font-bold uppercase text-white">
               Receipt
             </div>
             <div className="text-xs mt-2 font-mono">#{r.id.slice(0, 8).toUpperCase()}</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-gray-500">
               Recorded:{" "}
               {new Date(r.created_at).toLocaleString("en-IN", {
                 dateStyle: "medium",
@@ -80,7 +80,7 @@ function ReceiptPage() {
               })}
             </div>
             {r.updated_at && r.updated_at !== r.created_at && (
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-[10px] text-gray-500">
                 Updated:{" "}
                 {new Date(r.updated_at).toLocaleString("en-IN", {
                   dateStyle: "short",
@@ -93,13 +93,13 @@ function ReceiptPage() {
 
         <div className="grid grid-cols-2 gap-6 mb-6">
           <div>
-            <h3 className="mb-2 text-xs font-bold uppercase text-primary">Customer</h3>
+            <h3 className="mb-2 text-xs font-bold uppercase text-black">Customer</h3>
             <div className="font-semibold">{r.customer_name}</div>
             <div className="text-sm">{r.customer_phone}</div>
-            <div className="text-sm text-muted-foreground">{r.customer_address}</div>
+            <div className="text-sm text-gray-500">{r.customer_address}</div>
           </div>
           <div>
-            <h3 className="mb-2 text-xs font-bold uppercase text-primary">Rental Period</h3>
+            <h3 className="mb-2 text-xs font-bold uppercase text-black">Rental Period</h3>
             <div className="text-sm">
               Issue: <span className="font-semibold">{r.issue_date}</span>
             </div>
@@ -112,9 +112,9 @@ function ReceiptPage() {
           </div>
         </div>
 
-        <table className="mb-6 w-full border-collapse border-2 border-primary">
+        <table className="mb-6 w-full border-collapse border-2 border-black">
           <thead>
-            <tr className="bg-primary text-primary-foreground">
+            <tr className="bg-black text-white">
               <th className="text-left p-2 text-xs uppercase">Material</th>
               <th className="text-right p-2 text-xs uppercase">Qty</th>
               <th className="text-right p-2 text-xs uppercase">Rate</th>
@@ -122,7 +122,7 @@ function ReceiptPage() {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
+            <tr className="border-b border-gray-300">
               <td className="p-2 font-medium">{r.material_name}</td>
               <td className="p-2 text-right">
                 {r.quantity} {r.unit}
@@ -147,7 +147,7 @@ function ReceiptPage() {
                 <span>- ₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
               </div>
             ) : null}
-            <div className="mt-2 flex justify-between border-t-2 border-primary pt-2 text-lg font-bold text-primary">
+            <div className="mt-2 flex justify-between border-t-2 border-black pt-2 text-lg font-bold text-black">
               <span>Balance Due</span>
               <span>
                 ₹
@@ -158,20 +158,20 @@ function ReceiptPage() {
         </div>
 
         {r.notes && (
-          <div className="mb-6 border-t pt-3 text-xs text-muted-foreground">
+          <div className="mb-6 border-t border-gray-300 pt-3 text-xs text-gray-500">
             <b>Notes:</b> {r.notes}
           </div>
         )}
 
-        <div className="flex justify-end border-t pt-12">
+        <div className="flex justify-end border-t border-gray-300 pt-12">
           <div className="w-64">
-            <div className="border-t border-foreground pt-1 text-center text-xs font-medium">
+            <div className="border-t border-black pt-1 text-center text-xs font-medium">
               Authorized Signature
             </div>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-border pt-3 text-center text-xs font-medium text-primary">
+        <div className="mt-6 border-t border-gray-300 pt-3 text-center text-xs font-medium text-black">
           Thank you for choosing M.B.S Centring Works, Nereducherla
         </div>
       </article>

@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Rental } from "@/lib/rentals";
 import { computeStatus } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
 import signatureMbs from "@/assets/signature-mbs.png";
@@ -63,75 +64,89 @@ function ReceiptPage() {
             <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Link>
         </Button>
-        <Button onClick={() => window.print()}>
-          <Printer className="h-4 w-4 mr-1.5" /> Print Receipt
-        </Button>
-      </div>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="outline" size="sm">
+                <SlidersHorizontal className="h-4 w-4 mr-1.5" /> Filters
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 space-y-4">
+              <div>
+                <div className="mb-2 text-xs font-medium text-muted-foreground">Print with</div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!showStamp && !showSignature ? "default" : "outline"}
+                    onClick={() => {
+                      setShowStamp(false);
+                      setShowSignature(false);
+                    }}
+                  >
+                    Without stamp & signature
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!showStamp && showSignature ? "default" : "outline"}
+                    onClick={() => {
+                      setShowStamp(false);
+                      setShowSignature(true);
+                    }}
+                  >
+                    Signature only
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={showStamp && !showSignature ? "default" : "outline"}
+                    onClick={() => {
+                      setShowStamp(true);
+                      setShowSignature(false);
+                    }}
+                  >
+                    Stamp only
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={showStamp && showSignature ? "default" : "outline"}
+                    onClick={() => {
+                      setShowStamp(true);
+                      setShowSignature(true);
+                    }}
+                  >
+                    Stamp & signature
+                  </Button>
+                </div>
+              </div>
 
-      <div className="flex flex-wrap items-center gap-2 print:hidden">
-        <span className="text-xs font-medium text-muted-foreground mr-1">Print with:</span>
-        <Button
-          type="button"
-          size="sm"
-          variant={!showStamp && !showSignature ? "default" : "outline"}
-          onClick={() => {
-            setShowStamp(false);
-            setShowSignature(false);
-          }}
-        >
-          Without stamp & signature
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={!showStamp && showSignature ? "default" : "outline"}
-          onClick={() => {
-            setShowStamp(false);
-            setShowSignature(true);
-          }}
-        >
-          Signature only
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={showStamp && !showSignature ? "default" : "outline"}
-          onClick={() => {
-            setShowStamp(true);
-            setShowSignature(false);
-          }}
-        >
-          Stamp only
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={showStamp && showSignature ? "default" : "outline"}
-          onClick={() => {
-            setShowStamp(true);
-            setShowSignature(true);
-          }}
-        >
-          Stamp & signature
-        </Button>
-      </div>
-
-      {showSignature && (
-        <div className="flex flex-wrap items-center gap-2 print:hidden">
-          <span className="text-xs font-medium text-muted-foreground mr-1">Signature:</span>
-          {SIGNATURES.map((s) => (
-            <Button
-              key={s.id}
-              type="button"
-              size="sm"
-              variant={signatureId === s.id ? "default" : "outline"}
-              onClick={() => setSignatureId(s.id)}
-            >
-              {s.label}
-            </Button>
-          ))}
+              {showSignature && (
+                <div>
+                  <div className="mb-2 text-xs font-medium text-muted-foreground">Signature</div>
+                  <div className="flex flex-wrap gap-2">
+                    {SIGNATURES.map((s) => (
+                      <Button
+                        key={s.id}
+                        type="button"
+                        size="sm"
+                        variant={signatureId === s.id ? "default" : "outline"}
+                        onClick={() => setSignatureId(s.id)}
+                      >
+                        {s.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          <Button onClick={() => window.print()}>
+            <Printer className="h-4 w-4 mr-1.5" /> Print Receipt
+          </Button>
         </div>
-      )}
+      </div>
 
       <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">

@@ -11,7 +11,7 @@ import { getRole } from "@/lib/user-role";
 
 export const KEY = "mbs-gate";
 const USER = "mbscentringworks";
-const PASS = "mbs";
+const PASS = "mbs@";
 
 export function isUnlocked() {
   if (typeof window === "undefined") return false;
@@ -209,7 +209,7 @@ export function Gate({ children }: { children: ReactNode }) {
   if (!ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">
-        Loading...
+        Welcome to MBS Centrings, Loading...
       </div>
     );
   }
@@ -243,11 +243,11 @@ export function Gate({ children }: { children: ReactNode }) {
             .maybeSingle();
       const userRecord = userByName ?? userByPhone;
       if (!userRecord?.phone) {
-        setErr("Name or mobile number was not found");
+        setErr("Incorrect Credentials, Contact admin to get login credentials");
         return;
       }
       if (!userRecord.active) {
-        setErr("This account is deactivated");
+        setErr("This account is deactivated — contact the admin for help");
         return;
       }
       const password = p.trim();
@@ -312,7 +312,7 @@ export function Gate({ children }: { children: ReactNode }) {
             </Button>
           </form>
           <p className="text-center text-xs font-medium text-red-600">
-            Note: If you are a member of MBS CENTRINGS, contact admin to get your login credentials.
+            If you are a member of MBS CENTRINGS, contact admin to get your login credentials.
           </p>
         </CardContent>
       </Card>

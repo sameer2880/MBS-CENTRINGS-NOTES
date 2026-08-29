@@ -243,7 +243,7 @@ export function Gate({ children }: { children: ReactNode }) {
             .maybeSingle();
       const userRecord = userByName ?? userByPhone;
       if (!userRecord?.phone) {
-        setErr("Name or mobile number was not found");
+        setErr("User name not found");
         return;
       }
       if (!userRecord.active) {
@@ -252,7 +252,7 @@ export function Gate({ children }: { children: ReactNode }) {
       }
       const password = p.trim();
       if (password !== userRecord.phone.trim()) {
-        setErr("Incorrect Credentials!!");
+        setErr("Invalid Credentials");
         return;
       }
       const role = getRole(userRecord.notes);

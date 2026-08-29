@@ -16,8 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell, IndianRupee, CircleDollarSign, SlidersHorizontal, X, ShieldAlert } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Search, Pencil, Trash2, MessageCircle, CheckCircle2, Copy, Printer, Bell, IndianRupee, CircleDollarSign, SlidersHorizontal, X, ShieldAlert, Phone, Package } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { RentalForm } from "@/components/RentalForm";
@@ -43,7 +43,6 @@ function RentalsPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | Rental["status"]>("all");
   const [payment, setPayment] = useState<"all" | Rental["payment_status"]>("all");
-  const [showFilters, setShowFilters] = useState(false);
   const [takenDate, setTakenDate] = useState("");
   const [phoneFilter, setPhoneFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
@@ -152,7 +151,69 @@ function RentalsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search by name, mobile or material" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} className="pl-9" />
+              <Input
+                placeholder="Search by name, mobile or material"
+                value={q}
+                onChange={(e) => { setQ(e.target.value); setPage(1); }}
+                className="pl-9 pr-9"
+              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    title="Filters"
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring ${activeFilterCount > 0 ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">Filters</span>
+                      {activeFilterCount > 0 && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 px-1.5 text-xs text-muted-foreground">
+                          <X className="h-3 w-3 mr-1" /> Clear
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Date Taken (Issue Date)</label>
+                      <Input type="date" value={takenDate} onChange={(e) => { setTakenDate(e.target.value); setPage(1); }} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Phone Number</label>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="e.g. 9876543210"
+                        value={phoneFilter}
+                        onChange={(e) => { setPhoneFilter(e.target.value); setPage(1); }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Customer Name</label>
+                      <Input
+                        placeholder="e.g. Salman"
+                        value={nameFilter}
+                        onChange={(e) => { setNameFilter(e.target.value); setPage(1); }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Place</label>
+                      <Input
+                        placeholder="e.g. Nereducherla"
+                        value={placeFilter}
+                        onChange={(e) => { setPlaceFilter(e.target.value); setPage(1); }}
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {(["all", "active", "overdue", "returned"] as const).map((s) => (
@@ -176,188 +237,140 @@ function RentalsPage() {
                 {p === "unpaid" ? "Not Paid" : p} <span className="ml-1.5 text-[10px] opacity-70">({paymentCounts[p]})</span>
               </Button>
             ))}
-            <Button
-              variant={showFilters ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowFilters((v) => !v)}
-              className="ml-auto"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-1.5 text-[10px] opacity-70">({activeFilterCount})</span>
-              )}
-            </Button>
           </div>
 
-          {showFilters && (
-            <div className="rounded-lg border border-border bg-muted/30 p-3">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Date Taken (Issue Date)</label>
-                  <Input type="date" value={takenDate} onChange={(e) => { setTakenDate(e.target.value); setPage(1); }} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Phone Number</label>
-                  <Input
-                    inputMode="numeric"
-                    placeholder="e.g. 9876543210"
-                    value={phoneFilter}
-                    onChange={(e) => { setPhoneFilter(e.target.value); setPage(1); }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Customer Name</label>
-                  <Input
-                    placeholder="e.g. Salman"
-                    value={nameFilter}
-                    onChange={(e) => { setNameFilter(e.target.value); setPage(1); }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Place</label>
-                  <Input
-                    placeholder="e.g. Nereducherla"
-                    value={placeFilter}
-                    onChange={(e) => { setPlaceFilter(e.target.value); setPage(1); }}
-                  />
-                </div>
-              </div>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2 h-7 text-xs text-muted-foreground">
-                  <X className="h-3 w-3 mr-1" /> Clear filters
-                </Button>
-              )}
-            </div>
+          {isLoading && <p className="text-center py-10 text-muted-foreground">Loading…</p>}
+          {!isLoading && pageRows.length === 0 && (
+            <p className="text-center py-10 text-muted-foreground">No rentals found</p>
           )}
 
-          <div className="overflow-x-auto -mx-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">S.No</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Issue</TableHead>
-                  <TableHead>Return</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && <TableRow><TableCell colSpan={11} className="text-center py-10">Loading…</TableCell></TableRow>}
-                {!isLoading && pageRows.length === 0 && (
-                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">No rentals found</TableCell></TableRow>
-                )}
-                {pageRows.map((r, idx) => {
-                  const theme = getRentalRowTheme(r);
-                  return (
-                  <TableRow key={r.id}>
-                    <TableCell className="relative text-muted-foreground">
-                      <span
-                        aria-hidden="true"
-                        title={`${theme.key} status marker`}
-                        className={`absolute left-0 top-0 h-0 w-0 border-t-[14px] border-r-[14px] border-r-transparent ${theme.cornerClass}`}
-                      />
-                      {(page - 1) * PAGE + idx + 1}
-                    </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">
-                      <div>{r.customer_name}</div>
-                      <div className="text-[10px] text-muted-foreground font-normal">
-                        Added {new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                        {r.updated_at && r.updated_at !== r.created_at && (
-                          <> · Updated {new Date(r.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
-                        )}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {pageRows.map((r, idx) => {
+              const theme = getRentalRowTheme(r);
+              return (
+                <div key={r.id} className="relative rounded-lg border border-border p-3.5 flex flex-col gap-3 hover:bg-muted/30 transition-colors">
+                  <span
+                    aria-hidden="true"
+                    title={`${theme.key} status marker`}
+                    className={`absolute left-0 top-0 h-0 w-0 border-t-[14px] border-r-[14px] border-r-transparent rounded-tl-lg ${theme.cornerClass}`}
+                  />
+
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+                        <span>#{(page - 1) * PAGE + idx + 1}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>{r.customer_phone}</TableCell>
-                    <TableCell>{r.material_name}</TableCell>
-                    <TableCell className="text-right">{r.quantity} {r.unit}</TableCell>
-                    <TableCell className="text-right font-semibold">₹{Number(r.total_amount).toLocaleString("en-IN")}</TableCell>
-                    <TableCell className="whitespace-nowrap">{r.issue_date}</TableCell>
-                    <TableCell className="whitespace-nowrap">{r.return_date}</TableCell>
-                    <TableCell><StatusBadge status={r.status} /></TableCell>
-                    <TableCell><PaymentBadge status={r.payment_status} /></TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                          >
-                            Actions
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditing(r); setOpen(true); }}>
-                            <Pencil className="h-4 w-4 mr-2" /> Edit
+                      <div className="font-semibold truncate">{r.customer_name}</div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Phone className="h-3 w-3 shrink-0" /> {r.customer_phone}
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex shrink-0 items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        >
+                          Actions
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { setEditing(r); setOpen(true); }}>
+                          <Pencil className="h-4 w-4 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        {r.status !== "returned" && (
+                          <DropdownMenuItem onClick={() => markReturned.mutate(r)}>
+                            <CheckCircle2 className="h-4 w-4 mr-2" /> Mark returned
                           </DropdownMenuItem>
-                          {r.status !== "returned" && (
-                            <DropdownMenuItem onClick={() => markReturned.mutate(r)}>
-                              <CheckCircle2 className="h-4 w-4 mr-2" /> Mark returned
-                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => togglePayment.mutate(r)}>
+                          {r.payment_status === "paid" ? (
+                            <><CircleDollarSign className="h-4 w-4 mr-2" /> Mark as not paid</>
+                          ) : (
+                            <><IndianRupee className="h-4 w-4 mr-2" /> Mark as paid</>
                           )}
-                          <DropdownMenuItem onClick={() => togglePayment.mutate(r)}>
-                            {r.payment_status === "paid" ? (
-                              <><CircleDollarSign className="h-4 w-4 mr-2" /> Mark as not paid</>
-                            ) : (
-                              <><IndianRupee className="h-4 w-4 mr-2" /> Mark as paid</>
-                            )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
+                          <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation
+                        </DropdownMenuItem>
+                        {r.status === "active" && (
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildActiveMessage(r)), "_blank")}>
+                            <Bell className="h-4 w-4 mr-2" /> WhatsApp active status
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
-                            <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation
+                        )}
+                        {r.status === "overdue" && (
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildOverdueMessage(r)), "_blank")}>
+                            <Bell className="h-4 w-4 mr-2" /> WhatsApp overdue notice
                           </DropdownMenuItem>
-                          {r.status === "active" && (
-                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildActiveMessage(r)), "_blank")}>
-                              <Bell className="h-4 w-4 mr-2" /> WhatsApp active status
-                            </DropdownMenuItem>
-                          )}
-                          {r.status === "overdue" && (
-                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildOverdueMessage(r)), "_blank")}>
-                              <Bell className="h-4 w-4 mr-2" /> WhatsApp overdue notice
-                            </DropdownMenuItem>
-                          )}
-                          {r.status !== "returned" && (
-                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildNotReturnedMessage(r)), "_blank")}>
-                              <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp not returned
-                            </DropdownMenuItem>
-                          )}
-                          {r.status === "returned" && (
-                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReturnMessage(r)), "_blank")}>
-                              <CheckCircle2 className="h-4 w-4 mr-2" /> WhatsApp return confirmation
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              await navigator.clipboard.writeText(buildConfirmMessage(r));
-                              toast.success("Message copied");
-                            }}
-                          >
-                            <Copy className="h-4 w-4 mr-2" /> Copy message
+                        )}
+                        {r.status !== "returned" && (
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildNotReturnedMessage(r)), "_blank")}>
+                            <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp not returned
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link to="/receipts/$id" params={{ id: r.id }}>
-                              <Printer className="h-4 w-4 mr-2" /> Print receipt
-                            </Link>
+                        )}
+                        {r.status === "returned" && (
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReturnMessage(r)), "_blank")}>
+                            <CheckCircle2 className="h-4 w-4 mr-2" /> WhatsApp return confirmation
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDelId(r.id)}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        )}
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(buildConfirmMessage(r));
+                            toast.success("Message copied");
+                          }}
+                        >
+                          <Copy className="h-4 w-4 mr-2" /> Copy message
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/receipts/$id" params={{ id: r.id }}>
+                            <Printer className="h-4 w-4 mr-2" /> Print receipt
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onClick={() => setDelId(r.id)}>
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="font-medium truncate">{r.material_name}</span>
+                    <span className="text-muted-foreground">· {r.quantity} {r.unit}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                    <div>
+                      <div className="text-muted-foreground">Amount</div>
+                      <div className="font-semibold text-sm">₹{Number(r.total_amount).toLocaleString("en-IN")}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Issue Date</div>
+                      <div className="font-medium">{r.issue_date}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground">Return Date</div>
+                      <div className="font-medium">{r.return_date}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <StatusBadge status={r.status} />
+                    <PaymentBadge status={r.payment_status} />
+                  </div>
+
+                  <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
+                    Added {new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                    {r.updated_at && r.updated_at !== r.created_at && (
+                      <> · Updated {new Date(r.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {pages > 1 && (

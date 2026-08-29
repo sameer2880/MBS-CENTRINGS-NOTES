@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Rental } from "@/lib/rentals";
 import { computeStatus } from "@/lib/rentals";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
+import signature from "@/assets/signature.png";
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/_authenticated/receipts/$id")({
 
 function ReceiptPage() {
   const { id } = Route.useParams();
+  const [showStamp, setShowStamp] = useState(true);
+  const [showSignature, setShowSignature] = useState(true);
   const { data: r, isLoading } = useQuery({
     queryKey: ["rental", id],
     queryFn: async () => {
@@ -52,6 +56,54 @@ function ReceiptPage() {
         </Button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        <span className="text-xs font-medium text-muted-foreground mr-1">Print with:</span>
+        <Button
+          type="button"
+          size="sm"
+          variant={!showStamp && !showSignature ? "default" : "outline"}
+          onClick={() => {
+            setShowStamp(false);
+            setShowSignature(false);
+          }}
+        >
+          Without stamp & signature
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={!showStamp && showSignature ? "default" : "outline"}
+          onClick={() => {
+            setShowStamp(false);
+            setShowSignature(true);
+          }}
+        >
+          Signature only
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={showStamp && !showSignature ? "default" : "outline"}
+          onClick={() => {
+            setShowStamp(true);
+            setShowSignature(false);
+          }}
+        >
+          Stamp only
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={showStamp && showSignature ? "default" : "outline"}
+          onClick={() => {
+            setShowStamp(true);
+            setShowSignature(true);
+          }}
+        >
+          Stamp & signature
+        </Button>
+      </div>
+
       <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">
           <div className="flex items-center gap-4">
@@ -63,8 +115,8 @@ function ReceiptPage() {
             <div>
               <h1 className="text-2xl font-black text-black">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>
-              <p className="mt-1 text-xs text-gray-500">
-                Prop: Sk.M.Sharif  Ph.no: 8688285959
+              <p className="text-xs font-medium text-gray-700">
+                Prop . SK.M.SHARIF PH. 8688285959
               </p>
               <p className="mt-1 text-xs text-gray-500">
                 Construction Material Rental Services
@@ -175,11 +227,20 @@ function ReceiptPage() {
 
         <div className="flex justify-end border-t border-gray-300 pt-6">
           <div className="relative w-64 pt-16">
-            <img
-              src={stamp}
-              alt="M.B.S Centring Works official stamp"
-              className="pointer-events-none absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 -rotate-6 opacity-90 grayscale print:opacity-90"
-            />
+            {showSignature && (
+              <img
+                src={signature}
+                alt="Authorized signature"
+                className="pointer-events-none absolute left-1/2 top-2 h-16 w-40 -translate-x-1/2 object-contain opacity-80 print:opacity-80"
+              />
+            )}
+            {showStamp && (
+              <img
+                src={stamp}
+                alt="M.B.S Centring Works official stamp"
+                className="pointer-events-none absolute left-1/2 top-0 z-10 h-24 w-24 -translate-x-1/2 -rotate-6 opacity-90 grayscale print:opacity-90"
+              />
+            )}
             <div className="border-t border-black pt-1 text-center text-xs font-medium">
               Authorized Signature
             </div>

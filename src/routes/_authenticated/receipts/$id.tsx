@@ -7,10 +7,23 @@ import { computeStatus } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
-import { isMasterAdmin } from "@/lib/access";
+import { isMasterAdmin, isManager } from "@/lib/access";
+import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
-import signature from "@/assets/signature-mbs.png";
+import signatureMbs from "@/assets/signature-mbs.png";
+import signatureHafiza from "@/assets/signature-hafiza.png";
+import signatureSalman from "@/assets/signature-salman.png";
+import signatureSameer from "@/assets/signature-sameer.png";
+
+/** Picks the signature image whose name appears in the signed-in user's name. */
+function signatureForName(name: string | null | undefined): string {
+  const n = (name ?? "").toLowerCase();
+  if (n.includes("salman")) return signatureSalman;
+  if (n.includes("hafiza")) return signatureHafiza;
+  if (n.includes("sameer")) return signatureSameer;
+  return signatureMbs;
+}
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
@@ -31,9 +44,23 @@ export const Route = createFileRoute("/_authenticated/receipts/$id")({
 
 function ReceiptPage() {
   const { id } = Route.useParams();
-  const canUseSignature = isMasterAdmin();
+  const canUseSignature = isMasterAdmin() || isManager();
   const [showStamp, setShowStamp] = useState(true);
-  const [showSignature, setShowSignature] = useState(canUseSignature);
+  const [showSignature, setShowSignature] = useState(isMasterAdmin());
+
+  const adminId = typeof window !== "undefined" ? localStorage.getItem(ADMIN_ID_KEY) : null;
+  const { data: me } = useQuery({
+    queryKey: ["workers", "me", adminId],
+    queryFn: async () => {
+      if (!adminId) return null;
+      const { data, error } = await supabase.from("workers").select("name").eq("id", adminId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!adminId && canUseSignature,
+  });
+  const signature = signatureForName(me?.name);
+
   const { data: r, isLoading } = useQuery({
     queryKey: ["rental", id],
     queryFn: async () => {

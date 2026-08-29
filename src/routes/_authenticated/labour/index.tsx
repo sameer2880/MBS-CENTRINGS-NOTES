@@ -9,6 +9,8 @@ import { HardHat, Search, ChevronRight, Download, UserCog } from "lucide-react";
 import { downloadCsv } from "@/lib/export";
 import { toast } from "sonner";
 import { getRole, getVisibleNotes } from "@/lib/user-role";
+import { AdminOnly } from "@/components/AdminOnly";
+import { isMasterAdmin } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/labour/")({
   head: () => ({
@@ -47,6 +49,7 @@ function LabourList() {
       if (error) throw error;
       return (data as Worker[]).filter((w) => getRole(w.notes) === "worker");
     },
+    enabled: isMasterAdmin(),
   });
 
   const filtered = useMemo(() => {
@@ -56,6 +59,7 @@ function LabourList() {
   }, [workers, q]);
 
   return (
+    <AdminOnly label="Labour Charges">
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -133,5 +137,6 @@ function LabourList() {
         </CardContent>
       </Card>
     </div>
+    </AdminOnly>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, RefreshCw, Film } from "lucide-react";
+import { AdminOnly } from "@/components/AdminOnly";
 
 const REELS_URL = "https://mbsndcl.vercel.app/reelmanagent";
 
@@ -24,6 +25,7 @@ function Reels() {
   const [key, setKey] = useState(0);
 
   return (
+    <AdminOnly label="Reel Management">
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -61,5 +63,6 @@ function Reels() {
         If the panel stays blank, the reel app blocks embedding — use “Open full app”.
       </p>
     </div>
+    </AdminOnly>
   );
 }

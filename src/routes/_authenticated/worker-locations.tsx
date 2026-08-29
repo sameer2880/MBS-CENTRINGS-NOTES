@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { isWithinWorkingHours, WORK_HOURS_LABEL } from "@/hooks/use-worker-location-sharing";
+import { AdminOnly } from "@/components/AdminOnly";
+import { isMasterAdmin } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/worker-locations")({
   head: () => ({
@@ -103,6 +105,7 @@ function WorkerLocationsPage() {
 
       return merged;
     },
+    enabled: isMasterAdmin(),
   });
 
   const liveCount = rows.filter(
@@ -114,6 +117,7 @@ function WorkerLocationsPage() {
   ).length;
 
   return (
+    <AdminOnly label="Worker Locations">
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -247,5 +251,6 @@ function WorkerLocationsPage() {
         </div>
       )}
     </div>
+    </AdminOnly>
   );
 }

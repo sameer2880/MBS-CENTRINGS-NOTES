@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { AdminOnly } from "@/components/AdminOnly";
+import { isMasterAdmin } from "@/lib/access";
 
 type Feedback = {
   id: string;
@@ -39,9 +41,11 @@ function FeedbackPage() {
         workerName: workerMap.get(item.worker_id) ?? "Unknown worker",
       }));
     },
+    enabled: isMasterAdmin(),
   });
 
   return (
+    <AdminOnly label="Worker Feedback">
     <div className="space-y-5">
       <div>
         <h2 className="flex items-center gap-2 text-2xl font-bold">
@@ -99,5 +103,6 @@ function FeedbackPage() {
         </div>
       )}
     </div>
+    </AdminOnly>
   );
 }

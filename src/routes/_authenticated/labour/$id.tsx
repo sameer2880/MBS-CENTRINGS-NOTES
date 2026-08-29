@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { downloadCsv } from "@/lib/export";
+import { AdminOnly } from "@/components/AdminOnly";
 import type { Worker } from "./index";
 
 export const Route = createFileRoute("/_authenticated/labour/$id")({
@@ -50,7 +51,11 @@ export const Route = createFileRoute("/_authenticated/labour/$id")({
   }),
   component: () => {
     const { id } = Route.useParams();
-    return <WorkerOverview id={id} />;
+    return (
+      <AdminOnly label="Labour Charges">
+        <WorkerOverview id={id} />
+      </AdminOnly>
+    );
   },
   errorComponent: ({ error }) => (
     <div role="alert" className="p-4">

@@ -21,10 +21,13 @@ import {
   MapPinned,
   MessageSquare,
   UserCog,
+  ChevronDown,
+  Compass,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
@@ -35,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY } from "@/lib/worker-auth";
+import { isMasterAdmin } from "@/lib/access";
 
 const nav = [
   {
@@ -51,16 +55,19 @@ const nav = [
     to: "/manage-worker",
     label: "Manage Users",
     icon: UserCog,
+    adminOnly: true,
   },
   {
     to: "/labour",
     label: "Labour Charges",
     icon: HardHat,
+    adminOnly: true,
   },
   {
     to: "/worker-locations",
     label: "Worker Locations",
     icon: MapPinned,
+    adminOnly: true,
   },
   {
     to: "/diary",
@@ -81,11 +88,13 @@ const nav = [
     to: "/reels",
     label: "Reel Management",
     icon: Film,
+    adminOnly: true,
   },
   {
     to: "/feedback",
     label: "Worker Feedback",
     icon: MessageSquare,
+    adminOnly: true,
   },
 ];
 
@@ -111,7 +120,7 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
           icon: HardHat,
         },
       ]
-    : nav;
+    : nav.filter((item) => !item.adminOnly || isMasterAdmin());
 
   return (
     <nav className="flex flex-col gap-1 px-4 py-5">
@@ -173,26 +182,44 @@ const exploreLinks = [
 ];
 
 function ExploreLinks() {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="mx-4 mt-5 border-t border-sidebar-border pt-5">
-      <div className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65">
-        Explore
-      </div>
-
-      <div className="mt-2 space-y-1">
-        {exploreLinks.map(({ href, label, icon: Icon }) => (
-          <a
-            key={href}
-            href={href}
-            target={href.startsWith("http") ? "_blank" : undefined}
-            rel={href.startsWith("http") ? "noreferrer" : undefined}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent",
+              open && "bg-sidebar-accent text-sidebar-foreground",
+            )}
           >
-            <Icon className="h-5 w-5" />
-            {label}
-          </a>
-        ))}
-      </div>
+            <span className="flex items-center gap-2">
+              <Compass className="h-4 w-4" />
+              Explore
+            </span>
+            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="mt-2 space-y-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-2">
+            {exploreLinks.map(({ href, label, icon: Icon }) => (
+              <a
+                key={href}
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noreferrer" : undefined}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </a>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

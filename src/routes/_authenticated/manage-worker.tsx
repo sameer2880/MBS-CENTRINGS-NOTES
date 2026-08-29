@@ -32,6 +32,7 @@ import {
   Crown,
 } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { AdminOnly } from "@/components/AdminOnly";
 import type { Worker } from "./labour";
 import { type UserRole, getRole, getVisibleNotes, encodeNotes } from "@/lib/user-role";
 import { isMasterAdmin, isManager } from "@/lib/access";
@@ -119,6 +120,7 @@ function ManageUsers() {
       if (error) throw error;
       return (data as Worker[]).map((w) => ({ ...w, role: getRole(w.notes) }) satisfies ManagedUser);
     },
+    enabled: isMasterAdmin(),
   });
 
   const save = useMutation({
@@ -210,6 +212,7 @@ function ManageUsers() {
   }, [users, q, roleFilter, managerView]);
 
   return (
+    <AdminOnly label="Manage Users">
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -504,5 +507,6 @@ function ManageUsers() {
         </DialogContent>
       </Dialog>
     </div>
+    </AdminOnly>
   );
 }

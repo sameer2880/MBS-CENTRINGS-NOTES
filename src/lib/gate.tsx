@@ -312,7 +312,7 @@ export function Gate({ children }: { children: ReactNode }) {
             </Button>
           </form>
           <p className="text-center text-xs font-medium text-red-600">
-            If you are a member of MBS CENTRINGS, contact admin to get your login credentials.
+            <i>If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your login credentials.</i>
           </p>
         </CardContent>
       </Card>

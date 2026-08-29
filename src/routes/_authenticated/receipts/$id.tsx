@@ -7,6 +7,7 @@ import { computeStatus } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
+import { isMasterAdmin } from "@/lib/access";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
 import signature from "@/assets/signature-mbs.png";
@@ -30,8 +31,9 @@ export const Route = createFileRoute("/_authenticated/receipts/$id")({
 
 function ReceiptPage() {
   const { id } = Route.useParams();
+  const canUseSignature = isMasterAdmin();
   const [showStamp, setShowStamp] = useState(true);
-  const [showSignature, setShowSignature] = useState(true);
+  const [showSignature, setShowSignature] = useState(canUseSignature);
   const { data: r, isLoading } = useQuery({
     queryKey: ["rental", id],
     queryFn: async () => {
@@ -62,52 +64,73 @@ function ReceiptPage() {
             <PopoverContent align="end" className="w-80 space-y-4">
               <div>
                 <div className="mb-2 text-xs font-medium text-muted-foreground">Print with</div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={!showStamp && !showSignature ? "default" : "outline"}
-                    onClick={() => {
-                      setShowStamp(false);
-                      setShowSignature(false);
-                    }}
-                  >
-                    Without stamp & signature
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={!showStamp && showSignature ? "default" : "outline"}
-                    onClick={() => {
-                      setShowStamp(false);
-                      setShowSignature(true);
-                    }}
-                  >
-                    Signature only
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={showStamp && !showSignature ? "default" : "outline"}
-                    onClick={() => {
-                      setShowStamp(true);
-                      setShowSignature(false);
-                    }}
-                  >
-                    Stamp only
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={showStamp && showSignature ? "default" : "outline"}
-                    onClick={() => {
-                      setShowStamp(true);
-                      setShowSignature(true);
-                    }}
-                  >
-                    Stamp & signature
-                  </Button>
-                </div>
+                {canUseSignature ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={!showStamp && !showSignature ? "default" : "outline"}
+                      onClick={() => {
+                        setShowStamp(false);
+                        setShowSignature(false);
+                      }}
+                    >
+                      Without stamp & signature
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={!showStamp && showSignature ? "default" : "outline"}
+                      onClick={() => {
+                        setShowStamp(false);
+                        setShowSignature(true);
+                      }}
+                    >
+                      Signature only
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={showStamp && !showSignature ? "default" : "outline"}
+                      onClick={() => {
+                        setShowStamp(true);
+                        setShowSignature(false);
+                      }}
+                    >
+                      Stamp only
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={showStamp && showSignature ? "default" : "outline"}
+                      onClick={() => {
+                        setShowStamp(true);
+                        setShowSignature(true);
+                      }}
+                    >
+                      Stamp & signature
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={!showStamp ? "default" : "outline"}
+                      onClick={() => setShowStamp(false)}
+                    >
+                      Without stamp
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={showStamp ? "default" : "outline"}
+                      onClick={() => setShowStamp(true)}
+                    >
+                      With stamp
+                    </Button>
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -232,7 +255,7 @@ function ReceiptPage() {
 
         <div className="flex justify-end border-t border-gray-300 pt-6">
           <div className="relative w-64 pt-16">
-            {showSignature && (
+            {showSignature && canUseSignature && (
               <img
                 src={signature}
                 alt="Authorized signature"

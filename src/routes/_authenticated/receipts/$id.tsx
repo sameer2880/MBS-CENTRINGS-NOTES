@@ -8,7 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 import stamp from "@/assets/stamp.png";
-import signature from "@/assets/signature.png";
+import signatureMbs from "@/assets/signature-mbs.png";
+import signatureHafiza from "@/assets/signature-hafiza.png";
+import signatureSalman from "@/assets/signature-salman.png";
+import signatureSameer from "@/assets/signature-sameer.png";
+
+const SIGNATURES = [
+  { id: "mbs", label: "MBS sign", src: signatureMbs },
+  { id: "hafiza", label: "Hafiza sign", src: signatureHafiza },
+  { id: "salman", label: "Salman sign", src: signatureSalman },
+  { id: "sameer", label: "Sameer sign", src: signatureSameer },
+] as const;
+type SignatureId = (typeof SIGNATURES)[number]["id"];
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
@@ -31,6 +42,7 @@ function ReceiptPage() {
   const { id } = Route.useParams();
   const [showStamp, setShowStamp] = useState(true);
   const [showSignature, setShowSignature] = useState(true);
+  const [signatureId, setSignatureId] = useState<SignatureId>("mbs");
   const { data: r, isLoading } = useQuery({
     queryKey: ["rental", id],
     queryFn: async () => {
@@ -103,6 +115,23 @@ function ReceiptPage() {
           Stamp & signature
         </Button>
       </div>
+
+      {showSignature && (
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Signature:</span>
+          {SIGNATURES.map((s) => (
+            <Button
+              key={s.id}
+              type="button"
+              size="sm"
+              variant={signatureId === s.id ? "default" : "outline"}
+              onClick={() => setSignatureId(s.id)}
+            >
+              {s.label}
+            </Button>
+          ))}
+        </div>
+      )}
 
       <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">
@@ -229,7 +258,7 @@ function ReceiptPage() {
           <div className="relative w-64 pt-16">
             {showSignature && (
               <img
-                src={signature}
+                src={SIGNATURES.find((s) => s.id === signatureId)?.src}
                 alt="Authorized signature"
                 className="pointer-events-none absolute left-1/2 top-2 h-16 w-40 -translate-x-1/2 object-contain opacity-80 print:opacity-80"
               />

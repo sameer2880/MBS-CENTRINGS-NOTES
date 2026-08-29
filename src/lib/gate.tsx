@@ -252,7 +252,7 @@ export function Gate({ children }: { children: ReactNode }) {
       }
       const password = p.trim();
       if (password !== userRecord.phone.trim()) {
-        setErr("Incorrect mobile number");
+        setErr("Incorrect Credentials, Contact admin to get login credentials");
         return;
       }
       const role = getRole(userRecord.notes);

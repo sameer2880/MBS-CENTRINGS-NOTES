@@ -6,6 +6,7 @@ import { computeStatus } from "@/lib/rentals";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
+import stamp from "@/assets/stamp.png";
 
 export const Route = createFileRoute("/_authenticated/receipts/$id")({
   head: () => ({
@@ -163,8 +164,13 @@ function ReceiptPage() {
           </div>
         )}
 
-        <div className="flex justify-end border-t border-gray-300 pt-12">
-          <div className="w-64">
+        <div className="flex justify-end border-t border-gray-300 pt-6">
+          <div className="relative w-64 pt-16">
+            <img
+              src={stamp}
+              alt="M.B.S Centring Works official stamp"
+              className="pointer-events-none absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 -rotate-6 opacity-90 grayscale print:opacity-90"
+            />
             <div className="border-t border-black pt-1 text-center text-xs font-medium">
               Authorized Signature
             </div>

@@ -142,10 +142,10 @@ function ReceiptPage() {
               className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover grayscale sm:h-20 sm:w-20"
             />
             <div>
-              <h1 className="text-2xl font-black text-black">M.B.S CENTRING WORKS</h1>
+              <h1 className="text-1xl font-black text-black">M.B.S CENTRING WORKS</h1>
               <p className="text-sm font-semibold">Nereducherla</p>
-              <p className="text-xs font-medium text-gray-700">
-                Prop . SK.M.SHARIF PH. 8688285959
+              <p className="mt-1 text-xs text-gray-500">
+                Pro: Sk.M.Sharif Ph.no: 8688285959
               </p>
               <p className="mt-1 text-xs text-gray-500">
                 Construction Material Rental Services
@@ -158,21 +158,13 @@ function ReceiptPage() {
             </div>
             <div className="text-xs mt-2 font-mono">#{r.id.slice(0, 8).toUpperCase()}</div>
             <div className="text-xs text-gray-500">
-              Recorded:{" "}
+              {" "}
               {new Date(r.created_at).toLocaleString("en-IN", {
                 dateStyle: "medium",
                 timeStyle: "short",
               })}
             </div>
-            {r.updated_at && r.updated_at !== r.created_at && (
-              <div className="text-[10px] text-gray-500">
-                Updated:{" "}
-                {new Date(r.updated_at).toLocaleString("en-IN", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                })}
-              </div>
-            )}
+            
           </div>
         </div>
 
@@ -277,7 +269,7 @@ function ReceiptPage() {
         </div>
 
         <div className="mt-6 border-t border-gray-300 pt-3 text-center text-xs font-medium text-black">
-          Thank you for choosing M.B.S Centring Works, Nereducherla
+          Thank you for choosing M.B.S Centring Works, Nereducherla.
         </div>
       </article>
     </div>

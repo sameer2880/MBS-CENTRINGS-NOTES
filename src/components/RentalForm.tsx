@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Rental } from "@/lib/rentals";
+import type { Rental, RentalGroup } from "@/lib/rentals";
 import { buildConfirmMessage, buildGroupConfirmMessage, buildGroupReceiptMessage, whatsappUrl } from "@/lib/rentals";
 
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import { MessageCircle, Plus, Trash2 } from "lucide-react";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing?: Rental | null;
-
+  editingGroup?: RentalGroup | null;
 }
 
 type Item = {
+  /** Present when this row already exists in the DB (editing an existing material). */
+  id?: string;
   material_name: string;
   quantity: number | string;
   unit: string;
@@ -44,35 +45,35 @@ const emptyForm = () => ({
   items: [emptyItem()] as Item[],
 });
 
-export function RentalForm({ open, onOpenChange, editing }: Props) {
+export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
   const qc = useQueryClient();
   const [form, setForm] = useState(emptyForm());
 
-
   useEffect(() => {
-    if (editing) {
+    if (editingGroup) {
+      const primary = editingGroup.rows[0];
       setForm({
-        customer_name: editing.customer_name,
-        customer_phone: editing.customer_phone,
-        customer_address: editing.customer_address ?? "",
-        security_deposit: editing.security_deposit ?? 0,
-        issue_date: editing.issue_date,
-        return_date: editing.return_date,
-        status: editing.status === "overdue" ? "active" : (editing.status as "active" | "returned"),
-        payment_status: editing.payment_status ?? "unpaid",
-        notes: editing.notes ?? "",
-        items: [{
-          material_name: editing.material_name,
-          quantity: editing.quantity,
-          unit: editing.unit,
-          rate_per_unit: editing.rate_per_unit,
-        }],
+        customer_name: primary.customer_name,
+        customer_phone: primary.customer_phone,
+        customer_address: primary.customer_address ?? "",
+        security_deposit: editingGroup.security_deposit ?? 0,
+        issue_date: primary.issue_date,
+        return_date: primary.return_date,
+        status: primary.status === "overdue" ? "active" : (primary.status as "active" | "returned"),
+        payment_status: editingGroup.payment_status ?? "unpaid",
+        notes: primary.notes ?? "",
+        items: editingGroup.rows.map((r) => ({
+          id: r.id,
+          material_name: r.material_name,
+          quantity: r.quantity,
+          unit: r.unit,
+          rate_per_unit: r.rate_per_unit,
+        })),
       });
     } else {
       setForm(emptyForm());
     }
-  }, [editing, open]);
-
+  }, [editingGroup, open]);
 
   const itemTotal = (it: Item) => Number(it.quantity || 0) * Number(it.rate_per_unit || 0);
   const grandTotal = form.items.reduce((s, it) => s + itemTotal(it), 0);
@@ -91,55 +92,70 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
       if (!form.customer_name) throw new Error("Customer name is required");
       if (form.items.some((it) => !it.material_name)) throw new Error("Every material row needs a name");
 
-      if (editing) {
-        const it = form.items[0];
-        const payload = {
-          customer_name: form.customer_name,
-          customer_phone: form.customer_phone,
-          customer_address: form.customer_address,
-          material_name: it.material_name,
-          quantity: Number(it.quantity),
-          unit: it.unit,
-          rate_per_unit: Number(it.rate_per_unit),
-          total_amount: itemTotal(it),
-          security_deposit: Number(form.security_deposit || 0),
-          issue_date: form.issue_date,
-          return_date: form.return_date,
-          status: form.status,
-          payment_status: form.payment_status,
-          notes: form.notes,
-        };
-        const { data, error } = await supabase.from("rentals").update(payload).eq("id", editing.id).select().single();
-        if (error) throw error;
-        const results: Rental[] = [data as Rental];
+      if (editingGroup) {
+        const existingItems = form.items.filter((it) => it.id);
+        const newItems = form.items.filter((it) => !it.id);
+        const results: Rental[] = [];
 
-        // Any extra material rows added while editing are saved as new rentals
-        const extraItems = form.items.slice(1);
-        if (extraItems.length > 0) {
-          const extraRows = extraItems.map((extra) => ({
+        // Existing materials: update details, but never touch their own return
+        // status here — that's managed from the "Mark returned" checklist.
+        for (const it of existingItems) {
+          const payload = {
             customer_name: form.customer_name,
             customer_phone: form.customer_phone,
             customer_address: form.customer_address,
-            material_name: extra.material_name,
-            quantity: Number(extra.quantity),
-            unit: extra.unit,
-            rate_per_unit: Number(extra.rate_per_unit),
-            total_amount: itemTotal(extra),
+            material_name: it.material_name,
+            quantity: Number(it.quantity),
+            unit: it.unit,
+            rate_per_unit: Number(it.rate_per_unit),
+            total_amount: itemTotal(it),
+            issue_date: form.issue_date,
+            return_date: form.return_date,
+            payment_status: form.payment_status,
+            notes: form.notes,
+          };
+          const { data, error } = await supabase.from("rentals").update(payload).eq("id", it.id!).select().single();
+          if (error) throw error;
+          results.push(data as Rental);
+        }
+
+        // New materials added while editing join the same rental group.
+        if (newItems.length > 0) {
+          const newRows = newItems.map((it) => ({
+            customer_name: form.customer_name,
+            customer_phone: form.customer_phone,
+            customer_address: form.customer_address,
+            material_name: it.material_name,
+            quantity: Number(it.quantity),
+            unit: it.unit,
+            rate_per_unit: Number(it.rate_per_unit),
+            total_amount: itemTotal(it),
             security_deposit: 0,
             issue_date: form.issue_date,
             return_date: form.return_date,
             status: form.status,
             payment_status: form.payment_status,
             notes: form.notes,
+            group_id: editingGroup.group_id,
           }));
-          const { data: extraData, error: extraError } = await supabase.from("rentals").insert(extraRows).select();
-          if (extraError) throw extraError;
-          results.push(...(extraData as Rental[]));
+          const { data, error } = await supabase.from("rentals").insert(newRows).select();
+          if (error) throw error;
+          results.push(...(data as Rental[]));
         }
+
+        // Materials removed from the form are deleted from this group.
+        const remainingIds = new Set(existingItems.map((it) => it.id));
+        const removedIds = editingGroup.rows.map((r) => r.id).filter((id) => !remainingIds.has(id));
+        if (removedIds.length > 0) {
+          const { error } = await supabase.from("rentals").delete().in("id", removedIds);
+          if (error) throw error;
+        }
+
         return results;
       }
 
-      // Split security deposit only on the first row to avoid double counting
+      // New rental: every material shares one group_id so they render as one card.
+      const group_id = crypto.randomUUID();
       const rows = form.items.map((it, idx) => ({
         customer_name: form.customer_name,
         customer_phone: form.customer_phone,
@@ -149,12 +165,14 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         unit: it.unit,
         rate_per_unit: Number(it.rate_per_unit),
         total_amount: itemTotal(it),
+        // Split security deposit only on the first row to avoid double counting
         security_deposit: idx === 0 ? Number(form.security_deposit || 0) : 0,
         issue_date: form.issue_date,
         return_date: form.return_date,
         status: form.status,
         payment_status: form.payment_status,
         notes: form.notes,
+        group_id,
       }));
       const { data, error } = await supabase.from("rentals").insert(rows).select();
       if (error) throw error;
@@ -169,7 +187,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
       const receiptLink = first ? whatsappUrl(first.customer_phone, receiptMessage) : null;
 
       toast.success(
-        editing
+        editingGroup
           ? rows.length > 1
             ? `Rental updated · ${rows.length} materials`
             : "Rental updated"
@@ -193,7 +211,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit Rental" : "New Rental"}</DialogTitle>
+          <DialogTitle>{editingGroup ? "Edit Rental" : "New Rental"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
@@ -221,10 +239,10 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
           <div className="space-y-3">
             <Label>Materials</Label>
             {form.items.map((it, idx) => (
-              <div key={idx} className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
+              <div key={it.id ?? idx} className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-muted-foreground">Material #{idx + 1}</span>
-                  {form.items.length > 1 && (!editing || idx > 0) && (
+                  {form.items.length > 1 && (!editingGroup || idx > 0) && (
                     <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(idx)} className="h-7 text-destructive">
                       <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
                     </Button>
@@ -252,9 +270,9 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
                 </div>
               </div>
             ))}
-            {(!editing || form.items.length > 1) && (
+            {editingGroup && (
               <p className="text-[11px] text-muted-foreground">
-                {editing ? "Extra materials added here are saved as new rentals for this customer." : ""}
+                Materials added here join this same rental — they'll all show on one card.
               </p>
             )}
             <Button type="button" size="sm" variant="outline" onClick={addItem} className="w-full">
@@ -292,7 +310,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Status">
+            <Field label={editingGroup ? "Status (new materials only)" : "Status"}>
               <select
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={form.status}
@@ -313,16 +331,21 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
               </select>
             </Field>
           </div>
+          {editingGroup && (
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              Existing materials keep their current return status — use "Mark returned" on the card to change it.
+            </p>
+          )}
           <Field label="Notes">
             <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </Field>
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? "Saving…" : editing ? "Update Rental" : "Create Rental"}
+              {save.isPending ? "Saving…" : editingGroup ? "Update Rental" : "Create Rental"}
             </Button>
           </DialogFooter>
-          {!editing && form.customer_phone && (
+          {!editingGroup && form.customer_phone && (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <MessageCircle className="h-3 w-3 text-success" /> "Send WhatsApp" and "Send Receipt" options will be offered after saving — neither opens automatically.
             </p>

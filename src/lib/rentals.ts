@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Rental {
   id: string;
+  group_id: string;
   customer_name: string;
   customer_phone: string;
   customer_address: string | null;
@@ -21,11 +22,88 @@ export interface Rental {
   updated_at: string;
 }
 
+/**
+ * A "card" worth of materials — every rental row that was created together
+ * (same group_id) is bundled into one RentalGroup so they render as a single
+ * card instead of one card per material.
+ */
+export interface RentalGroup {
+  group_id: string;
+  rows: Rental[];
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string | null;
+  issue_date: string;
+  return_date: string;
+  total_amount: number;
+  security_deposit: number;
+  status: "active" | "returned" | "overdue" | "partial";
+  payment_status: "paid" | "unpaid";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export function computeStatus(r: Pick<Rental, "status" | "return_date">): Rental["status"] {
   if (r.status === "returned") return "returned";
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const ret = new Date(r.return_date);
   return ret < today ? "overdue" : "active";
+}
+
+/**
+ * Groups rentals by group_id so materials added together show up as one
+ * card. `rentals` is expected pre-sorted (newest first, as listRentals()
+ * returns) — group order follows the position of each group's first row,
+ * so the newest activity still sorts first.
+ */
+export function groupRentals(rentals: Rental[]): RentalGroup[] {
+  const order: string[] = [];
+  const byGroup = new Map<string, Rental[]>();
+
+  for (const r of rentals) {
+    const key = r.group_id || r.id;
+    const existing = byGroup.get(key);
+    if (existing) {
+      existing.push(r);
+    } else {
+      byGroup.set(key, [r]);
+      order.push(key);
+    }
+  }
+
+  return order.map((group_id) => {
+    const rows = byGroup.get(group_id)!;
+    const first = rows[0];
+    const returnedCount = rows.filter((r) => r.status === "returned").length;
+    const overdueCount = rows.filter((r) => r.status === "overdue").length;
+
+    let status: RentalGroup["status"];
+    if (returnedCount === rows.length) status = "returned";
+    else if (returnedCount > 0) status = "partial";
+    else if (overdueCount > 0) status = "overdue";
+    else status = "active";
+
+    const payment_status: RentalGroup["payment_status"] =
+      rows.every((r) => r.payment_status === "paid") ? "paid" : "unpaid";
+
+    return {
+      group_id,
+      rows,
+      customer_name: first.customer_name,
+      customer_phone: first.customer_phone,
+      customer_address: first.customer_address,
+      issue_date: first.issue_date,
+      return_date: first.return_date,
+      total_amount: rows.reduce((s, r) => s + Number(r.total_amount || 0), 0),
+      security_deposit: rows.reduce((s, r) => s + Number(r.security_deposit || 0), 0),
+      status,
+      payment_status,
+      notes: first.notes,
+      created_at: rows.reduce((min, r) => (r.created_at < min ? r.created_at : min), first.created_at),
+      updated_at: rows.reduce((max, r) => (r.updated_at > max ? r.updated_at : max), first.updated_at),
+    };
+  });
 }
 
 /**
@@ -35,14 +113,20 @@ export function computeStatus(r: Pick<Rental, "status" | "return_date">): Rental
  * whole row:
  * - Active                -> blue   (payment doesn't change this)
  * - Overdue               -> red
+ * - Partially returned    -> amber  (some materials back, some not)
  * - Returned + paid       -> green
  * - Returned + not paid   -> orange
  */
-export function getRentalRowTheme(r: Pick<Rental, "status" | "payment_status">) {
+export function getRentalRowTheme(
+  r: Pick<Rental, "payment_status"> & { status: Rental["status"] | "partial" },
+) {
   if (r.status === "returned") {
     return r.payment_status === "paid"
       ? { key: "green", dotClass: "bg-success", cornerClass: "border-t-success" }
       : { key: "orange", dotClass: "bg-orange-500", cornerClass: "border-t-orange-500" };
+  }
+  if (r.status === "partial") {
+    return { key: "amber", dotClass: "bg-amber-500", cornerClass: "border-t-amber-500" };
   }
   if (r.status === "overdue") {
     return { key: "red", dotClass: "bg-destructive", cornerClass: "border-t-destructive" };
@@ -143,6 +227,29 @@ Please plan to return it on or before the due date.
 Thank you.`;
 }
 
+/** Group version of buildActiveMessage — lists every material still with the customer. */
+export function buildGroupActiveMessage(rows: Rental[]) {
+  if (rows.length === 1) return buildActiveMessage(rows[0]);
+  const first = rows[0];
+  const today = new Date();
+  const ret = new Date(first.return_date);
+  const daysLeft = daysBetween(ret, today);
+  const dueText =
+    daysLeft === 0 ? "due today" : daysLeft === 1 ? "due tomorrow" : daysLeft > 1 ? `due in ${daysLeft} days` : "due soon";
+  const lines = rows.map((r) => `- ${r.material_name} (Qty: ${r.quantity} ${r.unit})`).join("\n");
+
+  return `Hello ${first.customer_name},
+
+This is a status update from M.B.S CENTRING WORKS, Nereducherla.
+
+Your rented materials are currently active and ${dueText} on ${first.return_date}:
+${lines}
+
+Please plan to return them on or before the due date.
+
+Thank you.`;
+}
+
 /** Sent once a rental has crossed its return date — a first overdue notice. */
 export function buildOverdueMessage(r: Rental) {
   const today = new Date();
@@ -160,6 +267,27 @@ Kindly return the material at the earliest or contact us to extend the rental.
 Thank you.`;
 }
 
+/** Group version of buildOverdueMessage — lists every overdue material. */
+export function buildGroupOverdueMessage(rows: Rental[]) {
+  if (rows.length === 1) return buildOverdueMessage(rows[0]);
+  const first = rows[0];
+  const today = new Date();
+  const ret = new Date(first.return_date);
+  const daysLate = Math.max(1, daysBetween(today, ret));
+  const lines = rows.map((r) => `- ${r.material_name} (Qty: ${r.quantity} ${r.unit})`).join("\n");
+
+  return `Hello ${first.customer_name},
+
+This is an overdue notice from M.B.S CENTRING WORKS, Nereducherla.
+
+The following materials were due for return on ${first.return_date} and are now ${daysLate} day${daysLate > 1 ? "s" : ""} overdue:
+${lines}
+
+Kindly return the materials at the earliest or contact us to extend the rental.
+
+Thank you.`;
+}
+
 /** A stronger follow-up for material that is still not returned after an earlier notice. */
 export function buildNotReturnedMessage(r: Rental) {
   return `Hello ${r.customer_name},
@@ -173,6 +301,25 @@ Please arrange to return it immediately or contact us to avoid further charges/a
 Thank you.`;
 }
 
+/** Group version of buildNotReturnedMessage — pass just the still-pending rows. */
+export function buildGroupNotReturnedMessage(rows: Rental[]) {
+  if (rows.length === 0) return "";
+  if (rows.length === 1) return buildNotReturnedMessage(rows[0]);
+  const first = rows[0];
+  const lines = rows.map((r) => `- ${r.material_name} (Qty: ${r.quantity} ${r.unit})`).join("\n");
+
+  return `Hello ${first.customer_name},
+
+This is a follow-up from M.B.S CENTRING WORKS, Nereducherla.
+
+As per our records, the following materials rented on ${first.issue_date} have still not been returned:
+${lines}
+
+Please arrange to return them immediately or contact us to avoid further charges/action.
+
+Thank you.`;
+}
+
 export function buildReturnMessage(r: Rental) {
   const returnedOn = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
   return `Hello ${r.customer_name},
@@ -180,6 +327,26 @@ export function buildReturnMessage(r: Rental) {
 Thank you for returning the rented material ${r.material_name}.
 
 The rental material is returned on ${returnedOn}.
+
+We appreciate your business.
+
+Thank you for choosing M.B.S CENTRING WORKS, Nereducherla.`;
+}
+
+/** Group version of buildReturnMessage — pass just the rows that were just marked returned. */
+export function buildGroupReturnMessage(rows: Rental[]) {
+  if (rows.length === 0) return "";
+  if (rows.length === 1) return buildReturnMessage(rows[0]);
+  const first = rows[0];
+  const returnedOn = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+  const lines = rows.map((r) => `- ${r.material_name} (Qty: ${r.quantity} ${r.unit})`).join("\n");
+
+  return `Hello ${first.customer_name},
+
+Thank you for returning the rented materials:
+${lines}
+
+The materials were returned on ${returnedOn}.
 
 We appreciate your business.
 

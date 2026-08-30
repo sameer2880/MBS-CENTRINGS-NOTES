@@ -105,6 +105,7 @@ export type Database = {
           customer_address: string | null;
           customer_name: string;
           customer_phone: string;
+          group_id: string;
           id: string;
           issue_date: string;
           material_name: string;
@@ -125,6 +126,7 @@ export type Database = {
           customer_address?: string | null;
           customer_name: string;
           customer_phone: string;
+          group_id?: string;
           id?: string;
           issue_date: string;
           material_name: string;
@@ -145,6 +147,7 @@ export type Database = {
           customer_address?: string | null;
           customer_name?: string;
           customer_phone?: string;
+          group_id?: string;
           id?: string;
           issue_date?: string;
           material_name?: string;

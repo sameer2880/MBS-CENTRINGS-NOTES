@@ -1,12 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Rental } from "@/lib/rentals";
-import { computeStatus } from "@/lib/rentals";
+import { computeStatus, groupRentals } from "@/lib/rentals";
+import { receiptToImageFile, receiptToPdfFile, shareOrDownloadFile } from "@/lib/receipt-share";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Printer, ArrowLeft, SlidersHorizontal, Share2, Image as ImageIcon, FileText } from "lucide-react";
 import { isMasterAdmin, isManager } from "@/lib/access";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 import logo from "@/assets/logo.png";
@@ -70,8 +76,85 @@ function ReceiptPage() {
     },
   });
 
+  // Every other material added together with this one (same group_id) — lets us
+  // print all materials for the customer on a single combined receipt.
+  const { data: groupRows } = useQuery({
+    queryKey: ["rental-group", r?.group_id ?? id],
+    queryFn: async () => {
+      const gid = r!.group_id;
+      if (!gid) return [r as Rental];
+      const { data, error } = await supabase.from("rentals").select("*").eq("group_id", gid);
+      if (error) throw error;
+      return (data as any[]).map((row) => ({ ...row, status: computeStatus(row) })) as Rental[];
+    },
+    enabled: !!r,
+  });
+
+  const hasMultipleMaterials = (groupRows?.length ?? 0) > 1;
+
+  // Which materials (by id) are ticked in the checklist below. null = not yet
+  // initialized — defaults to "everything" once the group finishes loading.
+  const [selectedIds, setSelectedIds] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (groupRows && selectedIds === null) {
+      setSelectedIds(groupRows.map((row) => row.id));
+    }
+  }, [groupRows, selectedIds]);
+
+  const receiptRef = useRef<HTMLElement>(null);
+  const [sharing, setSharing] = useState<"image" | "pdf" | null>(null);
+
   if (isLoading) return <div className="text-muted-foreground">Loading receipt…</div>;
   if (!r) return <div>Not found</div>;
+
+  const effectiveSelectedIds = selectedIds ?? (groupRows ?? []).map((row) => row.id);
+  const checkedRows = hasMultipleMaterials
+    ? (groupRows as Rental[]).filter((row) => effectiveSelectedIds.includes(row.id))
+    : [r];
+  // Never render an empty receipt — fall back to the material that was opened.
+  const rowsForReceipt = checkedRows.length > 0 ? checkedRows : [r];
+  const isCombined = rowsForReceipt.length > 1;
+  const allSelected = hasMultipleMaterials && effectiveSelectedIds.length === (groupRows?.length ?? 0);
+
+  const toggleMaterial = (materialId: string, checked: boolean) => {
+    const base = selectedIds ?? (groupRows ?? []).map((row) => row.id);
+    const next = checked
+      ? Array.from(new Set([...base, materialId]))
+      : base.filter((rowId) => rowId !== materialId);
+    // Keep at least one material selected so the receipt is never empty.
+    setSelectedIds(next.length > 0 ? next : base);
+  };
+
+  const selectAllMaterials = () => setSelectedIds((groupRows ?? []).map((row) => row.id));
+  const selectOnlyThisMaterial = () => setSelectedIds([r.id]);
+
+  // Reuses the same aggregation used on the Rentals list, so totals, status
+  // and payment status are computed identically whether combined or single.
+  const receipt = groupRentals(rowsForReceipt)[0];
+  const receiptNumber = isCombined ? (r.group_id || r.id) : r.id;
+
+  const handleShare = async (kind: "image" | "pdf") => {
+    if (!receiptRef.current) return;
+    setSharing(kind);
+    try {
+      const filename = `receipt-${receiptNumber.slice(0, 8)}`;
+      const file =
+        kind === "image"
+          ? await receiptToImageFile(receiptRef.current, filename)
+          : await receiptToPdfFile(receiptRef.current, filename);
+      const result = await shareOrDownloadFile(file, {
+        title: "Rental Receipt — M.B.S Centring Works",
+        text: `Receipt for ${receipt.customer_name}`,
+      });
+      if (result === "shared") toast.success("Receipt shared");
+      else if (result === "downloaded")
+        toast.success(`Receipt saved as ${kind === "image" ? "an image" : "a PDF"} — attach it in WhatsApp`);
+    } catch {
+      toast.error("Couldn't generate the receipt file");
+    } finally {
+      setSharing(null);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -89,6 +172,42 @@ function ReceiptPage() {
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80 space-y-4">
+              {hasMultipleMaterials && (
+                <div>
+                  <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
+                    <span>
+                      Materials to combine ({rowsForReceipt.length}/{groupRows?.length ?? 0})
+                    </span>
+                    <button
+                      type="button"
+                      className="font-semibold text-primary hover:underline"
+                      onClick={allSelected ? selectOnlyThisMaterial : selectAllMaterials}
+                    >
+                      {allSelected ? "Clear all" : "Select all"}
+                    </button>
+                  </div>
+                  <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
+                    {(groupRows as Rental[]).map((row, i) => (
+                      <label
+                        key={row.id}
+                        className="flex cursor-pointer items-start gap-2 text-sm"
+                      >
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={effectiveSelectedIds.includes(row.id)}
+                          onCheckedChange={(checked) => toggleMaterial(row.id, !!checked)}
+                        />
+                        <span>
+                          <span className="font-medium">Material {i + 1}</span>{" "}
+                          <span className="text-muted-foreground">
+                            — {row.material_name} ({row.quantity} {row.unit})
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <div className="mb-2 text-xs font-medium text-muted-foreground">Print with</div>
                 {canUseSignature ? (
@@ -161,13 +280,31 @@ function ReceiptPage() {
               </div>
             </PopoverContent>
           </Popover>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="sm" disabled={sharing !== null}>
+                <Share2 className="h-4 w-4 mr-1.5" /> {sharing ? "Preparing…" : "Share"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleShare("image")}>
+                <ImageIcon className="h-4 w-4 mr-2" /> Share as Image
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare("pdf")}>
+                <FileText className="h-4 w-4 mr-2" /> Share as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-1.5" /> Print Receipt
           </Button>
         </div>
       </div>
 
-      <article className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none">
+      <article
+        ref={receiptRef}
+        className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none"
+      >
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">
           <div className="flex items-center gap-4">
             <img
@@ -188,12 +325,12 @@ function ReceiptPage() {
           </div>
           <div className="text-right">
             <div className="text-sm font-bold uppercase text-black">
-              Receipt
+              {isCombined ? "Combined Receipt" : "Receipt"}
             </div>
-            <div className="text-xs mt-2 font-mono">#{r.id.slice(0, 8).toUpperCase()}</div>
+            <div className="text-xs mt-2 font-mono">#{receiptNumber.slice(0, 8).toUpperCase()}</div>
             <div className="text-xs text-gray-500">
               {" "}
-              {new Date(r.created_at).toLocaleString("en-IN", {
+              {new Date(receipt.created_at).toLocaleString("en-IN", {
                 dateStyle: "medium",
                 timeStyle: "short",
               })}
@@ -205,25 +342,28 @@ function ReceiptPage() {
         <div className="grid grid-cols-2 gap-6 mb-6">
           <div>
             <h3 className="mb-2 text-xs font-bold uppercase text-black">Customer</h3>
-            <div className="font-semibold">{r.customer_name}</div>
-            <div className="text-sm">{r.customer_phone}</div>
-            <div className="text-sm text-gray-500">{r.customer_address}</div>
+            <div className="font-semibold">{receipt.customer_name}</div>
+            <div className="text-sm">{receipt.customer_phone}</div>
+            <div className="text-sm text-gray-500">{receipt.customer_address}</div>
           </div>
           <div>
             <h3 className="mb-2 text-xs font-bold uppercase text-black">Rental Period</h3>
             <div className="text-sm">
-              Issue: <span className="font-semibold">{r.issue_date}</span>
+              Issue: <span className="font-semibold">{receipt.issue_date}</span>
             </div>
             <div className="text-sm">
-              Return: <span className="font-semibold">{r.return_date}</span>
+              Return: <span className="font-semibold">{receipt.return_date}</span>
             </div>
             <div className="text-sm">
-              Status: <span className="font-semibold capitalize">{r.status}</span>
+              Status:{" "}
+              <span className="font-semibold capitalize">
+                {receipt.status === "partial" ? "Partially Returned" : receipt.status}
+              </span>
             </div>
             <div className="text-sm">
               Payment:{" "}
               <span className="font-semibold capitalize">
-                {r.payment_status === "paid" ? "Paid" : "Not Paid"}
+                {receipt.payment_status === "paid" ? "Paid" : "Not Paid"}
               </span>
             </div>
           </div>
@@ -239,16 +379,18 @@ function ReceiptPage() {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-300">
-              <td className="p-2 font-medium">{r.material_name}</td>
-              <td className="p-2 text-right">
-                {r.quantity} {r.unit}
-              </td>
-              <td className="p-2 text-right">₹{Number(r.rate_per_unit).toLocaleString("en-IN")}</td>
-              <td className="p-2 text-right font-semibold">
-                ₹{Number(r.total_amount).toLocaleString("en-IN")}
-              </td>
-            </tr>
+            {receipt.rows.map((row) => (
+              <tr key={row.id} className="border-b border-gray-300">
+                <td className="p-2 font-medium">{row.material_name}</td>
+                <td className="p-2 text-right">
+                  {row.quantity} {row.unit}
+                </td>
+                <td className="p-2 text-right">₹{Number(row.rate_per_unit).toLocaleString("en-IN")}</td>
+                <td className="p-2 text-right font-semibold">
+                  ₹{Number(row.total_amount).toLocaleString("en-IN")}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
@@ -256,27 +398,27 @@ function ReceiptPage() {
           <div className="w-64 space-y-1">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <span>₹{Number(r.total_amount).toLocaleString("en-IN")}</span>
+              <span>₹{Number(receipt.total_amount).toLocaleString("en-IN")}</span>
             </div>
-            {r.security_deposit ? (
+            {receipt.security_deposit ? (
               <div className="flex justify-between text-sm">
                 <span>Advance Received</span>
-                <span>- ₹{Number(r.security_deposit).toLocaleString("en-IN")}</span>
+                <span>- ₹{Number(receipt.security_deposit).toLocaleString("en-IN")}</span>
               </div>
             ) : null}
             <div className="mt-2 flex justify-between border-t-2 border-black pt-2 text-lg font-bold text-black">
               <span>TOTAL</span>
               <span>
                 ₹
-                {(Number(r.total_amount) - Number(r.security_deposit ?? 0)).toLocaleString("en-IN")}
+                {(Number(receipt.total_amount) - Number(receipt.security_deposit ?? 0)).toLocaleString("en-IN")}
               </span>
             </div>
           </div>
         </div>
 
-        {r.notes && (
+        {receipt.notes && (
           <div className="mb-6 border-t border-gray-300 pt-3 text-xs text-gray-500">
-            <b>Notes:</b> {r.notes}
+            <b>Notes:</b> {receipt.notes}
           </div>
         )}
 

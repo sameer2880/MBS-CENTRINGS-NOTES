@@ -9,6 +9,7 @@ import {
   buildOverdueMessage,
   buildNotReturnedMessage,
   buildReturnMessage,
+  buildReceiptMessage,
   whatsappUrl,
   getRentalRowTheme,
   type Rental,
@@ -165,67 +166,73 @@ function RentalsPage() {
                     className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring ${activeFilterCount > 0 ? "text-primary" : "text-muted-foreground"}`}
                   >
                     <SlidersHorizontal className="h-4 w-4" />
-                    {activeFilterCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
-                        {activeFilterCount}
-                      </span>
-                    )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-80">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">Filters</span>
-                      {activeFilterCount > 0 && (
-                        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 px-1.5 text-xs text-muted-foreground">
-                          <X className="h-3 w-3 mr-1" /> Clear
-                        </Button>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">Date Taken (Issue Date)</label>
-                      <Input type="date" value={takenDate} onChange={(e) => { setTakenDate(e.target.value); setPage(1); }} />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">Phone Number</label>
-                      <Input
-                        inputMode="numeric"
-                        placeholder="e.g. 9876543210"
-                        value={phoneFilter}
-                        onChange={(e) => { setPhoneFilter(e.target.value); setPage(1); }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">Customer Name</label>
-                      <Input
-                        placeholder="e.g. Salman"
-                        value={nameFilter}
-                        onChange={(e) => { setNameFilter(e.target.value); setPage(1); }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">Place</label>
-                      <Input
-                        placeholder="e.g. Nereducherla"
-                        value={placeFilter}
-                        onChange={(e) => { setPlaceFilter(e.target.value); setPage(1); }}
-                      />
-                    </div>
+                <PopoverContent align="end" className="w-80 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-medium text-muted-foreground">Filters</div>
+                    {activeFilterCount > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-6 px-1.5 text-xs text-muted-foreground"
+                      >
+                        <X className="h-3 w-3 mr-1" /> Clear
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Date Taken (Issue Date)</label>
+                    <Input
+                      type="date"
+                      value={takenDate}
+                      onChange={(e) => { setTakenDate(e.target.value); setPage(1); }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Phone Number</label>
+                    <Input
+                      placeholder="Search by phone"
+                      value={phoneFilter}
+                      onChange={(e) => { setPhoneFilter(e.target.value); setPage(1); }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Customer Name</label>
+                    <Input
+                      placeholder="Search by name"
+                      value={nameFilter}
+                      onChange={(e) => { setNameFilter(e.target.value); setPage(1); }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Place / Village</label>
+                    <Input
+                      placeholder="Search by place"
+                      value={placeFilter}
+                      onChange={(e) => { setPlaceFilter(e.target.value); setPage(1); }}
+                    />
                   </div>
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="flex gap-1.5 flex-wrap">
-              {(["all", "active", "overdue", "returned"] as const).map((s) => (
-                <Button key={s} variant={status === s ? "default" : "outline"} size="sm" onClick={() => { setStatus(s); setPage(1); }} className="capitalize">
-                  {s} <span className="ml-1.5 text-[10px] opacity-70">({counts[s]})</span>
-                </Button>
-              ))}
-            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">Payment:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {(["all", "active", "overdue", "returned"] as const).map((s) => (
+              <Button
+                key={s}
+                variant={status === s ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setStatus(s); setPage(1); }}
+                className="capitalize"
+              >
+                {s} ({counts[s]})
+              </Button>
+            ))}
+            <span className="mx-1 text-muted-foreground">·</span>
             {(["all", "paid", "unpaid"] as const).map((p) => (
               <Button
                 key={p}
@@ -234,143 +241,145 @@ function RentalsPage() {
                 onClick={() => { setPayment(p); setPage(1); }}
                 className="capitalize"
               >
-                {p === "unpaid" ? "Not Paid" : p} <span className="ml-1.5 text-[10px] opacity-70">({paymentCounts[p]})</span>
+                {p} ({paymentCounts[p]})
               </Button>
             ))}
           </div>
 
-          {isLoading && <p className="text-center py-10 text-muted-foreground">Loading…</p>}
-          {!isLoading && pageRows.length === 0 && (
-            <p className="text-center py-10 text-muted-foreground">No rentals found</p>
-          )}
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {pageRows.map((r, idx) => {
-              const theme = getRentalRowTheme(r);
-              return (
-                <div key={r.id} className="relative rounded-lg border border-border p-3.5 flex flex-col gap-3 hover:bg-muted/30 transition-colors">
-                  <span
-                    aria-hidden="true"
-                    title={`${theme.key} status marker`}
-                    className={`absolute left-0 top-0 h-0 w-0 border-t-[14px] border-r-[14px] border-r-transparent rounded-tl-lg ${theme.cornerClass}`}
-                  />
-
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
-                        <span>#{(page - 1) * PAGE + idx + 1}</span>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? (
+              <div className="col-span-full text-center text-muted-foreground py-8">Loading…</div>
+            ) : pageRows.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-8">No rentals found</div>
+            ) : (
+              pageRows.map((r, idx) => {
+                const theme = getRentalRowTheme(r);
+                return (
+                  <div
+                    key={r.id}
+                    className="relative rounded-lg border border-border p-3.5 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className={`absolute left-0 top-0 h-1.5 w-10 rounded-tl-lg ${theme.dotClass}`} />
+                    <div className="flex items-start justify-between gap-2 pt-1">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+                          <span>#{(page - 1) * PAGE + idx + 1}</span>
+                        </div>
+                        <div className="font-semibold truncate">{r.customer_name}</div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3 shrink-0" /> {r.customer_phone}
+                        </div>
                       </div>
-                      <div className="font-semibold truncate">{r.customer_name}</div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3 shrink-0" /> {r.customer_phone}
-                      </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex shrink-0 items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                        >
-                          Actions
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setEditing(r); setOpen(true); }}>
-                          <Pencil className="h-4 w-4 mr-2" /> Edit
-                        </DropdownMenuItem>
-                        {r.status !== "returned" && (
-                          <DropdownMenuItem onClick={() => markReturned.mutate(r)}>
-                            <CheckCircle2 className="h-4 w-4 mr-2" /> Mark returned
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex shrink-0 items-center rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          >
+                            Actions
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditing(r); setOpen(true); }}>
+                            <Pencil className="h-4 w-4 mr-2" /> Edit
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => togglePayment.mutate(r)}>
-                          {r.payment_status === "paid" ? (
-                            <><CircleDollarSign className="h-4 w-4 mr-2" /> Mark as not paid</>
-                          ) : (
-                            <><IndianRupee className="h-4 w-4 mr-2" /> Mark as paid</>
+                          {r.status !== "returned" && (
+                            <DropdownMenuItem onClick={() => markReturned.mutate(r)}>
+                              <CheckCircle2 className="h-4 w-4 mr-2" /> Mark returned
+                            </DropdownMenuItem>
                           )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
-                          <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation
-                        </DropdownMenuItem>
-                        {r.status === "active" && (
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildActiveMessage(r)), "_blank")}>
-                            <Bell className="h-4 w-4 mr-2" /> WhatsApp active status
+                          <DropdownMenuItem onClick={() => togglePayment.mutate(r)}>
+                            {r.payment_status === "paid" ? (
+                              <><CircleDollarSign className="h-4 w-4 mr-2" /> Mark as not paid</>
+                            ) : (
+                              <><IndianRupee className="h-4 w-4 mr-2" /> Mark as paid</>
+                            )}
                           </DropdownMenuItem>
-                        )}
-                        {r.status === "overdue" && (
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildOverdueMessage(r)), "_blank")}>
-                            <Bell className="h-4 w-4 mr-2" /> WhatsApp overdue notice
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildConfirmMessage(r)), "_blank")}>
+                            <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp confirmation
                           </DropdownMenuItem>
-                        )}
-                        {r.status !== "returned" && (
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildNotReturnedMessage(r)), "_blank")}>
-                            <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp not returned
+                          {r.status === "active" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildActiveMessage(r)), "_blank")}>
+                              <Bell className="h-4 w-4 mr-2" /> WhatsApp active status
+                            </DropdownMenuItem>
+                          )}
+                          {r.status === "overdue" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildOverdueMessage(r)), "_blank")}>
+                              <Bell className="h-4 w-4 mr-2" /> WhatsApp overdue notice
+                            </DropdownMenuItem>
+                          )}
+                          {r.status !== "returned" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildNotReturnedMessage(r)), "_blank")}>
+                              <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp not returned
+                            </DropdownMenuItem>
+                          )}
+                          {r.status === "returned" && (
+                            <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReturnMessage(r)), "_blank")}>
+                              <CheckCircle2 className="h-4 w-4 mr-2" /> WhatsApp return confirmation
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(buildConfirmMessage(r));
+                              toast.success("Message copied");
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-2" /> Copy message
                           </DropdownMenuItem>
-                        )}
-                        {r.status === "returned" && (
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReturnMessage(r)), "_blank")}>
-                            <CheckCircle2 className="h-4 w-4 mr-2" /> WhatsApp return confirmation
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link to="/receipts/$id" params={{ id: r.id }}>
+                              <Printer className="h-4 w-4 mr-2" /> Print receipt
+                            </Link>
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(buildConfirmMessage(r));
-                            toast.success("Message copied");
-                          }}
-                        >
-                          <Copy className="h-4 w-4 mr-2" /> Copy message
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link to="/receipts/$id" params={{ id: r.id }}>
-                            <Printer className="h-4 w-4 mr-2" /> Print receipt
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => setDelId(r.id)}>
-                          <Trash2 className="h-4 w-4 mr-2" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="font-medium truncate">{r.material_name}</span>
-                    <span className="text-muted-foreground">· {r.quantity} {r.unit}</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
-                    <div>
-                      <div className="text-muted-foreground">Amount</div>
-                      <div className="font-semibold text-sm">₹{Number(r.total_amount).toLocaleString("en-IN")}</div>
+                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(r.customer_phone, buildReceiptMessage(r)), "_blank")}>
+                            <MessageCircle className="h-4 w-4 mr-2" /> Share receipt on WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDelId(r.id)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                    <div>
-                      <div className="text-muted-foreground">Issue Date</div>
-                      <div className="font-medium">{r.issue_date}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">Return Date</div>
-                      <div className="font-medium">{r.return_date}</div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <StatusBadge status={r.status} />
-                    <PaymentBadge status={r.payment_status} />
-                  </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="font-medium truncate">{r.material_name}</span>
+                      <span className="text-muted-foreground">· {r.quantity} {r.unit}</span>
+                    </div>
 
-                  <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
-                    Added {new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                    {r.updated_at && r.updated_at !== r.created_at && (
-                      <> · Updated {new Date(r.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
-                    )}
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                      <div>
+                        <div className="text-muted-foreground">Amount</div>
+                        <div className="font-semibold text-sm">₹{Number(r.total_amount).toLocaleString("en-IN")}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Issue Date</div>
+                        <div className="font-medium">{r.issue_date}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Return Date</div>
+                        <div className="font-medium">{r.return_date}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <StatusBadge status={r.status} />
+                      <PaymentBadge status={r.payment_status} />
+                    </div>
+
+                    <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
+                      Added {new Date(r.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                      {r.updated_at && r.updated_at !== r.created_at && (
+                        <> · Updated {new Date(r.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {pages > 1 && (

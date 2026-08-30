@@ -186,6 +186,37 @@ We appreciate your business.
 Thank you for choosing M.B.S CENTRING WORKS, Nereducherla.`;
 }
 
+/** Absolute link to the printable receipt page for a rental. */
+export function receiptUrl(id: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/receipts/${id}`;
+}
+
+/** WhatsApp message that hands the customer a link to their printable receipt. */
+export function buildReceiptMessage(r: Rental) {
+  return `Hello ${r.customer_name},
+
+Here is your receipt from M.B.S CENTRING WORKS, Nereducherla for ${r.material_name} (Qty: ${r.quantity} ${r.unit}):
+
+${receiptUrl(r.id)}
+
+Thank you.`;
+}
+
+/** Same as buildReceiptMessage, but for a batch of rentals saved together (one link per material). */
+export function buildGroupReceiptMessage(rows: Rental[]) {
+  if (rows.length === 1) return buildReceiptMessage(rows[0]);
+  const first = rows[0];
+  const lines = rows.map((r) => `${r.material_name} — ${receiptUrl(r.id)}`).join("\n");
+  return `Hello ${first.customer_name},
+
+Here ${rows.length > 1 ? "are your receipts" : "is your receipt"} from M.B.S CENTRING WORKS, Nereducherla:
+
+${lines}
+
+Thank you.`;
+}
+
 export function whatsappUrl(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
   const num = digits.length === 10 ? `91${digits}` : digits;

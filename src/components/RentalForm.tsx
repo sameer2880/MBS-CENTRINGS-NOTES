@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Rental } from "@/lib/rentals";
-import { buildConfirmMessage, buildGroupConfirmMessage, whatsappUrl } from "@/lib/rentals";
+import { buildConfirmMessage, buildGroupConfirmMessage, buildGroupReceiptMessage, whatsappUrl } from "@/lib/rentals";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,6 +165,8 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
       const first = rows[0];
       const message = rows.length > 1 ? buildGroupConfirmMessage(rows) : buildConfirmMessage(first);
       const link = first ? whatsappUrl(first.customer_phone, message) : null;
+      const receiptMessage = buildGroupReceiptMessage(rows);
+      const receiptLink = first ? whatsappUrl(first.customer_phone, receiptMessage) : null;
 
       toast.success(
         editing
@@ -175,6 +177,9 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
         {
           action: link
             ? { label: "Send WhatsApp", onClick: () => window.open(link, "_blank") }
+            : undefined,
+          cancel: receiptLink
+            ? { label: "Send Receipt", onClick: () => window.open(receiptLink, "_blank") }
             : undefined,
         },
       );
@@ -319,7 +324,7 @@ export function RentalForm({ open, onOpenChange, editing }: Props) {
           </DialogFooter>
           {!editing && form.customer_phone && (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <MessageCircle className="h-3 w-3 text-success" /> A "Send WhatsApp" option will be offered after saving — it won't open automatically.
+              <MessageCircle className="h-3 w-3 text-success" /> "Send WhatsApp" and "Send Receipt" options will be offered after saving — neither opens automatically.
             </p>
           )}
         </form>

@@ -21,14 +21,13 @@ import {
   MapPinned,
   MessageSquare,
   UserCog,
-  ChevronDown,
   Compass,
   MoreHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
@@ -212,40 +211,42 @@ function ExploreLinks() {
 
   return (
     <div className="mx-4 mt-5 border-t border-sidebar-border pt-5">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger asChild>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
           <button
             type="button"
-            className={cn(
-              "touch-target flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent",
-              open && "bg-sidebar-accent text-sidebar-foreground",
-            )}
+            className="touch-target flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent"
           >
-            <span className="flex items-center gap-2">
+            <Compass className="h-4 w-4" />
+            Explore
+          </button>
+        </DialogTrigger>
+
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
               <Compass className="h-4 w-4" />
               Explore
-            </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
-          </button>
-        </CollapsibleTrigger>
+            </DialogTitle>
+          </DialogHeader>
 
-        <CollapsibleContent>
-          <div className="mt-2 space-y-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-2">
+          <div className="space-y-1">
             {exploreLinks.map(({ href, label, icon: Icon }) => (
               <a
                 key={href}
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noreferrer" : undefined}
-                className="touch-target flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+                onClick={() => setOpen(false)}
+                className="touch-target flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 {label}
               </a>
             ))}
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -638,32 +639,36 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
   return (
-    <nav className="shell-bottomnav grid grid-cols-5" aria-label="Primary">
-      {tabs.map(({ to, label, shortLabel, icon: Icon }) => {
-        const active = path === to || path.startsWith(to + "/");
+    <nav className="shell-bottomnav flex items-stretch" aria-label="Primary">
+      <div className="flex flex-1 items-stretch">
+        {tabs.map(({ to, label, shortLabel, icon: Icon }) => {
+          const active = path === to || path.startsWith(to + "/");
 
-        return (
-          <Link
-            key={to}
-            to={to}
-            title={label}
-            aria-label={label}
-            className={cn(
-              "flex flex-col items-center justify-center gap-0.5 overflow-hidden px-0.5 text-[10.5px] font-semibold",
-              active ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            <Icon className={cn("h-5 w-5", active && "scale-110")} />
-            <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={to}
+              to={to}
+              title={label}
+              aria-label={label}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-0.5 text-[10.5px] font-semibold",
+                active ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              <Icon className={cn("h-5 w-5", active && "scale-110")} />
+              <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
+            </Link>
+          );
+        })}
+      </div>
 
+      {/* Fixed-width, pinned to the right edge — never stretched or
+          shifted by however many primary tabs there are. */}
       <button
         type="button"
         onClick={onOpenMore}
         aria-label="More"
-        className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-muted-foreground"
+        className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-muted-foreground"
       >
         <MoreHorizontal className="h-5 w-5" />
         <span>More</span>

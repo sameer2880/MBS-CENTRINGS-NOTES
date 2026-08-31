@@ -1,4 +1,4 @@
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 
 /** Renders a DOM node to a high-resolution canvas — shared by both export formats. */

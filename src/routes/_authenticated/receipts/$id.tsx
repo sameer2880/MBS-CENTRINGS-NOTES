@@ -149,8 +149,9 @@ function ReceiptPage() {
       if (result === "shared") toast.success("Receipt shared");
       else if (result === "downloaded")
         toast.success(`Receipt saved as ${kind === "image" ? "an image" : "a PDF"} — attach it in WhatsApp`);
-    } catch {
-      toast.error("Couldn't generate the receipt file");
+    } catch (err) {
+      console.error("Receipt share failed:", err);
+      toast.error(err instanceof Error ? `Couldn't generate the receipt file: ${err.message}` : "Couldn't generate the receipt file");
     } finally {
       setSharing(null);
     }

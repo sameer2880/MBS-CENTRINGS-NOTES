@@ -23,10 +23,11 @@ import {
   UserCog,
   ChevronDown,
   Compass,
+  MoreHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 
@@ -41,16 +42,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { isMasterAdmin } from "@/lib/access";
 
+/**
+ * `primary: true` marks the items that get a permanent slot in the
+ * mobile bottom tab bar and are shown first (in order) on the tablet
+ * icon rail. Everything else is still reachable — on mobile via the
+ * "More" tab, on tablet by scrolling the rail — it's just not one of
+ * the handful of items that get thumb-reach priority. Tune freely.
+ *
+ * `shortLabel`, where set, is what the bottom-nav tab shows instead
+ * of the full `label` — the tab is only ~72px wide, so "Labour
+ * Charges" has to become "Labour" there rather than truncate with an
+ * ellipsis. The rail and every sheet/menu still use the full `label`.
+ */
 const nav = [
   {
     to: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
+    primary: true,
   },
   {
     to: "/rentals",
     label: "Rentals",
     icon: Package,
+    primary: true,
   },
   {
     to: "/manage-worker",
@@ -61,8 +76,10 @@ const nav = [
   {
     to: "/labour",
     label: "Labour Charges",
+    shortLabel: "Labour",
     icon: HardHat,
     adminOnly: true,
+    primary: true,
   },
   {
     to: "/worker-locations",
@@ -84,6 +101,7 @@ const nav = [
     to: "/receipts",
     label: "Receipts",
     icon: Receipt,
+    primary: true,
   },
   {
     to: "/reels",
@@ -99,11 +117,7 @@ const nav = [
   },
 ];
 
-function NavLinks({ onClick }: { onClick?: () => void }) {
-  const path = useRouterState({
-    select: (s) => s.location.pathname,
-  });
-
+function useNavLinks() {
   const [worker, setWorker] = useState(false);
 
   useEffect(() => {
@@ -118,10 +132,21 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
         {
           to: "/worker",
           label: "My Attendance & Payments",
+          shortLabel: "Attendance",
           icon: HardHat,
+          primary: true,
         },
       ]
     : nav.filter((item) => !item.adminOnly || isMasterAdmin());
+
+  return { links, worker };
+}
+
+function NavLinks({ onClick }: { onClick?: () => void }) {
+  const path = useRouterState({
+    select: (s) => s.location.pathname,
+  });
+  const { links } = useNavLinks();
 
   return (
     <nav className="flex flex-col gap-1 px-4 py-5">
@@ -134,13 +159,13 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
             to={to}
             onClick={onClick}
             className={cn(
-              "flex items-center gap-3 text-sm font-semibold transition-all",
+              "touch-target flex items-center gap-3 text-sm font-semibold transition-all",
               active
                 ? "rounded-xl bg-sidebar-accent px-4 py-3 text-primary"
                 : "rounded-xl px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent",
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4 shrink-0" />
             {label}
           </Link>
         );
@@ -192,7 +217,7 @@ function ExploreLinks() {
           <button
             type="button"
             className={cn(
-              "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent",
+              "touch-target flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent",
               open && "bg-sidebar-accent text-sidebar-foreground",
             )}
           >
@@ -212,9 +237,9 @@ function ExploreLinks() {
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noreferrer" : undefined}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
+                className="touch-target flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-sidebar-accent"
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 shrink-0" />
                 {label}
               </a>
             ))}
@@ -408,14 +433,262 @@ function SidebarContent({
   );
 }
 
+/**
+ * TABLET RAIL (768–1023px)
+ * Always-visible icon-only nav column — one tap to navigate instead of
+ * two (open sheet, then tap link), while staying far narrower than the
+ * full desktop sidebar. Secondary items (theme, explore, sign out,
+ * change password, worker location) live behind the "More" button,
+ * which opens the same full `SidebarContent` used on mobile/desktop.
+ */
+function NavRail({
+  onOpenMore,
+}: {
+  onOpenMore: () => void;
+}) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { links } = useNavLinks();
+
+  return (
+    <aside
+      className="shell-rail sticky top-0 hidden h-screen shrink-0 flex-col items-center border-r border-sidebar-border bg-sidebar py-3 text-sidebar-foreground md:flex lg:hidden"
+      aria-label="Primary"
+    >
+      <img
+        src={logo}
+        alt="MBS"
+        className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
+      />
+
+      <nav className="mt-4 flex w-full flex-1 flex-col items-center gap-1 overflow-y-auto px-2">
+        {links.map(({ to, label, icon: Icon }) => {
+          const active = path === to || path.startsWith(to + "/");
+
+          return (
+            <Link
+              key={to}
+              to={to}
+              title={label}
+              aria-label={label}
+              className={cn(
+                "touch-target flex w-full flex-col items-center gap-1 rounded-xl px-1 py-2.5 text-center transition-colors",
+                active
+                  ? "bg-sidebar-accent text-primary"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              )}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="line-clamp-2 text-[10px] font-semibold leading-tight">
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="mt-2 h-11 w-11 shrink-0 flex-col gap-0.5 rounded-xl text-[10px] font-semibold"
+        onClick={onOpenMore}
+        aria-label="More options"
+        title="More"
+      >
+        <MoreHorizontal className="h-5 w-5" />
+      </Button>
+    </aside>
+  );
+}
+
+/**
+ * MOBILE "MORE" SHEET (< 768px)
+ * Opens from the bottom (matches the bottom-nav's "More" tab it's
+ * triggered from) as an icon grid of the nav items that don't have a
+ * permanent bottom-nav slot, followed by theme/account controls.
+ * Deliberately NOT the same component as the desktop/tablet sidebar —
+ * a full-height list sliding in from the left reads as a leftover
+ * desktop pattern on a phone; a bottom sheet matches where the tap
+ * that opened it came from.
+ */
+function MobileMoreSheet({
+  onNav,
+  workerName,
+  workerId,
+  dark,
+  onToggleTheme,
+}: {
+  onNav?: () => void;
+  workerName?: string;
+  workerId?: string | null;
+  dark: boolean;
+  onToggleTheme: () => void;
+}) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { links } = useNavLinks();
+  const isWorkerSidebar = workerName !== undefined;
+  // Everything without a permanent bottom-nav slot — that's already
+  // one tap away, so repeating it here would just be clutter.
+  const secondary = links.filter((l) => !l.primary);
+
+  return (
+    <div className="flex max-h-[80vh] flex-col overflow-y-auto pb-[env(safe-area-inset-bottom,0px)]">
+      <div className="mx-auto mt-1 h-1.5 w-10 shrink-0 rounded-full bg-sidebar-foreground/20" />
+
+      {secondary.length > 0 && (
+        <div className="grid grid-cols-4 gap-1 px-3 pt-4">
+          {secondary.map(({ to, label, icon: Icon }) => {
+            const active = path === to || path.startsWith(to + "/");
+
+            return (
+              <Link
+                key={to}
+                to={to}
+                onClick={onNav}
+                className="touch-target flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+              >
+                <span
+                  className={cn(
+                    "flex h-11 w-11 items-center justify-center rounded-full",
+                    active ? "bg-primary text-primary-foreground" : "bg-sidebar-accent/70 text-sidebar-foreground",
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-sidebar-foreground">
+                  {label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-3 space-y-2.5 border-t border-sidebar-border p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onToggleTheme}
+          className="w-full justify-center gap-2 font-semibold"
+        >
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {dark ? "Light mode" : "Dark mode"}
+        </Button>
+
+        {isWorkerSidebar ? (
+          <WorkerLocationToggle workerId={workerId ?? null} />
+        ) : (
+          <ChangePasswordDialog />
+        )}
+
+        <ExploreLinks />
+
+        {isWorkerSidebar ? (
+          <div className="min-w-0 text-sm">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
+              Signed in as
+            </div>
+            <div className="truncate font-semibold">{workerName || "Worker"}</div>
+          </div>
+        ) : (
+          <SignedInLabel />
+        )}
+
+        <ConfirmDelete
+          onConfirm={lock}
+          title={isWorkerSidebar ? "Sign out of this worker account?" : "Sign out of this account?"}
+          description={
+            isWorkerSidebar
+              ? "You will need to sign in again to view attendance and payment records."
+              : "You will need to sign in again to access the dashboard."
+          }
+          confirmLabel="Sign out"
+        >
+          <Button
+            variant={isWorkerSidebar ? "outline" : "default"}
+            size="sm"
+            className={cn(
+              "w-full justify-center rounded-lg font-semibold",
+              isWorkerSidebar
+                ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                : "bg-primary",
+            )}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </ConfirmDelete>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * MOBILE BOTTOM TAB BAR (< 768px)
+ * The first 4 `primary` nav items, plus a permanent "More" tab that
+ * opens `MobileMoreSheet` (remaining nav items, explore links, theme,
+ * account) as a bottom sheet. Fixed to the viewport bottom, safe-area
+ * aware (see `.shell-bottomnav` in styles.css) so it clears the iOS
+ * home indicator when installed as a standalone PWA.
+ */
+function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { links } = useNavLinks();
+
+  const primary = links.filter((l) => l.primary).slice(0, 4);
+  const tabs = primary.length > 0 ? primary : links.slice(0, 4);
+
+  return (
+    <nav className="shell-bottomnav grid grid-cols-5" aria-label="Primary">
+      {tabs.map(({ to, label, shortLabel, icon: Icon }) => {
+        const active = path === to || path.startsWith(to + "/");
+
+        return (
+          <Link
+            key={to}
+            to={to}
+            title={label}
+            aria-label={label}
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 overflow-hidden px-0.5 text-[10.5px] font-semibold",
+              active ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <Icon className={cn("h-5 w-5", active && "scale-110")} />
+            <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
+          </Link>
+        );
+      })}
+
+      <button
+        type="button"
+        onClick={onOpenMore}
+        aria-label="More"
+        className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-muted-foreground"
+      >
+        <MoreHorizontal className="h-5 w-5" />
+        <span>More</span>
+      </button>
+    </nav>
+  );
+}
+
 export function AppLayout({ children }: { children: ReactNode }) {
   /*
    * IMPORTANT:
-   * false = sidebar CLOSED after login/refresh.
+   * false = desktop sidebar CLOSED after login/refresh.
    *
-   * Clicking the desktop ☰ button opens it.
+   * Clicking the desktop ☰ button opens it. This only governs the
+   * >=1024px full labeled sidebar — independent from the two sheet
+   * states below:
+   *   railSheetOpen   -> tablet rail's "More" button (left sheet,
+   *                       reuses the full SidebarContent — there's
+   *                       room for it there)
+   *   mobileMoreOpen  -> phone bottom-nav's "More" tab (bottom
+   *                       sheet, MobileMoreSheet's icon grid)
    */
-  const [open, setOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [railSheetOpen, setRailSheetOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
@@ -463,28 +736,72 @@ export function AppLayout({ children }: { children: ReactNode }) {
     localStorage.setItem("mbs-theme", next ? "dark" : "light");
   };
 
+  const sharedSidebarProps = {
+    workerName: worker ? workerName : undefined,
+    workerId: worker ? workerId : undefined,
+    dark,
+    onToggleTheme: toggleTheme,
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* ==========================================
-          LAPTOP / DESKTOP SIDEBAR
+          DESKTOP SIDEBAR (>= 1024px)
 
           IMPORTANT:
-          `open` controls whether it exists.
+          `desktopOpen` controls whether it exists.
 
           false -> hidden
           true  -> visible
          ========================================== */}
 
-      {open && (
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
-          <SidebarContent
-            workerName={worker ? workerName : undefined}
-            workerId={worker ? workerId : undefined}
-            dark={dark}
-            onToggleTheme={toggleTheme}
-          />
+      {desktopOpen && (
+        <aside className="sticky top-0 hidden h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+          <SidebarContent {...sharedSidebarProps} />
         </aside>
       )}
+
+      {/* ==========================================
+          TABLET RAIL (768–1023px)
+         ========================================== */}
+
+      <NavRail onOpenMore={() => setRailSheetOpen(true)} />
+
+      {/* ==========================================
+          TABLET "MORE" SHEET
+          Reuses the full SidebarContent — tablet has
+          room for a left-side labeled list.
+         ========================================== */}
+
+      <Sheet open={railSheetOpen} onOpenChange={setRailSheetOpen}>
+        <SheetContent
+          side="left"
+          className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+        >
+          <SidebarContent
+            onNav={() => setRailSheetOpen(false)}
+            {...sharedSidebarProps}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* ==========================================
+          MOBILE "MORE" SHEET
+          Bottom sheet, matching the bottom-nav tab
+          it's opened from — not the desktop sidebar.
+         ========================================== */}
+
+      <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
+        <SheetContent
+          side="bottom"
+          className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden md:hidden"
+        >
+          <MobileMoreSheet
+            onNav={() => setMobileMoreOpen(false)}
+            {...sharedSidebarProps}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* ==========================================
           MAIN CONTENT AREA
@@ -499,45 +816,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
             <div className="flex shrink-0 items-center gap-3">
               {/* ===================================
-                  MOBILE MENU
-                  Only visible below lg.
-                 =================================== */}
-
-              <div className="lg:hidden">
-                <Sheet open={open} onOpenChange={setOpen}>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05]"
-                      aria-label="Open sidebar"
-                    >
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-
-                  <SheetContent
-                    side="left"
-                    className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
-                  >
-                    <SidebarContent
-                      onNav={() => {
-                        setOpen(false);
-                      }}
-                      workerName={worker ? workerName : undefined}
-                      workerId={worker ? workerId : undefined}
-                      dark={dark}
-                      onToggleTheme={toggleTheme}
-                    />
-                  </SheetContent>
-                </Sheet>
-              </div>
-
-              {/* ===================================
-                  LAPTOP / DESKTOP MENU
+                  DESKTOP MENU
 
                   This button opens
                   and closes the sidebar.
+                  (Mobile has no header menu button —
+                  the bottom-nav "More" tab is the one
+                  entry point there. Tablet uses the
+                  rail's "More" button.)
                  =================================== */}
 
               <Button
@@ -545,19 +831,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 size="icon"
                 className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
                 onClick={() => {
-                  setOpen((previous) => !previous);
+                  setDesktopOpen((previous) => !previous);
                 }}
-                aria-label={open ? "Close sidebar" : "Open sidebar"}
-                title={open ? "Close sidebar" : "Open sidebar"}
+                aria-label={desktopOpen ? "Close sidebar" : "Open sidebar"}
+                title={desktopOpen ? "Close sidebar" : "Open sidebar"}
               >
                 <Menu className="h-5 w-5" />
               </Button>
 
               {/* ===================================
-                  MOBILE LOGO + TITLE
+                  MOBILE LOGO/TITLE
+                  Tablet already shows the logo atop
+                  its rail; desktop inside the full
+                  sidebar — so this is phone-only.
                  =================================== */}
 
-              <div className="flex items-center gap-2 lg:hidden">
+              <div className="flex items-center gap-2 md:hidden">
                 <img
                   src={logo}
                   alt="MBS"
@@ -565,11 +854,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 />
 
                 <div>
-                  <h1 className="text-sm font-bold leading-tight sm:text-base">
+                  <h1 className="text-fluid-sm font-bold leading-tight sm:text-base">
                     M.B.S CENTRING WORKS
                   </h1>
 
-                  <p className="text-[11px] text-muted-foreground">Nereducherla</p>
+                  <p className="text-fluid-xs text-muted-foreground">Nereducherla</p>
                 </div>
               </div>
             </div>
@@ -600,12 +889,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
         <main
           className={cn(
-            "flex-1 overflow-x-hidden p-4 lg:p-6",
+            "page-pad shell-content-offset flex-1 overflow-x-hidden",
             worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
           )}
         >
           {children}
         </main>
+
+        {/* ========================================
+            MOBILE BOTTOM TAB BAR (< 768px)
+           ======================================== */}
+
+        <BottomNav onOpenMore={() => setMobileMoreOpen(true)} />
       </div>
     </div>
   );

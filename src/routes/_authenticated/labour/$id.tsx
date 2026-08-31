@@ -49,14 +49,7 @@ export const Route = createFileRoute("/_authenticated/labour/$id")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: () => {
-    const { id } = Route.useParams();
-    return (
-      <AdminOnly label="Labour Charges">
-        <WorkerOverview id={id} />
-      </AdminOnly>
-    );
-  },
+  component: LabourWorkerRoute,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-4">
       {error.message}
@@ -64,6 +57,15 @@ export const Route = createFileRoute("/_authenticated/labour/$id")({
   ),
   notFoundComponent: () => <div className="p-4">Worker not found.</div>,
 });
+
+function LabourWorkerRoute() {
+  const { id } = Route.useParams();
+  return (
+    <AdminOnly label="Labour Charges">
+      <WorkerOverview id={id} />
+    </AdminOnly>
+  );
+}
 
 type AttStatus = "present" | "absent" | "holiday";
 type DayType = "full" | "half" | "ot";

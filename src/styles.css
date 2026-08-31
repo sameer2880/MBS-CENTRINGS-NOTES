@@ -141,10 +141,6 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     min-height: 100dvh;
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    min-height: 100vh;
     background-image:
       radial-gradient(900px circle at 8% 8%, rgb(13 148 136 / 20%), transparent 55%),
       radial-gradient(800px circle at 92% 18%, rgb(217 119 6 / 16%), transparent 50%),
@@ -153,14 +149,14 @@
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
+}
 
-  .dark body {
-    background-image:
-      radial-gradient(900px circle at 8% 8%, rgb(167 139 250 / 26%), transparent 55%),
-      radial-gradient(800px circle at 92% 15%, rgb(34 211 238 / 20%), transparent 50%),
-      radial-gradient(850px circle at 25% 95%, rgb(244 114 182 / 14%), transparent 55%),
-      radial-gradient(700px circle at 95% 90%, rgb(129 140 248 / 16%), transparent 50%);
-  }
+.dark body {
+  background-image:
+    radial-gradient(900px circle at 8% 8%, rgb(167 139 250 / 26%), transparent 55%),
+    radial-gradient(800px circle at 92% 15%, rgb(34 211 238 / 20%), transparent 50%),
+    radial-gradient(850px circle at 25% 95%, rgb(244 114 182 / 14%), transparent 55%),
+    radial-gradient(700px circle at 95% 90%, rgb(129 140 248 / 16%), transparent 50%);
 }
 
 /* Glassmorphism: every surface built from these tokens becomes frosted glass
@@ -181,9 +177,32 @@
   background-color: #f6f8f4;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  /* Keep the header (logo, menu button, refresh) clear of the notch /
+     status bar on iOS home-screen installs, where the status bar is
+     translucent and the page draws underneath it. */
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(4rem + env(safe-area-inset-top, 0px));
 }
 .dark .site-header {
   background-color: #0d0b1a;
+}
+
+/* The mobile slide-in sidebar (a full-height Sheet, class contains
+   "inset-y-0") runs edge-to-edge, so keep its logo block and sign-out
+   button clear of the notch and the home-indicator gesture bar.
+   Centered dialogs ("left-[50%] top-[50%]") are unaffected. */
+[role="dialog"][class*="inset-y-0"] {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Keep page content clear of the home-indicator gesture area at the bottom
+   when the app is installed as a standalone PWA (edge-to-edge on iOS). In a
+   regular browser tab safe-area-inset-bottom is 0, so this is a no-op there. */
+@media (display-mode: standalone) {
+  main {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
 /* Fixed dialogs/sheets/dropdowns get a touch more blur + a soft glass shadow
@@ -245,5 +264,4 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
-}
 }

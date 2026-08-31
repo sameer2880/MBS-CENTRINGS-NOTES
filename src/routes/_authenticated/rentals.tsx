@@ -10,7 +10,6 @@ import {
   buildGroupOverdueMessage,
   buildGroupNotReturnedMessage,
   buildGroupReturnMessage,
-  buildGroupReceiptMessage,
   whatsappUrl,
   getRentalRowTheme,
   type RentalGroup,
@@ -327,9 +326,6 @@ function RentalsPage() {
                             <Link to="/receipts/$id" params={{ id: g.rows[0].id }}>
                               <Printer className="h-4 w-4 mr-2" /> Print receipt
                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(whatsappUrl(g.customer_phone, buildGroupReceiptMessage(g.rows)), "_blank")}>
-                            <MessageCircle className="h-4 w-4 mr-2" /> Share receipt on WhatsApp
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => setDelGroup(g)}>

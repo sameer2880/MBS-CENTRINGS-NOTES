@@ -1,18 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Rental } from "@/lib/rentals";
 import { computeStatus, groupRentals } from "@/lib/rentals";
-import { receiptToImageFile, receiptToPdfFile, shareOrDownloadFile } from "@/lib/receipt-share";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Printer, ArrowLeft, SlidersHorizontal, Share2, Image as ImageIcon, FileText } from "lucide-react";
+import { Printer, ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { isMasterAdmin, isManager } from "@/lib/access";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 import logo from "@/assets/logo.png";
@@ -101,8 +96,6 @@ function ReceiptPage() {
     }
   }, [groupRows, selectedIds]);
 
-  const receiptRef = useRef<HTMLElement>(null);
-  const [sharing, setSharing] = useState<"image" | "pdf" | null>(null);
 
   if (isLoading) return <div className="text-muted-foreground">Loading receipt…</div>;
   if (!r) return <div>Not found</div>;
@@ -132,30 +125,6 @@ function ReceiptPage() {
   // and payment status are computed identically whether combined or single.
   const receipt = groupRentals(rowsForReceipt)[0];
   const receiptNumber = isCombined ? (r.group_id || r.id) : r.id;
-
-  const handleShare = async (kind: "image" | "pdf") => {
-    if (!receiptRef.current) return;
-    setSharing(kind);
-    try {
-      const filename = `receipt-${receiptNumber.slice(0, 8)}`;
-      const file =
-        kind === "image"
-          ? await receiptToImageFile(receiptRef.current, filename)
-          : await receiptToPdfFile(receiptRef.current, filename);
-      const result = await shareOrDownloadFile(file, {
-        title: "Rental Receipt — M.B.S Centring Works",
-        text: `Receipt for ${receipt.customer_name}`,
-      });
-      if (result === "shared") toast.success("Receipt shared");
-      else if (result === "downloaded")
-        toast.success(`Receipt saved as ${kind === "image" ? "an image" : "a PDF"} — attach it in WhatsApp`);
-    } catch (err) {
-      console.error("Receipt share failed:", err);
-      toast.error(err instanceof Error ? `Couldn't generate the receipt file: ${err.message}` : "Couldn't generate the receipt file");
-    } finally {
-      setSharing(null);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -281,21 +250,6 @@ function ReceiptPage() {
               </div>
             </PopoverContent>
           </Popover>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="outline" size="sm" disabled={sharing !== null}>
-                <Share2 className="h-4 w-4 mr-1.5" /> {sharing ? "Preparing…" : "Share"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleShare("image")}>
-                <ImageIcon className="h-4 w-4 mr-2" /> Share as Image
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare("pdf")}>
-                <FileText className="h-4 w-4 mr-2" /> Share as PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-1.5" /> Print Receipt
           </Button>
@@ -303,7 +257,6 @@ function ReceiptPage() {
       </div>
 
       <article
-        ref={receiptRef}
         className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none"
       >
         <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">

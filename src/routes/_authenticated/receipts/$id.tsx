@@ -257,90 +257,96 @@ function ReceiptPage() {
       </div>
 
       <article
-        className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-300 bg-white p-4 text-gray-900 shadow-sm transition-shadow duration-200 sm:p-6 print:rounded-none print:shadow-none"
+        className="receipt-sheet mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 text-gray-700 shadow-sm transition-shadow duration-200 sm:p-10 print:rounded-none print:border-0 print:shadow-none"
       >
-        <div className="mb-6 flex items-start justify-between gap-4 border-b-2 border-black pb-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={logo}
-              alt="M.B.S Centring Works logo"
-              className="block h-16 w-16 shrink-0 overflow-hidden rounded-full object-cover grayscale sm:h-20 sm:w-20"
-            />
-            <div>
-              <h1 className="text-1xl font-black text-black">M.B.S CENTRING WORKS</h1>
-              <p className="text-sm font-semibold">Nereducherla</p>
-              <p className="mt-1 text-xs text-gray-500">
-                Pro: Sk.M.Sharif Ph.no: 8688285959
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Construction Material Rental Services
-              </p>
+        {/* Title + From */}
+        <div className="mb-8 flex items-start justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-gray-400">
+              {isCombined ? "RECEIPT" : "RECEIPT"}
+            </h1>
+            <div className="mt-6">
+              <div className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">From</div>
+              <div className="font-semibold text-gray-800">M.B.S CENTRING WORKS</div>
+              <div className="text-sm text-gray-600">Nereducherla</div>
+              <div className="text-sm text-gray-600">Pro: Sk.M.Sharif Ph.no: 8688285959</div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-bold uppercase text-black">
-              {isCombined ? "Combined Receipt" : "Receipt"}
-            </div>
-            <div className="text-xs mt-2 font-mono">#{receiptNumber.slice(0, 8).toUpperCase()}</div>
-            <div className="text-xs text-gray-500">
-              {" "}
-              {new Date(receipt.created_at).toLocaleString("en-IN", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </div>
-            
-          </div>
+          <img
+            src={logo}
+            alt="M.B.S Centring Works logo"
+            className="block h-20 w-20 shrink-0 overflow-hidden rounded-full object-cover grayscale"
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        {/* Bill To / Rental Period / Receipt meta */}
+        <div className="mb-8 grid grid-cols-1 gap-6 border-t border-gray-200 pt-6 sm:grid-cols-3">
           <div>
-            <h3 className="mb-2 text-xs font-bold uppercase text-black">Customer</h3>
-            <div className="font-semibold">{receipt.customer_name}</div>
-            <div className="text-sm">{receipt.customer_phone}</div>
-            <div className="text-sm text-gray-500">{receipt.customer_address}</div>
+            <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Bill To</div>
+            <div className="font-semibold text-gray-800">{receipt.customer_name}</div>
+            <div className="text-sm text-gray-600">{receipt.customer_address}</div>
+            <div className="text-sm text-gray-600">{receipt.customer_phone}</div>
           </div>
           <div>
-            <h3 className="mb-2 text-xs font-bold uppercase text-black">Rental Period</h3>
-            <div className="text-sm">
-              Issue: <span className="font-semibold">{receipt.issue_date}</span>
+            <div className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Rental Period</div>
+            <div className="text-sm text-gray-600">
+              Issue: <span className="font-medium text-gray-800">{receipt.issue_date}</span>
             </div>
-            <div className="text-sm">
-              Return: <span className="font-semibold">{receipt.return_date}</span>
+            <div className="text-sm text-gray-600">
+              Return: <span className="font-medium text-gray-800">{receipt.return_date}</span>
             </div>
-            <div className="text-sm">
+            <div className="text-sm text-gray-600">
               Status:{" "}
-              <span className="font-semibold capitalize">
+              <span className="font-medium capitalize text-gray-800">
                 {receipt.status === "partial" ? "Partially Returned" : receipt.status}
               </span>
             </div>
-            <div className="text-sm">
+            <div className="text-sm text-gray-600">
               Payment:{" "}
-              <span className="font-semibold capitalize">
+              <span className="font-medium text-gray-800">
                 {receipt.payment_status === "paid" ? "Paid" : "Not Paid"}
               </span>
             </div>
           </div>
+          <div className="sm:text-right">
+            <div className="flex justify-between gap-4 text-sm sm:justify-end">
+              <span className="text-gray-500">Receipt #</span>
+              <span className="font-semibold text-gray-800">{receiptNumber.slice(0, 8).toUpperCase()}</span>
+            </div>
+            <div className="flex justify-between gap-4 text-sm sm:justify-end">
+              <span className="text-gray-500">Receipt Date</span>
+              <span className="font-semibold text-gray-800">
+                {new Date(receipt.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <table className="mb-6 w-full border-collapse border-2 border-black">
+        {/* Materials table */}
+        <table className="mb-8 w-full border-collapse">
           <thead>
-            <tr className="bg-white text-black border-b-2 border-black">
-              <th className="text-left p-2 text-xs uppercase">Material</th>
-              <th className="text-right p-2 text-xs uppercase">Qty</th>
-              <th className="text-right p-2 text-xs uppercase">Rate</th>
-              <th className="text-right p-2 text-xs uppercase">Amount</th>
+            <tr className="border-b-2 border-gray-400 text-xs uppercase tracking-wide text-gray-500">
+              {receipt.rows.length > 1 && <th className="py-2 text-left font-semibold">#</th>}
+              <th className="py-2 text-left font-semibold">Material</th>
+              <th className="py-2 text-right font-semibold">Qty</th>
+              <th className="py-2 text-right font-semibold">Unit Price</th>
+              <th className="py-2 text-right font-semibold">Amount</th>
             </tr>
           </thead>
           <tbody>
-            {receipt.rows.map((row) => (
-              <tr key={row.id} className="border-b border-gray-300">
-                <td className="p-2 font-medium">{row.material_name}</td>
-                <td className="p-2 text-right">
+            {receipt.rows.map((row, i) => (
+              <tr key={row.id} className="border-b border-gray-200">
+                {receipt.rows.length > 1 && (
+                  <td className="py-2.5 text-sm text-gray-700">{i + 1}</td>
+                )}
+                <td className="py-2.5 text-sm font-medium text-gray-800">{row.material_name}</td>
+                <td className="py-2.5 text-right text-sm text-gray-700">
                   {row.quantity} {row.unit}
                 </td>
-                <td className="p-2 text-right">₹{Number(row.rate_per_unit).toLocaleString("en-IN")}</td>
-                <td className="p-2 text-right font-semibold">
+                <td className="py-2.5 text-right text-sm text-gray-700">
+                  ₹{Number(row.rate_per_unit).toLocaleString("en-IN")}
+                </td>
+                <td className="py-2.5 text-right text-sm font-medium text-gray-800">
                   ₹{Number(row.total_amount).toLocaleString("en-IN")}
                 </td>
               </tr>
@@ -348,41 +354,36 @@ function ReceiptPage() {
           </tbody>
         </table>
 
-        <div className="flex justify-end mb-8">
-          <div className="w-64 space-y-1">
-            <div className="flex justify-between text-sm">
+        {/* Totals */}
+        <div className="mb-10 flex justify-end">
+          <div className="w-64 space-y-1.5">
+            <div className="flex justify-between text-sm text-gray-600">
               <span>Subtotal</span>
               <span>₹{Number(receipt.total_amount).toLocaleString("en-IN")}</span>
             </div>
             {receipt.security_deposit ? (
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>Advance Received</span>
                 <span>- ₹{Number(receipt.security_deposit).toLocaleString("en-IN")}</span>
               </div>
             ) : null}
-            <div className="mt-2 flex justify-between border-t-2 border-black pt-2 text-lg font-bold text-black">
-              <span>TOTAL</span>
+            <div className="mt-2 flex justify-between border-t border-gray-300 pt-2 text-lg font-bold text-gray-800">
+              <span>Total</span>
               <span>
-                ₹
-                {(Number(receipt.total_amount) - Number(receipt.security_deposit ?? 0)).toLocaleString("en-IN")}
+                ₹{(Number(receipt.total_amount) - Number(receipt.security_deposit ?? 0)).toLocaleString("en-IN")}
               </span>
             </div>
           </div>
         </div>
 
-        {receipt.notes && (
-          <div className="mb-6 border-t border-gray-300 pt-3 text-xs text-gray-500">
-            <b>Notes:</b> {receipt.notes}
-          </div>
-        )}
-
-        <div className="flex justify-end border-t border-gray-300 pt-6">
-          <div className="relative w-64 pt-16">
+        {/* Signature */}
+        <div className="mb-10 flex justify-end">
+          <div className="relative w-52 pt-14 text-center">
             {showSignature && canUseSignature && (
               <img
                 src={signature}
                 alt="Authorized signature"
-                className="pointer-events-none absolute left-1/2 top-2 h-16 w-40 -translate-x-1/2 object-contain opacity-80 print:opacity-80"
+                className="pointer-events-none absolute left-1/2 top-2 h-16 w-40 -translate-x-1/2 object-contain opacity-90 grayscale print:opacity-90"
               />
             )}
             {showStamp && (
@@ -392,13 +393,23 @@ function ReceiptPage() {
                 className="pointer-events-none absolute left-1/2 top-0 z-10 h-24 w-24 -translate-x-1/2 -rotate-6 opacity-90 grayscale print:opacity-90"
               />
             )}
-            <div className="border-t border-black pt-1 text-center text-xs font-medium">
+            <div className="border-t border-gray-300 pt-1 text-xs font-medium text-gray-500">
               Authorized Signature
             </div>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-gray-300 pt-3 text-center text-xs font-medium text-black">
+        {/* Terms & notes */}
+        {receipt.notes && (
+          <div className="border-t border-gray-200 pt-6">
+            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+              Terms &amp; Conditions
+            </div>
+            <div className="text-sm text-gray-600">{receipt.notes}</div>
+          </div>
+        )}
+
+        <div className="mt-8 text-center text-xs font-medium text-gray-500">
           Thank you for choosing M.B.S Centring Works, Nereducherla.
         </div>
       </article>

@@ -32,7 +32,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { WorkerLocationToggle } from "@/components/WorkerLocationToggle";
-import { NotificationCenter } from "@/components/NotificationCenter";
 import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -935,7 +934,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                ===================================== */}
 
             <div className="flex items-center gap-1">
-              <NotificationCenter />
             </div>
           </div>
         </header>

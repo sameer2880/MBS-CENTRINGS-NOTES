@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { downloadCsv } from "@/lib/export";
 import { AdminOnly } from "@/components/AdminOnly";
-import { createAppNotification } from "@/lib/notifications";
 import type { Worker } from "./index";
 
 export const Route = createFileRoute("/_authenticated/labour/$id")({
@@ -220,31 +219,8 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
         if (error) throw error;
       }
     },
-    onSuccess: async (_, { status, date }) => {
+    onSuccess: (_, { status, date }) => {
       qc.invalidateQueries({ queryKey: ["worker_attendance", id] });
-      try {
-        if (status === null) {
-          await createAppNotification({
-            title: "Attendance removed",
-            body: `Attendance entry for ${date} was removed.`,
-            event_type: "attendance_removed",
-            worker_id: id,
-            entity_id: date,
-            notify_admin: true,
-          });
-        } else {
-          await createAppNotification({
-            title: "Attendance added",
-            body: `Attendance for ${date} was marked as ${status}.`,
-            event_type: "attendance_added",
-            worker_id: id,
-            entity_id: date,
-            notify_admin: true,
-          });
-        }
-      } catch (error) {
-        console.error("[attendance notification] failed", error);
-      }
       toast.success("Attendance updated");
     },
     onError: (e: Error) => toast.error(e.message),

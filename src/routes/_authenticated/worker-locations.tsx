@@ -131,11 +131,11 @@ function WorkerLocationsPage() {
 
         <div className="flex items-center gap-2">
           <Badge
-            variant={withinHours ? "default" : "secondary"}
+            variant="default"
             className="h-8 gap-1.5 px-3 text-xs"
           >
             <Clock className="h-3 w-3" />
-            {withinHours ? "Working hours" : "Outside working hours"}
+            24-hour tracking
           </Badge>
 
           <Badge variant="outline" className="h-8 gap-1.5 px-3 text-xs">
@@ -159,15 +159,12 @@ function WorkerLocationsPage() {
         </div>
       </div>
 
-      {!withinHours && (
-        <Card className="border-dashed">
-          <CardContent className="py-3 text-sm text-muted-foreground">
-            Live tracking runs between <span className="font-semibold">{WORK_HOURS_LABEL}</span>.
-            Outside this window, workers' apps automatically pause sharing, so locations below may
-            be from earlier in the day.
-          </CardContent>
-        </Card>
-      )}
+      <Card className="border-dashed">
+        <CardContent className="py-3 text-sm text-muted-foreground">
+          Live tracking is active <span className="font-semibold">{WORK_HOURS_LABEL}</span> across the day,
+          so worker locations remain available without a shutdown window.
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading worker locations...</p>

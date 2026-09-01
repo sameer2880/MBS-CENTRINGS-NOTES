@@ -3,19 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 /* ================================
    WORKING HOURS WINDOW
-   5:30 AM -> 7:00 PM
+   24 HOURS / ALL DAY
    ================================ */
-const WORK_START_MINUTES = 5 * 60 + 30;
-const WORK_END_MINUTES = 19 * 60;
+const WORK_START_MINUTES = 0;
+const WORK_END_MINUTES = 24 * 60;
 
 // How often we send a fresh location while sharing is active. A worker's
 // position gets pushed at least this often even if they haven't moved,
 // since watchPosition alone can go quiet for a stationary device.
 const UPDATE_INTERVAL_MS = 60_000;
 
-// How often we re-check whether we've crossed the 5:30 AM / 7:00 PM
-// boundary, so sharing pauses/resumes on its own without any action
-// from the worker.
+// Re-checking is still kept in place for safety, but the business rule is
+// now 24/7 so location sharing should remain active at all times.
 const HOURS_CHECK_INTERVAL_MS = 30_000;
 
 export function isWithinWorkingHours(date: Date = new Date()) {
@@ -23,7 +22,7 @@ export function isWithinWorkingHours(date: Date = new Date()) {
   return minutes >= WORK_START_MINUTES && minutes < WORK_END_MINUTES;
 }
 
-export const WORK_HOURS_LABEL = "5:30 AM - 7:00 PM";
+export const WORK_HOURS_LABEL = "24 Hours";
 
 export type LocationSharingStatus =
   | "idle" // off

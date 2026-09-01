@@ -936,17 +936,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
             <div className="flex items-center gap-1">
               <NotificationCenter />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  window.location.reload();
-                }}
-                title="Refresh"
-                aria-label="Refresh"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </header>

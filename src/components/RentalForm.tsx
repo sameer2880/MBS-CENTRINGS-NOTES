@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { createAppNotification } from "@/lib/notifications";
 
 import { MessageCircle, Plus, Trash2 } from "lucide-react";
 
@@ -178,13 +179,28 @@ export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
       if (error) throw error;
       return data as Rental[];
     },
-    onSuccess: (rows) => {
+    onSuccess: async (rows) => {
       qc.invalidateQueries({ queryKey: ["rentals"] });
       const first = rows[0];
       const message = rows.length > 1 ? buildGroupConfirmMessage(rows) : buildConfirmMessage(first);
       const link = first ? whatsappUrl(first.customer_phone, message) : null;
       const receiptMessage = buildGroupReceiptMessage(rows);
       const receiptLink = first ? whatsappUrl(first.customer_phone, receiptMessage) : null;
+
+      try {
+        const customer = first ? first.customer_name : "customer";
+        await createAppNotification({
+          title: editingGroup ? "Rental updated" : "New rental added",
+          body: editingGroup
+            ? `Rental details were updated for ${customer}.`
+            : `New rental added for ${customer}.`,
+          event_type: "rental_added",
+          entity_id: first?.group_id ?? null,
+          notify_admin: true,
+        });
+      } catch {
+        // non-blocking
+      }
 
       toast.success(
         editingGroup

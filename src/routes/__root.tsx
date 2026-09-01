@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -52,6 +53,37 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const channel = supabase.channel("app-live-updates");
+
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "rentals" },
+      () => {
+        void queryClient.invalidateQueries({ queryKey: ["rentals"] });
+      },
+    );
+
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "worker_attendance" },
+      (payload) => {
+        const workerId = (payload.new as { worker_id?: string } | null)?.worker_id ?? (payload.old as { worker_id?: string } | null)?.worker_id;
+        void queryClient.invalidateQueries({ queryKey: ["worker_attendance"] });
+        if (workerId) {
+          void queryClient.invalidateQueries({ queryKey: ["worker_attendance", workerId] });
+        }
+      },
+    );
+
+    void channel.subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker

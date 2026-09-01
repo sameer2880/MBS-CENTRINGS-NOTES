@@ -32,6 +32,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { canDeleteRentals } from "@/lib/access";
+import { createAppNotification } from "@/lib/notifications";
 
 export const Route = createFileRoute("/_authenticated/rentals")({
   component: RentalsPage,
@@ -110,7 +111,23 @@ function RentalsPage() {
       const { error } = await supabase.from("rentals").delete().in("id", ids);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["rentals"] }); toast.success("Rental deleted"); setDelGroup(null); },
+    onSuccess: async (_, ids) => {
+      qc.invalidateQueries({ queryKey: ["rentals"] });
+      try {
+        const label = ids.length > 1 ? `${ids.length} rentals` : "1 rental";
+        await createAppNotification({
+          title: "Rental deleted",
+          body: `${label} was removed from the system.`,
+          event_type: "rental_deleted",
+          entity_id: ids[0] ?? null,
+          notify_admin: true,
+        });
+      } catch {
+        // non-blocking
+      }
+      toast.success("Rental deleted");
+      setDelGroup(null);
+    },
   });
 
   const counts = {

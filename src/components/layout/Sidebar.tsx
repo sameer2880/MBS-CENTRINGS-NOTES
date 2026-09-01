@@ -27,7 +27,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
 import { ConfirmDelete } from "@/components/ConfirmDelete";
@@ -173,99 +172,71 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   );
 }
 
-/**
- * `tone` gives each tile's icon circle a faint brand-flavoured tint so the
- * grid reads as a set of distinct destinations at a glance rather than a
- * uniform list — WhatsApp green, YouTube red, Instagram warm pink, etc.
- */
 const exploreLinks = [
   {
     href: "https://mbsndcl.vercel.app",
     label: "Official website",
     icon: Globe,
-    tone: "bg-sky-500/12 text-sky-600 dark:text-sky-400",
   },
   {
     href: "https://www.instagram.com/mbs_centrings_nereducherla/",
     label: "Instagram",
     icon: Instagram,
-    tone: "bg-pink-500/12 text-pink-600 dark:text-pink-400",
   },
   {
     href: "https://www.youtube.com/@mbs_centring_works_ndcl/?themeRefresh=1",
     label: "YouTube",
     icon: Youtube,
-    tone: "bg-red-500/12 text-red-600 dark:text-red-400",
   },
   {
     href: "https://wa.me/918688285959",
     label: "WhatsApp",
     icon: MessageCircle,
-    tone: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
   },
   {
     href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6",
     label: "Visit location",
     icon: MapPin,
-    tone: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
   },
   {
     href: "tel:+918688285959",
     label: "Call Now",
     icon: Phone,
-    tone: "bg-primary/12 text-primary",
   },
 ];
 
 /**
- * Explore — a 2-column tile grid (icon circle + label) rather than a plain
- * link list, so it reads more like a set of quick destinations than a menu.
- * Still a centered Dialog (works while nested inside the mobile/tablet
- * sheets that host `SidebarContent`) — only the inner layout changed.
+ * Explore more — same plain circle-icon + label tile used by the
+ * secondary nav grid (Diary / Notes, Reports, etc.) rather than its own
+ * bordered, tinted card style, so "Explore more" reads as one more row
+ * of nav tiles instead of a visually distinct block.
  */
 function ExploreLinks() {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="mx-4 mt-5 border-t border-sidebar-border pt-5">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            className="touch-target flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent"
+      <div className="flex items-center gap-2 px-3 pb-3 text-xs font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/65">
+        <Compass className="h-4 w-4" />
+        Explore more
+      </div>
+
+      <div className="grid grid-cols-4 gap-1 px-1">
+        {exploreLinks.map(({ href, label, icon: Icon }) => (
+          <a
+            key={href}
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
+            rel={href.startsWith("http") ? "noreferrer" : undefined}
+            className="touch-target flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
           >
-            <Compass className="h-4 w-4" />
-            Explore
-          </button>
-        </DialogTrigger>
-
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Compass className="h-4 w-4" />
-              Explore
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-2.5 pt-1">
-            {exploreLinks.map(({ href, label, icon: Icon, tone }) => (
-              <a
-                key={href}
-                href={href}
-                target={href.startsWith("http") ? "_blank" : undefined}
-                rel={href.startsWith("http") ? "noreferrer" : undefined}
-                onClick={() => setOpen(false)}
-                className="touch-target flex flex-col items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-4 text-center transition-colors hover:border-primary/40 hover:bg-muted"
-              >
-                <span className={cn("flex h-11 w-11 items-center justify-center rounded-full", tone)}>
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="text-xs font-semibold leading-tight text-foreground">{label}</span>
-              </a>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-sidebar-accent/70 text-sidebar-foreground">
+              <Icon className="h-5 w-5" />
+            </span>
+            <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-sidebar-foreground">
+              {label}
+            </span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
@@ -400,7 +371,7 @@ function SidebarContent({
          ================================ */}
       {isWorkerSidebar && (
         <>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col items-center px-6 pt-8 text-center">
               <img
                 src={logo}
@@ -986,7 +957,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           className={cn(
             "page-pad flex-1 overflow-x-hidden",
             !worker && "shell-content-offset",
-                        worker && "lg:h-[calc(100dvh-4rem)] lg:overflow-y-hidden",
+            worker && "lg:h-[calc(100dvh-4rem)] lg:overflow-y-hidden",
           )}
         >
           {children}

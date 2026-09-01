@@ -242,8 +242,8 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
             notify_admin: true,
           });
         }
-      } catch {
-        // non-blocking
+      } catch (error) {
+        console.error("[attendance notification] failed", error);
       }
       toast.success("Attendance updated");
     },

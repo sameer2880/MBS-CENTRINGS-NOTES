@@ -198,8 +198,8 @@ export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
           entity_id: first?.group_id ?? null,
           notify_admin: true,
         });
-      } catch {
-        // non-blocking
+      } catch (error) {
+        console.error("[rental notification] failed", error);
       }
 
       toast.success(

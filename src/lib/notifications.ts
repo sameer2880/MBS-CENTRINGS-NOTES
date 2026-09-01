@@ -30,5 +30,8 @@ export async function createAppNotification({
     notify_admin,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error("[notifications] insert failed", error);
+    throw error;
+  }
 }

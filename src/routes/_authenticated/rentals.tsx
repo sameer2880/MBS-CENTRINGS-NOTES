@@ -43,6 +43,18 @@ const PAGE = 10;
 function RentalsPage() {
   const qc = useQueryClient();
   const { data: rentals = [], isLoading } = useQuery({ queryKey: ["rentals"], queryFn: listRentals });
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, full_name");
+      if (error) throw error;
+      return data as { id: string; full_name: string }[];
+    },
+  });
+  const profileMap = useMemo(
+    () => Object.fromEntries(profiles.map((profile) => [profile.id, profile.full_name])),
+    [profiles],
+  );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | RentalGroup["status"]>("all");
   const [payment, setPayment] = useState<"all" | RentalGroup["payment_status"]>("all");
@@ -393,10 +405,15 @@ function RentalsPage() {
                       <PaymentBadge status={g.payment_status} />
                     </div>
 
-                    <div className="text-[10px] text-muted-foreground border-t border-border pt-2">
-                      Added {new Date(g.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                      {g.updated_at && g.updated_at !== g.created_at && (
-                        <> · Updated {new Date(g.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
+                    <div className="text-[10px] text-muted-foreground border-t border-border pt-2 space-y-1">
+                      <div>
+                        Added {new Date(g.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                        {g.updated_at && g.updated_at !== g.created_at && (
+                          <> · Updated {new Date(g.updated_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</>
+                        )}
+                      </div>
+                      {g.rows[0]?.created_by && (
+                        <div>Added by {profileMap[g.rows[0].created_by] ?? "User"}</div>
                       )}
                     </div>
                   </div>

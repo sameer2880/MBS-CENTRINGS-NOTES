@@ -93,6 +93,9 @@ export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
       if (!form.customer_name) throw new Error("Customer name is required");
       if (form.items.some((it) => !it.material_name)) throw new Error("Every material row needs a name");
 
+      const { data: authUser } = await supabase.auth.getUser();
+      const createdBy = authUser.user?.id ?? null;
+
       if (editingGroup) {
         const existingItems = form.items.filter((it) => it.id);
         const newItems = form.items.filter((it) => !it.id);
@@ -138,6 +141,7 @@ export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
             payment_status: form.payment_status,
             notes: form.notes,
             group_id: editingGroup.group_id,
+            created_by: createdBy,
           }));
           const { data, error } = await supabase.from("rentals").insert(newRows).select();
           if (error) throw error;
@@ -174,6 +178,7 @@ export function RentalForm({ open, onOpenChange, editingGroup }: Props) {
         payment_status: form.payment_status,
         notes: form.notes,
         group_id,
+        created_by: createdBy,
       }));
       const { data, error } = await supabase.from("rentals").insert(rows).select();
       if (error) throw error;

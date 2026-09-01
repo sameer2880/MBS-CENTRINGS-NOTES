@@ -103,6 +103,44 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("contextmenu", block);
   }, [active]);
 
+  // Block text selection and dragging (of images/links) while locked, so
+  // there's nothing to select-and-share out of the app. Inputs/textareas
+  // are re-enabled in CSS since people still need to select their own
+  // typed text to edit it.
+  useEffect(() => {
+    if (!active) return;
+    const block = (event: Event) => event.preventDefault();
+    document.addEventListener("selectstart", block);
+    document.addEventListener("dragstart", block);
+    return () => {
+      document.removeEventListener("selectstart", block);
+      document.removeEventListener("dragstart", block);
+    };
+  }, [active]);
+
+  // Block pinch-zoom gestures at the event level too (belt-and-braces —
+  // the viewport meta tag above doesn't reliably stop this on every iOS
+  // version), and block other multi-touch gestures generally.
+  useEffect(() => {
+    if (!active) return;
+    const blockGesture = (event: Event) => event.preventDefault();
+    const blockMultiTouch = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    document.addEventListener("gesturestart", blockGesture);
+    document.addEventListener("gesturechange", blockGesture);
+    document.addEventListener("gestureend", blockGesture);
+    document.addEventListener("touchstart", blockMultiTouch, { passive: false });
+    document.addEventListener("touchmove", blockMultiTouch, { passive: false });
+    return () => {
+      document.removeEventListener("gesturestart", blockGesture);
+      document.removeEventListener("gesturechange", blockGesture);
+      document.removeEventListener("gestureend", blockGesture);
+      document.removeEventListener("touchstart", blockMultiTouch);
+      document.removeEventListener("touchmove", blockMultiTouch);
+    };
+  }, [active]);
+
   // If fullscreen gets exited behind our back (Esc key, a swipe, etc.),
   // or the page becomes visible again after switching apps, try to
   // re-enter it automatically.
@@ -130,6 +168,29 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     const onPopState = () => pushGuard();
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, [active]);
+
+  // Swallow keyboard shortcuts that could be used to leave/inspect the
+  // page on a device that has a keyboard attached (Tab-out, dev tools,
+  // save/print/view-source, Ctrl+W, etc.). Note: the browser/OS itself
+  // reserves some combinations (Esc for fullscreen, Alt+Tab, the Home
+  // button) and JavaScript can never intercept those — this only covers
+  // shortcuts the page is actually allowed to see.
+  useEffect(() => {
+    if (!active) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      const blockedWithCtrlOrMeta = ["w", "t", "n", "p", "s", "u", "r"];
+      if ((event.ctrlKey || event.metaKey) && blockedWithCtrlOrMeta.includes(key)) {
+        event.preventDefault();
+      }
+      if (key === "f12") event.preventDefault();
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && ["i", "j", "c"].includes(key)) {
+        event.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
   }, [active]);
 
   // Ask (browser-controlled prompt, wording can't be customized) before

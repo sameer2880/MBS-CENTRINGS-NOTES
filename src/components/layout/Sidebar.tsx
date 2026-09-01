@@ -638,41 +638,54 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
+  // More is just another equal-width column here, not a specially
+  // pinned corner element — every column (tabs + More) is the same
+  // width, which is what actually guarantees even spacing regardless
+  // of how long each label is. (The "pin More to the corner" need was
+  // for the worker's single-tab case, which no longer uses this bar
+  // at all — workers get the classic sidebar now.)
+  const items = [
+    ...tabs.map((t) => ({ ...t, isMore: false as const })),
+    { to: "__more__", label: "More", shortLabel: undefined, icon: MoreHorizontal, isMore: true as const },
+  ];
+
   return (
     <nav className="shell-bottomnav flex items-stretch" aria-label="Primary">
-      <div className="flex flex-1 items-stretch">
-        {tabs.map(({ to, label, shortLabel, icon: Icon }) => {
-          const active = path === to || path.startsWith(to + "/");
-
+      {items.map((item) => {
+        if (item.isMore) {
           return (
-            <Link
-              key={to}
-              to={to}
-              title={label}
-              aria-label={label}
-              className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-0.5 text-[10.5px] font-semibold",
-                active ? "text-primary" : "text-muted-foreground",
-              )}
+            <button
+              key="more"
+              type="button"
+              onClick={onOpenMore}
+              aria-label="More"
+              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold text-muted-foreground"
             >
-              <Icon className={cn("h-5 w-5", active && "scale-110")} />
-              <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
-            </Link>
+              <MoreHorizontal className="h-5 w-5" />
+              <span>More</span>
+            </button>
           );
-        })}
-      </div>
+        }
 
-      {/* Fixed-width, pinned to the right edge — never stretched or
-          shifted by however many primary tabs there are. */}
-      <button
-        type="button"
-        onClick={onOpenMore}
-        aria-label="More"
-        className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-muted-foreground"
-      >
-        <MoreHorizontal className="h-5 w-5" />
-        <span>More</span>
-      </button>
+        const { to, label, shortLabel, icon: Icon } = item;
+        const active = path === to || path.startsWith(to + "/");
+
+        return (
+          <Link
+            key={to}
+            to={to}
+            title={label}
+            aria-label={label}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-1 text-[10.5px] font-semibold",
+              active ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <Icon className={cn("h-5 w-5", active && "scale-110")} />
+            <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -694,6 +707,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [desktopOpen, setDesktopOpen] = useState(false);
   const [railSheetOpen, setRailSheetOpen] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
+  // Worker accounts don't get the bottom-nav / tablet-rail shell at
+  // all — just the original single hamburger-button sidebar, at every
+  // screen size (slide-in sheet below `lg`, persistent panel at `lg`+).
+  // One state drives both, same as it always did.
+  const [workerSidebarOpen, setWorkerSidebarOpen] = useState(false);
 
   const [dark, setDark] = useState(false);
   const [worker, setWorker] = useState(false);
@@ -750,63 +769,94 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* ==========================================
-          DESKTOP SIDEBAR (>= 1024px)
+      {worker ? (
+        <>
+          {/* ==========================================
+              WORKER: CLASSIC SIDEBAR (all screen sizes)
+              Persistent panel at >= lg, slide-in sheet
+              below that — one hamburger button drives
+              both. No bottom-nav, no tablet rail.
+             ========================================== */}
 
-          IMPORTANT:
-          `desktopOpen` controls whether it exists.
+          {workerSidebarOpen && (
+            <aside className="sticky top-0 hidden h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+              <SidebarContent {...sharedSidebarProps} />
+            </aside>
+          )}
 
-          false -> hidden
-          true  -> visible
-         ========================================== */}
+          <Sheet open={workerSidebarOpen} onOpenChange={setWorkerSidebarOpen}>
+            <SheetContent
+              side="left"
+              className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl lg:hidden [&>button]:hidden"
+            >
+              <SidebarContent
+                onNav={() => setWorkerSidebarOpen(false)}
+                {...sharedSidebarProps}
+              />
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : (
+        <>
+          {/* ==========================================
+              DESKTOP SIDEBAR (>= 1024px)
 
-      {desktopOpen && (
-        <aside className="sticky top-0 hidden h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
-          <SidebarContent {...sharedSidebarProps} />
-        </aside>
+              IMPORTANT:
+              `desktopOpen` controls whether it exists.
+
+              false -> hidden
+              true  -> visible
+             ========================================== */}
+
+          {desktopOpen && (
+            <aside className="sticky top-0 hidden h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+              <SidebarContent {...sharedSidebarProps} />
+            </aside>
+          )}
+
+          {/* ==========================================
+              TABLET RAIL (768–1023px)
+             ========================================== */}
+
+          <NavRail onOpenMore={() => setRailSheetOpen(true)} />
+
+          {/* ==========================================
+              TABLET "MORE" SHEET
+              Reuses the full SidebarContent — tablet has
+              room for a left-side labeled list.
+             ========================================== */}
+
+          <Sheet open={railSheetOpen} onOpenChange={setRailSheetOpen}>
+            <SheetContent
+              side="left"
+              className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+            >
+              <SidebarContent
+                onNav={() => setRailSheetOpen(false)}
+                {...sharedSidebarProps}
+              />
+            </SheetContent>
+          </Sheet>
+
+          {/* ==========================================
+              MOBILE "MORE" SHEET
+              Bottom sheet, matching the bottom-nav tab
+              it's opened from — not the desktop sidebar.
+             ========================================== */}
+
+          <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
+            <SheetContent
+              side="bottom"
+              className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden md:hidden"
+            >
+              <MobileMoreSheet
+                onNav={() => setMobileMoreOpen(false)}
+                {...sharedSidebarProps}
+              />
+            </SheetContent>
+          </Sheet>
+        </>
       )}
-
-      {/* ==========================================
-          TABLET RAIL (768–1023px)
-         ========================================== */}
-
-      <NavRail onOpenMore={() => setRailSheetOpen(true)} />
-
-      {/* ==========================================
-          TABLET "MORE" SHEET
-          Reuses the full SidebarContent — tablet has
-          room for a left-side labeled list.
-         ========================================== */}
-
-      <Sheet open={railSheetOpen} onOpenChange={setRailSheetOpen}>
-        <SheetContent
-          side="left"
-          className="w-[min(78vw,340px)] max-w-none border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
-        >
-          <SidebarContent
-            onNav={() => setRailSheetOpen(false)}
-            {...sharedSidebarProps}
-          />
-        </SheetContent>
-      </Sheet>
-
-      {/* ==========================================
-          MOBILE "MORE" SHEET
-          Bottom sheet, matching the bottom-nav tab
-          it's opened from — not the desktop sidebar.
-         ========================================== */}
-
-      <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
-        <SheetContent
-          side="bottom"
-          className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden md:hidden"
-        >
-          <MobileMoreSheet
-            onNav={() => setMobileMoreOpen(false)}
-            {...sharedSidebarProps}
-          />
-        </SheetContent>
-      </Sheet>
 
       {/* ==========================================
           MAIN CONTENT AREA
@@ -820,38 +870,59 @@ export function AppLayout({ children }: { children: ReactNode }) {
                ===================================== */}
 
             <div className="flex shrink-0 items-center gap-3">
-              {/* ===================================
-                  DESKTOP MENU
+              {worker ? (
+                /* =================================
+                   WORKER MENU BUTTON
+                   Visible at every screen size —
+                   the single entry point to the
+                   classic sidebar (sheet below lg,
+                   persistent panel at lg+).
+                   ================================= */
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05]"
+                  onClick={() => setWorkerSidebarOpen((previous) => !previous)}
+                  aria-label={workerSidebarOpen ? "Close sidebar" : "Open sidebar"}
+                  title={workerSidebarOpen ? "Close sidebar" : "Open sidebar"}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              ) : (
+                /* ===================================
+                    DESKTOP MENU
 
-                  This button opens
-                  and closes the sidebar.
-                  (Mobile has no header menu button —
-                  the bottom-nav "More" tab is the one
-                  entry point there. Tablet uses the
-                  rail's "More" button.)
-                 =================================== */}
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
-                onClick={() => {
-                  setDesktopOpen((previous) => !previous);
-                }}
-                aria-label={desktopOpen ? "Close sidebar" : "Open sidebar"}
-                title={desktopOpen ? "Close sidebar" : "Open sidebar"}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+                    This button opens
+                    and closes the sidebar.
+                    (Mobile has no header menu button —
+                    the bottom-nav "More" tab is the one
+                    entry point there. Tablet uses the
+                    rail's "More" button.)
+                   =================================== */
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="hidden rounded-full border-white/40 bg-white/25 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.05] lg:flex"
+                  onClick={() => {
+                    setDesktopOpen((previous) => !previous);
+                  }}
+                  aria-label={desktopOpen ? "Close sidebar" : "Open sidebar"}
+                  title={desktopOpen ? "Close sidebar" : "Open sidebar"}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
 
               {/* ===================================
                   MOBILE LOGO/TITLE
                   Tablet already shows the logo atop
-                  its rail; desktop inside the full
-                  sidebar — so this is phone-only.
+                  its rail (admin/manager only); desktop
+                  inside the full sidebar — so this is
+                  phone-only for admin/manager. For a
+                  worker (no rail), show it up to lg too.
                  =================================== */}
 
-              <div className="flex items-center gap-2 md:hidden">
+              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
                 <img
                   src={logo}
                   alt="MBS"
@@ -894,7 +965,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
         <main
           className={cn(
-            "page-pad shell-content-offset flex-1 overflow-x-hidden",
+            "page-pad flex-1 overflow-x-hidden",
+            !worker && "shell-content-offset",
             worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
           )}
         >
@@ -903,9 +975,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
         {/* ========================================
             MOBILE BOTTOM TAB BAR (< 768px)
+            Admin/manager only — workers use the
+            classic sidebar at every screen size.
            ======================================== */}
 
-        <BottomNav onOpenMore={() => setMobileMoreOpen(true)} />
+        {!worker && <BottomNav onOpenMore={() => setMobileMoreOpen(true)} />}
       </div>
     </div>
   );

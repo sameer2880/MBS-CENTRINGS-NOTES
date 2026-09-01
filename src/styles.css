@@ -155,17 +155,20 @@
      ever kicking in on the outermost scroll container. Without this,
      swiping past the top/bottom of a short page drags the viewport
      beyond the document bounds for a moment, exposing whatever sits
-     behind it — which is how the decorative background gradients below
-     ended up flashing past the edge of the screen on a swipe. */
+     behind it.
+     NOTE: this is deliberately just `overscroll-behavior-y` with no
+     `overflow-x: hidden` alongside it — putting `overflow` of any kind
+     on <html>/<body> is a known WebKit bug trigger that makes
+     `position: fixed` elements (like the mobile bottom nav) stop
+     tracking the real viewport and "float" up into the page instead
+     of sitting flush at the bottom. Horizontal clipping is handled
+     per-container (see `main`'s `overflow-x-hidden`) instead. */
   html,
   body {
-    height: 100%;
     overscroll-behavior-y: none;
-    overflow-x: hidden;
   }
 
   html { background-color: var(--color-background); }
-
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);

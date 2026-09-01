@@ -1,37 +1,23 @@
-```tsx
 import { MapPin, MapPinOff, MapPinned } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useWorkerLocationSharing } from "@/hooks/use-worker-location-sharing";
+import { useWorkerLocationSharing, WORK_HOURS_LABEL } from "@/hooks/use-worker-location-sharing";
 import { cn } from "@/lib/utils";
 
-export function WorkerLocationToggle({
-  workerId,
-}: {
-  workerId: string | null;
-}) {
-  const {
-    enabled,
-    status,
-    errorMessage,
-    toggle,
-    loaded,
-  } = useWorkerLocationSharing(workerId);
+export function WorkerLocationToggle({ workerId }: { workerId: string | null }) {
+  const { enabled, status, errorMessage, toggle, loaded } = useWorkerLocationSharing(workerId);
 
   if (!workerId) return null;
 
   const statusText =
     status === "sharing"
       ? "Sharing your live location (updates every minute)"
-      : status === "error"
-        ? errorMessage || "Couldn't access your location"
-        : "Location sharing is off for now";
+      : status === "paused"
+        ? "Auto-resumes when working hours start"
+        : status === "error"
+          ? errorMessage || "Couldn't access your location"
+          : "Location sharing is off for now";
 
-  const Icon =
-    status === "sharing"
-      ? MapPinned
-      : status === "error"
-        ? MapPinOff
-        : MapPin;
+  const Icon = status === "sharing" ? MapPinned : status === "error" ? MapPinOff : MapPin;
 
   return (
     <div
@@ -57,9 +43,7 @@ export function WorkerLocationToggle({
             )}
           />
 
-          <span className="truncate text-sm font-semibold">
-            Share My Location
-          </span>
+          <span className="truncate text-sm font-semibold">Share My Location</span>
         </div>
 
         <Switch
@@ -75,19 +59,15 @@ export function WorkerLocationToggle({
       <p
         className={cn(
           "mt-1.5 text-[11px] leading-snug",
-          status === "error"
-            ? "text-destructive"
-            : "text-sidebar-foreground/65",
+          status === "error" ? "text-destructive" : "text-sidebar-foreground/65",
         )}
       >
         {statusText}
       </p>
 
       <p className="mt-0.5 text-[10px] leading-snug text-sidebar-foreground/50">
-        Turns on automatically and shares your location 24 hours a day.
-        Visible to admins only.
+        Turns on automatically each day. Visible to admins only between {WORK_HOURS_LABEL}.
       </p>
     </div>
   );
 }
-```

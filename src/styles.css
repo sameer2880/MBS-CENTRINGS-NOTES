@@ -150,6 +150,20 @@
 @layer base {
   * { border-color: var(--color-border); }
 
+  /* `overscroll-behavior` stops the browser's own rubber-band/bounce
+     scroll (iOS Safari) and pull-to-refresh glow (Android Chrome) from
+     ever kicking in on the outermost scroll container. Without this,
+     swiping past the top/bottom of a short page drags the viewport
+     beyond the document bounds for a moment, exposing whatever sits
+     behind it — which is how the decorative background gradients below
+     ended up flashing past the edge of the screen on a swipe. */
+  html,
+  body {
+    height: 100%;
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
+  }
+
   html { background-color: var(--color-background); }
 
   body {
@@ -161,11 +175,23 @@
       radial-gradient(800px circle at 92% 18%, rgb(221 120 21 / 16%), transparent 50%),
       radial-gradient(850px circle at 25% 95%, rgb(59 110 165 / 14%), transparent 50%),
       radial-gradient(700px circle at 95% 90%, rgb(22 163 74 / 10%), transparent 50%);
-    background-attachment: fixed;
     background-repeat: no-repeat;
   }
-}
 
+  /* `background-attachment: fixed` is unreliable on touch browsers —
+     iOS Safari and Android Chrome both re-paint it against the *last*
+     viewport size instead of the live one while the address bar
+     shows/hides during a scroll, so the gradient can visibly detach
+     from the screen edges mid-swipe. Keep it only for pointer-driven
+     (non-touch) devices, where it renders correctly and gives the
+     parallax-y feel it was meant for; touch devices get the safe,
+     default `scroll` attachment instead. */
+  @media (hover: hover) and (pointer: fine) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+}
 .dark body {
   background-image:
     radial-gradient(900px circle at 8% 8%, rgb(91 157 240 / 24%), transparent 55%),

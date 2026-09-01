@@ -986,7 +986,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           className={cn(
             "page-pad flex-1 overflow-x-hidden",
             !worker && "shell-content-offset",
-            worker && "lg:h-[calc(100vh-4rem)] lg:overflow-y-hidden",
+                        worker && "lg:h-[calc(100dvh-4rem)] lg:overflow-y-hidden",
           )}
         >
           {children}

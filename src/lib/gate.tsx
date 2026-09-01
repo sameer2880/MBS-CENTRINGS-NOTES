@@ -208,7 +208,7 @@ export function Gate({ children }: { children: ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">
+      <div className="min-h-dvh flex items-center justify-center bg-background p-4 text-sm text-muted-foreground">
         Loading...
       </div>
     );
@@ -276,7 +276,7 @@ export function Gate({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="min-h-dvh flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm shadow-lg">
         <CardContent className="p-6 space-y-5">
           <div className="flex flex-col items-center text-center gap-2">

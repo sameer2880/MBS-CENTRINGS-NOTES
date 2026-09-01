@@ -173,39 +173,56 @@ function NavLinks({ onClick }: { onClick?: () => void }) {
   );
 }
 
+/**
+ * `tone` gives each tile's icon circle a faint brand-flavoured tint so the
+ * grid reads as a set of distinct destinations at a glance rather than a
+ * uniform list — WhatsApp green, YouTube red, Instagram warm pink, etc.
+ */
 const exploreLinks = [
   {
     href: "https://mbsndcl.vercel.app",
     label: "Official website",
     icon: Globe,
+    tone: "bg-sky-500/12 text-sky-600 dark:text-sky-400",
   },
   {
     href: "https://www.instagram.com/mbs_centrings_nereducherla/",
     label: "Instagram",
     icon: Instagram,
+    tone: "bg-pink-500/12 text-pink-600 dark:text-pink-400",
   },
   {
     href: "https://www.youtube.com/@mbs_centring_works_ndcl/?themeRefresh=1",
     label: "YouTube",
     icon: Youtube,
+    tone: "bg-red-500/12 text-red-600 dark:text-red-400",
   },
   {
     href: "https://wa.me/918688285959",
     label: "WhatsApp",
     icon: MessageCircle,
+    tone: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
   },
   {
     href: "https://maps.app.goo.gl/PWjFYqqZrZRqSC2E6",
     label: "Visit location",
     icon: MapPin,
+    tone: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
   },
   {
     href: "tel:+918688285959",
     label: "Call Now",
     icon: Phone,
+    tone: "bg-primary/12 text-primary",
   },
 ];
 
+/**
+ * Explore — a 2-column tile grid (icon circle + label) rather than a plain
+ * link list, so it reads more like a set of quick destinations than a menu.
+ * Still a centered Dialog (works while nested inside the mobile/tablet
+ * sheets that host `SidebarContent`) — only the inner layout changed.
+ */
 function ExploreLinks() {
   const [open, setOpen] = useState(false);
 
@@ -230,18 +247,20 @@ function ExploreLinks() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-1">
-            {exploreLinks.map(({ href, label, icon: Icon }) => (
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            {exploreLinks.map(({ href, label, icon: Icon, tone }) => (
               <a
                 key={href}
                 href={href}
                 target={href.startsWith("http") ? "_blank" : undefined}
                 rel={href.startsWith("http") ? "noreferrer" : undefined}
                 onClick={() => setOpen(false)}
-                className="touch-target flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                className="touch-target flex flex-col items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-4 text-center transition-colors hover:border-primary/40 hover:bg-muted"
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                {label}
+                <span className={cn("flex h-11 w-11 items-center justify-center rounded-full", tone)}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="text-xs font-semibold leading-tight text-foreground">{label}</span>
               </a>
             ))}
           </div>
@@ -768,7 +787,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       {worker ? (
         <>
           {/* ==========================================

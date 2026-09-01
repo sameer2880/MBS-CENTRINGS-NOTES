@@ -267,7 +267,10 @@ function ManageUsers() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {filtered.map((u) => {
-              const badge = ROLE_BADGE[u.role];
+              // Fall back to the "worker" badge for any role value that
+              // isn't one of the three known keys (e.g. bad/legacy data)
+              // instead of crashing the whole page on `badge.icon`.
+              const badge = ROLE_BADGE[u.role] ?? ROLE_BADGE.worker;
               const BadgeIcon = badge.icon;
               return (
                 <div key={u.id} className="rounded-lg border border-border p-3 flex items-start gap-3">

@@ -231,6 +231,18 @@
   background-size: 24px 24px;
   background-repeat: repeat;
 }
+
+/* Mobile only: use the custom image background instead of the dotted pattern */
+@media (max-width: 640px) {
+  .auth-dotted-bg,
+  .dark .auth-dotted-bg {
+    background-color: #f4f6fa;
+    background-image: url("/auth-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
   background-color: #f5f7fb;

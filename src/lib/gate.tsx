@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, KeyRound, LockKeyhole, UserRound } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
@@ -321,74 +322,101 @@ export function Gate({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="relative min-h-dvh flex items-center justify-center overflow-hidden p-4">
-      <div className="relative w-full max-w-sm">
-        <div
-          className="relative overflow-hidden rounded-t-[28px] bg-[#10305c] pb-10 pt-7"
-          style={{ clipPath: "polygon(0 0, 100% 0, 100% 82%, 0 100%)" }}
-        >
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden p-4 sm:p-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40">
+        <div className="absolute left-[12%] top-[18%] h-40 w-40 rounded-full border border-[#10305c]/10" />
+        <div className="absolute bottom-[12%] right-[10%] h-56 w-56 rounded-full border border-[#dd7815]/15" />
+      </div>
+
+      <Card className="relative w-full max-w-md overflow-hidden border-white/70 bg-[#eaf0f8]/70 shadow-[0_24px_70px_-28px_rgb(16_48_92/55%)] ring-1 ring-white/50 backdrop-blur-2xl dark:border-white/10 dark:bg-[#0c1c33]/70 dark:ring-white/5">
+        <div className="h-1 bg-[#dd7815] shadow-[0_1px_12px_rgb(221_120_21/55%)]" />
+        <div className="relative flex items-center justify-between overflow-hidden border-b border-white/10 bg-[#10305c]/95 px-6 py-5 dark:border-white/10 sm:px-8">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#dd7815]/25 blur-2xl"
+            className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-[#5b9df0]/20 blur-3xl"
           />
-          <h1 className="relative px-6 text-center text-lg font-extrabold leading-tight text-white">
-            M.B.S Centring Works
-          </h1>
-        </div>
-
-        <div className="relative -mt-9 flex justify-center">
-          <div className="rounded-full bg-white p-1.5 shadow-[0_10px_24px_-6px_rgb(16_48_92/45%)]">
-            <img
-              src={logo}
-              alt="MBS Centring Works"
-              className="block h-20 w-20 rounded-full object-cover"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative rounded-xl border border-white/30 bg-white p-1.5 shadow-[0_8px_18px_-10px_rgb(0_0_0/80%)]">
+              <img
+                src={logo}
+                alt="MBS Centring Works"
+                className="block h-11 w-11 rounded-lg object-cover"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold tracking-tight text-white">
+                M.B.S Centring Works
+              </p>
+            </div>
+          </div>
+          <div className="relative rounded-full border border-[#dd7815]/50 bg-[#dd7815]/15 p-2 text-[#ffad5c] shadow-sm">
+            <LockKeyhole aria-hidden className="h-4 w-4" />
           </div>
         </div>
 
-        <Card className="rounded-t-none rounded-b-[28px] border-t-0 border-[#10305c]/10 bg-white/95 shadow-2xl backdrop-blur-sm">
-          <CardContent className="space-y-5 px-8 pb-8 pt-6">
-            <form onSubmit={submit} className="space-y-5">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#10305c]/70">Username</Label>
+        <CardContent className="space-y-6 px-6 pb-7 pt-7 sm:px-8 sm:pb-8">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#10305c] dark:text-white">
+              Welcome back
+            </h1>
+            <p className="mt-1 text-sm text-[#5b6b84] dark:text-slate-400">
+              Sign in to manage your records.
+            </p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-[#10305c]/75 dark:text-slate-300">
+                Username
+              </Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-[#10305c] text-[#ffad5c] shadow-[0_3px_8px_rgb(16_48_92/25%)]">
+                  <UserRound aria-hidden strokeWidth={2.5} className="h-4 w-4" />
+                </span>
                 <Input
                   value={u}
                   onChange={(e) => setU(e.target.value)}
                   autoFocus
                   autoComplete="username"
-                  className="h-11 rounded-none border-x-0 border-b-2 border-t-0 border-[#10305c]/15 bg-transparent px-1 focus-visible:border-[#10305c] focus-visible:ring-0"
+                  className="h-12 border-[#10305c]/15 bg-white/85 pl-12 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#10305c]/70">Password</Label>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-[#10305c]/75 dark:text-slate-300">
+                Password
+              </Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-[#10305c] text-[#ffad5c] shadow-[0_3px_8px_rgb(16_48_92/25%)]">
+                  <KeyRound aria-hidden strokeWidth={2.5} className="h-4 w-4" />
+                </span>
                 <Input
                   type="password"
                   value={p}
                   onChange={(e) => setP(e.target.value)}
                   autoComplete="current-password"
-                  className="h-11 rounded-none border-x-0 border-b-2 border-t-0 border-[#10305c]/15 bg-transparent px-1 focus-visible:border-[#10305c] focus-visible:ring-0"
+                  className="h-12 border-[#10305c]/15 bg-white/85 pl-12 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
                 />
               </div>
-              {err && <p className="text-xs text-destructive">{err}</p>}
-              <Button
-                type="submit"
-                className="h-11 w-full rounded-full bg-[#dd7815] text-sm font-semibold tracking-wide text-white hover:bg-[#c46a12]"
-              >
-                Sign in
-              </Button>
-            </form>
-
-            <div className="flex items-start gap-2 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/8 px-3 py-2.5">
-              <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
-              <p className="text-xs leading-snug text-[#10305c]/80">
-                <b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your
-                login credentials.
-              </p>
             </div>
+            {err && <p className="text-xs font-medium text-destructive">{err}</p>}
+            <Button
+              type="submit"
+              className="h-12 w-full rounded-xl bg-[#10305c] text-sm font-semibold text-white shadow-lg shadow-[#10305c]/20 hover:bg-[#174579]"
+            >
+              Sign in
+              <ArrowRight aria-hidden className="h-4 w-4" />
+            </Button>
+          </form>
 
-          </CardContent>
-        </Card>
-      </div>
+          <div className="flex items-start gap-2.5 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/10 px-3.5 py-3">
+            <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
+            <p className="text-xs leading-relaxed text-[#10305c]/80 dark:text-slate-300">
+              <b>Need access?</b> Contact your admin for login credentials.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

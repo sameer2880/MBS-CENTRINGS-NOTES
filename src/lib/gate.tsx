@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, KeyRound, LockKeyhole, UserRound } from "lucide-react";
+import { ArrowRight, KeyRound, LockKeyhole, User } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
@@ -370,15 +370,15 @@ export function Gate({ children }: { children: ReactNode }) {
                 Username
               </Label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-[#10305c] text-[#ffad5c] shadow-[0_3px_8px_rgb(16_48_92/25%)]">
-                  <UserRound aria-hidden strokeWidth={2.5} className="h-4 w-4" />
+                <span className="pointer-events-none absolute left-3 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-sidebar-foreground">
+                  <User aria-hidden strokeWidth={2.25} className="h-5 w-5" />
                 </span>
                 <Input
                   value={u}
                   onChange={(e) => setU(e.target.value)}
                   autoFocus
                   autoComplete="username"
-                  className="h-12 border-[#10305c]/15 bg-white/85 pl-12 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
+                  className="h-12 border-[#10305c]/15 bg-white/85 pl-10 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
                 />
               </div>
             </div>
@@ -387,15 +387,15 @@ export function Gate({ children }: { children: ReactNode }) {
                 Password
               </Label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-[#10305c] text-[#ffad5c] shadow-[0_3px_8px_rgb(16_48_92/25%)]">
-                  <KeyRound aria-hidden strokeWidth={2.5} className="h-4 w-4" />
+                <span className="pointer-events-none absolute left-3 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-sidebar-foreground">
+                  <KeyRound aria-hidden strokeWidth={2.25} className="h-5 w-5" />
                 </span>
                 <Input
                   type="password"
                   value={p}
                   onChange={(e) => setP(e.target.value)}
                   autoComplete="current-password"
-                  className="h-12 border-[#10305c]/15 bg-white/85 pl-12 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
+                  className="h-12 border-[#10305c]/15 bg-white/85 pl-10 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
                 />
               </div>
             </div>

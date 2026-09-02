@@ -412,7 +412,7 @@ export function Gate({ children }: { children: ReactNode }) {
           <div className="flex items-start gap-2.5 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/10 px-3.5 py-3">
             <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
             <p className="text-xs leading-relaxed text-[#10305c]/80 dark:text-slate-300">
-              <b>Need access?</b> Contact your admin for login credentials.
+              <b>Need access?</b> Contact admin for login credentials.
             </p>
           </div>
         </CardContent>

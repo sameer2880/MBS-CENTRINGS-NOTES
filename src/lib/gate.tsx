@@ -276,18 +276,40 @@ export function Gate({ children }: { children: ReactNode }) {
   };
 
   return (
-        <div className="min-h-dvh flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-lg">
-        <CardContent className="p-6 space-y-5">
-          <div className="flex flex-col items-center text-center gap-2">
-            <img
-              src={logo}
-              alt="MBS"
-              className="block h-16 w-16 overflow-hidden rounded-full bg-white object-cover p-1 shadow"
-            />
-            <h1 className="font-bold text-lg leading-tight">M.B.S CENTRING WORKS</h1>
+    <div className="auth-dotted-bg relative min-h-dvh flex items-center justify-center overflow-hidden p-4">
+      {/* Soft brand-colored glows floating over the dot grid, echoing the
+          rest of the app's canvas so the sign-in screen doesn't feel like
+          a bare utility page. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[#10305c]/15 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-[#dd7815]/12 blur-3xl"
+      />
+
+      <Card className="relative w-full max-w-sm rounded-3xl border-[#10305c]/10 bg-white/90 shadow-2xl backdrop-blur-sm">
+        <CardContent className="space-y-7 p-8">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="rounded-full bg-white p-1.5 shadow-[0_0_0_1px_rgb(16_48_92/10%),0_12px_28px_-8px_rgb(16_48_92/35%)]">
+              <img
+                src={logo}
+                alt="MBS Centring Works"
+                className="block h-24 w-24 rounded-full object-cover"
+              />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-xl font-extrabold leading-tight tracking-tight text-[#10305c]">
+                M.B.S CENTRING WORKS
+              </h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                Nereducherla
+              </p>
+            </div>
           </div>
-          <form onSubmit={submit} className="space-y-3">
+
+          <form onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Username</Label>
               <Input
@@ -295,6 +317,7 @@ export function Gate({ children }: { children: ReactNode }) {
                 onChange={(e) => setU(e.target.value)}
                 autoFocus
                 autoComplete="username"
+                className="h-11 rounded-xl border-[#10305c]/15 bg-white/70 focus-visible:ring-[#10305c]/40"
               />
             </div>
             <div className="space-y-1.5">
@@ -304,13 +327,18 @@ export function Gate({ children }: { children: ReactNode }) {
                 value={p}
                 onChange={(e) => setP(e.target.value)}
                 autoComplete="current-password"
+                className="h-11 rounded-xl border-[#10305c]/15 bg-white/70 focus-visible:ring-[#10305c]/40"
               />
             </div>
             {err && <p className="text-xs text-destructive">{err}</p>}
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="h-11 w-full rounded-xl bg-[#10305c] text-sm font-semibold tracking-wide hover:bg-[#0c2547]"
+            >
               Sign in
             </Button>
           </form>
+
           <p className="text-center text-xs font-medium text-red-600">
             <i><b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your login credentials.</i>
           </p>

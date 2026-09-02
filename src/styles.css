@@ -215,7 +215,34 @@
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
-
+/* Auth / sign-in canvas: fine dot-grid texture (echoes the brushed-steel
+   weave behind the MBS mark artwork) sitting under the sign-in card.
+   Two dot layers at different pitches give it a subtle woven depth
+   instead of a flat mechanical grid. */
+.auth-dotted-bg {
+  background-color: #f4f6fa;
+  background-image:
+    radial-gradient(rgb(16 48 92 / 20%) 1px, transparent 1.4px),
+    radial-gradient(rgb(16 48 92 / 10%) 1px, transparent 1.4px);
+  background-size:
+    22px 22px,
+    22px 22px;
+  background-position:
+    0 0,
+    11px 11px;
+}
+.dark .auth-dotted-bg {
+  background-color: #0a1626;
+  background-image:
+    radial-gradient(rgb(148 178 224 / 18%) 1px, transparent 1.4px),
+    radial-gradient(rgb(148 178 224 / 9%) 1px, transparent 1.4px);
+  background-size:
+    22px 22px,
+    22px 22px;
+  background-position:
+    0 0,
+    11px 11px;
+}
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
   background-color: #f5f7fb;

@@ -289,61 +289,75 @@ export function Gate({ children }: { children: ReactNode }) {
         className="pointer-events-none absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-[#dd7815]/12 blur-3xl"
       />
 
-      <Card className="relative w-full max-w-sm rounded-3xl border-[#10305c]/10 bg-white/90 shadow-2xl backdrop-blur-sm">
-        <CardContent className="space-y-7 p-8">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="rounded-full bg-white p-1.5 shadow-[0_0_0_1px_rgb(16_48_92/10%),0_12px_28px_-8px_rgb(16_48_92/35%)]">
-              <img
-                src={logo}
-                alt="MBS Centring Works"
-                className="block h-24 w-24 rounded-full object-cover"
-              />
-            </div>
-            <div className="space-y-1">
-              <h1 className="text-xl font-extrabold leading-tight tracking-tight text-[#10305c]">
-                M.B.S CENTRING WORKS
-              </h1>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                Nereducherla
+      <div className="relative w-full max-w-sm">
+        {/* Signature shape: an angled navy masthead, cut with a clip-path
+            so the logo badge can straddle the seam into the card below.
+            This is the one bold move — everything else stays quiet. */}
+        <div
+          className="relative overflow-hidden rounded-t-[28px] bg-[#10305c] pb-10 pt-7"
+          style={{ clipPath: "polygon(0 0, 100% 0, 100% 82%, 0 100%)" }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#dd7815]/25 blur-2xl"
+          />
+          <h1 className="relative px-6 text-center text-lg font-extrabold leading-tight text-white">
+            M.B.S Centring Works
+          </h1>
+        </div>
+
+        <div className="relative -mt-9 flex justify-center">
+          <div className="rounded-full bg-white p-1.5 shadow-[0_10px_24px_-6px_rgb(16_48_92/45%)]">
+            <img
+              src={logo}
+              alt="MBS Centring Works"
+              className="block h-20 w-20 rounded-full object-cover"
+            />
+          </div>
+        </div>
+
+        <Card className="rounded-t-none rounded-b-[28px] border-t-0 border-[#10305c]/10 bg-white/95 shadow-2xl backdrop-blur-sm">
+          <CardContent className="space-y-5 px-8 pb-8 pt-6">
+            <form onSubmit={submit} className="space-y-5">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-[#10305c]/70">Username</Label>
+                <Input
+                  value={u}
+                  onChange={(e) => setU(e.target.value)}
+                  autoFocus
+                  autoComplete="username"
+                  className="h-11 rounded-none border-x-0 border-b-2 border-t-0 border-[#10305c]/15 bg-transparent px-1 focus-visible:border-[#10305c] focus-visible:ring-0"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-[#10305c]/70">Password</Label>
+                <Input
+                  type="password"
+                  value={p}
+                  onChange={(e) => setP(e.target.value)}
+                  autoComplete="current-password"
+                  className="h-11 rounded-none border-x-0 border-b-2 border-t-0 border-[#10305c]/15 bg-transparent px-1 focus-visible:border-[#10305c] focus-visible:ring-0"
+                />
+              </div>
+              {err && <p className="text-xs text-destructive">{err}</p>}
+              <Button
+                type="submit"
+                className="h-11 w-full rounded-full bg-[#dd7815] text-sm font-semibold tracking-wide text-white hover:bg-[#c46a12]"
+              >
+                Sign in
+              </Button>
+            </form>
+
+            <div className="flex items-start gap-2 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/8 px-3 py-2.5">
+              <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
+              <p className="text-xs leading-snug text-[#10305c]/80">
+                <b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get
+                your login credentials.
               </p>
             </div>
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Username</Label>
-              <Input
-                value={u}
-                onChange={(e) => setU(e.target.value)}
-                autoFocus
-                autoComplete="username"
-                className="h-11 rounded-xl border-[#10305c]/15 bg-white/70 focus-visible:ring-[#10305c]/40"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Password</Label>
-              <Input
-                type="password"
-                value={p}
-                onChange={(e) => setP(e.target.value)}
-                autoComplete="current-password"
-                className="h-11 rounded-xl border-[#10305c]/15 bg-white/70 focus-visible:ring-[#10305c]/40"
-              />
-            </div>
-            {err && <p className="text-xs text-destructive">{err}</p>}
-            <Button
-              type="submit"
-              className="h-11 w-full rounded-xl bg-[#10305c] text-sm font-semibold tracking-wide hover:bg-[#0c2547]"
-            >
-              Sign in
-            </Button>
-          </form>
-
-          <p className="text-center text-xs font-medium text-red-600">
-            <i><b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your login credentials.</i>
-          </p>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -215,34 +215,6 @@
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
-/* Auth / sign-in canvas uses a dedicated desktop background. Mobile swaps
-   to the phone-specific artwork below. */
-.auth-dotted-bg {
-  background-color: #f4f6fa;
-  background-image: url("/auth-bg-desktop.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-.dark .auth-dotted-bg {
-  background-color: #0a1626;
-  background-image: url("/auth-bg-desktop.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-/* Mobile only: use the phone-specific auth background. */
-@media (max-width: 640px) {
-  .auth-dotted-bg,
-  .dark .auth-dotted-bg {
-    background-color: #f4f6fa;
-    background-image: url("/auth-bg.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-}
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
   background-color: #f5f7fb;

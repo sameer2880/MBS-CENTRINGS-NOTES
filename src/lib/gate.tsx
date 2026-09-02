@@ -321,7 +321,7 @@ export function Gate({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="auth-dotted-bg relative min-h-dvh flex items-center justify-center overflow-hidden p-4">
+    <div className="relative min-h-dvh flex items-center justify-center overflow-hidden p-4">
       <div className="relative w-full max-w-sm">
         <div
           className="relative overflow-hidden rounded-t-[28px] bg-[#10305c] pb-10 pt-7"
@@ -385,6 +385,7 @@ export function Gate({ children }: { children: ReactNode }) {
                 login credentials.
               </p>
             </div>
+
           </CardContent>
         </Card>
       </div>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
-import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY } from "@/lib/worker-auth";
+import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
 import { getRole } from "@/lib/user-role";
 
 export const KEY = "mbs-gate";
@@ -19,8 +19,10 @@ export function isUnlocked() {
 }
 
 export function lock() {
+  const workerId = localStorage.getItem(WORKER_ID_KEY);
   localStorage.removeItem(KEY);
   localStorage.removeItem(WORKER_ID_KEY);
+  if (workerId) localStorage.removeItem(workerSessionKey(workerId));
   localStorage.removeItem(ADMIN_ID_KEY);
   localStorage.removeItem(ADMIN_ROLE_KEY);
   void supabase.auth.signOut().finally(() => window.location.reload());
@@ -36,20 +38,43 @@ export function Gate({ children }: { children: ReactNode }) {
   const [err, setErr] = useState("");
   const [worker, setWorker] = useState(false);
 
-  const disableWorkerSession = async () => {
+  const disableWorkerSession = async (message = "Your account is deactivated") => {
+    const workerId = localStorage.getItem(WORKER_ID_KEY);
     localStorage.removeItem(WORKER_ID_KEY);
+    if (workerId) localStorage.removeItem(workerSessionKey(workerId));
     setWorker(false);
-    setErr("Your account is deactivated");
+    setErr(message);
     await supabase.auth.signOut();
   };
 
-  const disableAdminSession = async () => {
+  const disableAdminSession = async (message = "Your account is deactivated") => {
     localStorage.removeItem(KEY);
     localStorage.removeItem(ADMIN_ID_KEY);
     localStorage.removeItem(ADMIN_ROLE_KEY);
     setOk(false);
-    setErr("Your account is deactivated");
+    setErr(message);
     await supabase.auth.signOut();
+  };
+
+  const claimDevice = async (workerId: string, existingToken: string | null) => {
+    const localToken = localStorage.getItem(workerSessionKey(workerId));
+    if (existingToken && existingToken !== localToken) {
+      const takeOver = window.confirm(
+        "This account is already signed in on another device. Log out that device and continue here?",
+      );
+      if (!takeOver) return false;
+    }
+    const sessionToken = crypto.randomUUID();
+    const { error } = await supabase
+      .from("workers")
+      .update({ session_token: sessionToken })
+      .eq("id", workerId);
+    if (error) {
+      setErr("Unable to start your device session");
+      return false;
+    }
+    localStorage.setItem(workerSessionKey(workerId), sessionToken);
+    return true;
   };
 
   useEffect(() => {
@@ -65,11 +90,17 @@ export function Gate({ children }: { children: ReactNode }) {
             // trusting it.
             const { data: adminRecord, error } = await supabase
               .from("workers")
-              .select("id, active, notes")
+              .select("id, active, notes, session_token")
               .eq("id", adminId)
               .maybeSingle();
             const role = adminRecord ? getRole(adminRecord.notes) : null;
-            if (!error && adminRecord?.active && (role === "admin" || role === "manager")) {
+            const localToken = localStorage.getItem(workerSessionKey(adminId));
+            if (
+              !error &&
+              adminRecord?.active &&
+              adminRecord.session_token === localToken &&
+              (role === "admin" || role === "manager")
+            ) {
               localStorage.setItem(ADMIN_ROLE_KEY, role);
               if (mounted) {
                 setOk(true);
@@ -98,9 +129,14 @@ export function Gate({ children }: { children: ReactNode }) {
           const workerId =
             data.session.user.user_metadata?.worker_id ?? localStorage.getItem(WORKER_ID_KEY);
           const { data: workerRecord } = workerId
-            ? await supabase.from("workers").select("id, active").eq("id", workerId).maybeSingle()
+            ? await supabase
+                .from("workers")
+                .select("id, active, session_token")
+                .eq("id", workerId)
+                .maybeSingle()
             : { data: null };
-          if (workerRecord?.active) {
+          const localToken = workerId ? localStorage.getItem(workerSessionKey(workerId)) : null;
+          if (workerRecord?.active && workerRecord.session_token === localToken) {
             localStorage.setItem(WORKER_ID_KEY, workerRecord.id);
             setWorker(true);
           } else if (workerRecord) {
@@ -113,10 +149,11 @@ export function Gate({ children }: { children: ReactNode }) {
           if (workerId) {
             const { data: workerRecord } = await supabase
               .from("workers")
-              .select("id, active")
+              .select("id, active, session_token")
               .eq("id", workerId)
               .maybeSingle();
-            if (workerRecord?.active) setWorker(true);
+            const localToken = localStorage.getItem(workerSessionKey(workerId));
+            if (workerRecord?.active && workerRecord.session_token === localToken) setWorker(true);
             else if (workerRecord) await disableWorkerSession();
             else localStorage.removeItem(WORKER_ID_KEY);
           }
@@ -145,10 +182,13 @@ export function Gate({ children }: { children: ReactNode }) {
       try {
         const { data: workerRecord, error } = await supabase
           .from("workers")
-          .select("id, active")
+          .select("id, active, session_token")
           .eq("id", workerId)
           .maybeSingle();
+        const localToken = localStorage.getItem(workerSessionKey(workerId));
         if (!error && (!workerRecord || !workerRecord.active)) await disableWorkerSession();
+        else if (!error && workerRecord && workerRecord.session_token !== localToken)
+          await disableWorkerSession("Your account was signed in on another device");
       } finally {
         checking = false;
       }
@@ -177,12 +217,15 @@ export function Gate({ children }: { children: ReactNode }) {
       try {
         const { data: adminRecord, error } = await supabase
           .from("workers")
-          .select("id, active, notes")
+          .select("id, active, notes, session_token")
           .eq("id", id)
           .maybeSingle();
         const role = adminRecord ? getRole(adminRecord.notes) : null;
+        const localToken = localStorage.getItem(workerSessionKey(id));
         if (!error && (!adminRecord || !adminRecord.active || role === "worker")) {
           await disableAdminSession();
+        } else if (!error && adminRecord && adminRecord.session_token !== localToken) {
+          await disableAdminSession("Your account was signed in on another device");
         } else if (!error && role) {
           // Keep the locally-cached role in sync if it was changed
           // elsewhere (e.g. an admin promoted/demoted this account).
@@ -231,14 +274,14 @@ export function Gate({ children }: { children: ReactNode }) {
     void (async () => {
       const { data: userByName } = await supabase
         .from("workers")
-        .select("id, name, phone, active, notes")
+        .select("id, name, phone, active, notes, session_token")
         .ilike("name", u.trim())
         .maybeSingle();
       const { data: userByPhone } = userByName
         ? { data: null }
         : await supabase
             .from("workers")
-            .select("id, name, phone, active, notes")
+            .select("id, name, phone, active, notes, session_token")
             .eq("phone", u.trim())
             .maybeSingle();
       const userRecord = userByName ?? userByPhone;
@@ -261,6 +304,7 @@ export function Gate({ children }: { children: ReactNode }) {
         // screens, but we keep their row id (and role) so their status can
         // be re-checked, their permissions applied correctly, and so they
         // can change their own password later.
+        if (!(await claimDevice(userRecord.id, userRecord.session_token))) return;
         localStorage.setItem(KEY, "1");
         localStorage.setItem(ADMIN_ID_KEY, userRecord.id);
         localStorage.setItem(ADMIN_ROLE_KEY, role);
@@ -270,6 +314,7 @@ export function Gate({ children }: { children: ReactNode }) {
         void navigate({ to: "/dashboard", replace: true });
         return;
       }
+      if (!(await claimDevice(userRecord.id, userRecord.session_token))) return;
       localStorage.setItem(WORKER_ID_KEY, userRecord.id);
       setWorker(true);
     })();
@@ -277,22 +322,7 @@ export function Gate({ children }: { children: ReactNode }) {
 
   return (
     <div className="auth-dotted-bg relative min-h-dvh flex items-center justify-center overflow-hidden p-4">
-      {/* Soft brand-colored glows floating over the dot grid, echoing the
-          rest of the app's canvas so the sign-in screen doesn't feel like
-          a bare utility page. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[#10305c]/15 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-[#dd7815]/12 blur-3xl"
-      />
-
       <div className="relative w-full max-w-sm">
-        {/* Signature shape: an angled navy masthead, cut with a clip-path
-            so the logo badge can straddle the seam into the card below.
-            This is the one bold move — everything else stays quiet. */}
         <div
           className="relative overflow-hidden rounded-t-[28px] bg-[#10305c] pb-10 pt-7"
           style={{ clipPath: "polygon(0 0, 100% 0, 100% 82%, 0 100%)" }}
@@ -351,8 +381,8 @@ export function Gate({ children }: { children: ReactNode }) {
             <div className="flex items-start gap-2 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/8 px-3 py-2.5">
               <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
               <p className="text-xs leading-snug text-[#10305c]/80">
-                <b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get
-                your login credentials.
+                <b>Note:</b> If you are a member of <b>MBS CENTRINGS</b>, contact admin to get your
+                login credentials.
               </p>
             </div>
           </CardContent>

@@ -3,7 +3,6 @@ import { Outlet, createRootRouteWithContext, HeadContent, Scripts } from "@tanst
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { SplashScreen } from "@/components/SplashScreen";
 
 import appCss from "../styles.css?url";
 
@@ -139,7 +138,6 @@ function RootComponent() {
   }, []);
   return (
     <QueryClientProvider client={queryClient}>
-      <SplashScreen />
       <Outlet />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>

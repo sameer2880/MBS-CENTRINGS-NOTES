@@ -399,7 +399,12 @@ export function Gate({ children }: { children: ReactNode }) {
           <Card className="w-full max-w-[410px] border-0 bg-transparent shadow-none dark:bg-transparent">
             <CardContent className="space-y-6 p-0">
               <div className="text-center lg:text-left">
-                <div className="mb-2 flex items-center justify-center gap-1 text-lg font-bold lg:justify-start">
+                <img
+                  src={logo}
+                  alt="MBS Centring Works"
+                  className="mx-auto mb-3 h-20 w-20 object-contain"
+                />
+                <div className="mb-2 flex items-center justify-center gap-1 text-lg font-bold">
                   <span className="text-[#164f67]">MBS</span>
                   <span className="text-[#f56b52]">CENTRING WORKS</span>
                 </div>

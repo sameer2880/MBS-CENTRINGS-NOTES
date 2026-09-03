@@ -340,11 +340,9 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
 }
 
-/* ---- Mobile bottom tab bar ------------------------------------------------
-   Fixed, safe-area aware, sits above the iOS home-indicator gesture
-   bar. Only ever rendered (in JSX) below the `md` breakpoint, but the
-   media query is kept here too as a hard guarantee it never shows on
-   tablet/desktop even if a class is left on by mistake. */
+/* ---- Mobile/tablet bottom tab bar ----------------------------------------
+  Fixed, safe-area aware, sits above the iOS home-indicator gesture
+  bar. It is hidden at the desktop `lg` breakpoint as a hard guarantee. */
 .shell-bottomnav {
   position: fixed;
   inset-inline: 0;
@@ -360,7 +358,7 @@
 .dark .shell-bottomnav {
   background-color: #0a1424;
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .shell-bottomnav { display: none !important; }
 }
 
@@ -369,16 +367,15 @@
 .shell-content-offset {
   padding-bottom: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px) + 1rem);
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .shell-content-offset { padding-bottom: 0; }
 }
 
-/* ---- Tablet icon rail ------------------------------------------------
-   A always-visible, icon-only nav column for the 768–1023px tier —
-   more efficient than a hamburger (nav is one tap instead of two) but
-   without the width cost of the full labeled desktop sidebar. */
+/* ---- Tablet shell ------------------------------------------------------
+   Tablets share the mobile bottom-navigation treatment; desktop alone
+   gets the persistent labeled sidebar. */
 .shell-rail {
-  width: var(--shell-rail-w);
+  display: none;
 }
 
 @media print {

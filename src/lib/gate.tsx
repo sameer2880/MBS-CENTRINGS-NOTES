@@ -2,9 +2,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, KeyRound, LockKeyhole, User } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
@@ -38,6 +38,13 @@ export function Gate({ children }: { children: ReactNode }) {
   const [p, setP] = useState("");
   const [err, setErr] = useState("");
   const [worker, setWorker] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotUser, setForgotUser] = useState("");
+  const [forgotPassword, setForgotPassword] = useState("");
+  const [forgotConfirm, setForgotConfirm] = useState("");
+  const [forgotErr, setForgotErr] = useState("");
+  const [forgotSaving, setForgotSaving] = useState(false);
 
   const disableWorkerSession = async (message = "Your account is deactivated") => {
     const workerId = localStorage.getItem(WORKER_ID_KEY);
@@ -321,102 +328,226 @@ export function Gate({ children }: { children: ReactNode }) {
     })();
   };
 
+  const resetAdminPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotErr("");
+    const identity = forgotUser.trim();
+    const nextPassword = forgotPassword.trim();
+    if (!identity) {
+      setForgotErr("Enter your name or mobile number");
+      return;
+    }
+    if (nextPassword.length < 4) {
+      setForgotErr("New password must be at least 4 characters");
+      return;
+    }
+    if (nextPassword !== forgotConfirm.trim()) {
+      setForgotErr("Passwords do not match");
+      return;
+    }
+
+    setForgotSaving(true);
+    try {
+      const { data: byName, error: nameError } = await supabase
+        .from("workers")
+        .select("id, phone, active, notes")
+        .ilike("name", identity)
+        .maybeSingle();
+      if (nameError) throw nameError;
+      const { data: byPhone, error: phoneError } = byName
+        ? { data: null, error: null }
+        : await supabase
+            .from("workers")
+            .select("id, phone, active, notes")
+            .eq("phone", identity)
+            .maybeSingle();
+      if (phoneError) throw phoneError;
+      const record = byName ?? byPhone;
+      if (!record) throw new Error("Account not found");
+      if (!record.active) throw new Error("This account is deactivated");
+      const { error: updateError } = await supabase
+        .from("workers")
+        .update({ phone: nextPassword })
+        .eq("id", record.id);
+      if (updateError) throw updateError;
+      setForgotOpen(false);
+      setForgotUser("");
+      setForgotPassword("");
+      setForgotConfirm("");
+      setErr("Password reset successfully. Sign in with your new password.");
+    } catch (error) {
+      setForgotErr(error instanceof Error ? error.message : "Unable to reset password");
+    } finally {
+      setForgotSaving(false);
+    }
+  };
+
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden p-4 sm:p-6">
-      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40">
-        <div className="absolute left-[12%] top-[18%] h-40 w-40 rounded-full border border-[#10305c]/10" />
-        <div className="absolute bottom-[12%] right-[10%] h-56 w-56 rounded-full border border-[#dd7815]/15" />
+    <div className="flex min-h-dvh items-center justify-center bg-[#f7fafb] px-4 py-4 text-[#164f67] sm:px-6 lg:py-6">
+      <div className="flex min-h-[min(700px,calc(100dvh-2rem))] w-full max-w-[1080px] overflow-hidden rounded-xl border border-[#4d5558] bg-white shadow-[0_12px_35px_rgb(15_42_49/10%)] dark:border-white/15 dark:bg-[#102038] lg:min-h-[700px]">
+        <div
+          className="hidden w-1/2 bg-cover bg-center lg:block"
+          style={{
+            backgroundImage:
+              "linear-gradient(180deg, rgb(209 230 237 / 12%), rgb(209 230 237 / 12%)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85')",
+          }}
+          aria-label="Modern glass building"
+          role="img"
+        />
+
+        <div className="flex w-full items-center justify-center bg-white px-5 py-10 dark:bg-[#102038] sm:px-10 lg:w-1/2 lg:px-14">
+          <Card className="w-full max-w-[410px] border-0 bg-transparent shadow-none dark:bg-transparent">
+            <CardContent className="space-y-6 p-0">
+              <div className="text-center lg:text-left">
+                <div className="mb-2 flex items-center justify-center gap-1 text-lg font-bold lg:justify-start">
+                  <span className="text-[#164f67]">MBS</span>
+                  <span className="text-[#f56b52]">CENTRING WORKS</span>
+                </div>
+                <h1 className="text-4xl font-bold tracking-tight text-[#252a2c] dark:text-white">
+                  Login
+                </h1>
+                <p className="mt-2 text-sm text-[#8a9498] dark:text-slate-400">
+                  Sign in to manage your records
+                </p>
+              </div>
+
+              <form onSubmit={submit} className="space-y-5">
+                <div className="space-y-2">
+                  <label htmlFor="gate-username" className="text-sm font-medium text-[#252a2c] dark:text-slate-200">
+                    Email or username
+                  </label>
+                  <div className="relative">
+                    <Mail aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      id="gate-username"
+                      value={u}
+                      onChange={(e) => setU(e.target.value)}
+                      autoFocus
+                      autoComplete="username"
+                      placeholder="username or mobile"
+                      className="h-11 rounded-md border-0 border-b border-[#d8dfe1] bg-transparent pl-10 text-sm shadow-none placeholder:text-[#b5bdc0] focus-visible:border-[#f56b52] focus-visible:ring-0 dark:border-white/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="gate-password" className="text-sm font-medium text-[#252a2c] dark:text-slate-200">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <LockKeyhole aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      id="gate-password"
+                      type={showPassword ? "text" : "password"}
+                      value={p}
+                      onChange={(e) => setP(e.target.value)}
+                      autoComplete="current-password"
+                      placeholder="Password"
+                      className="h-11 rounded-md border-0 border-b border-[#d8dfe1] bg-transparent pl-10 pr-10 text-sm shadow-none placeholder:text-[#b5bdc0] focus-visible:border-[#f56b52] focus-visible:ring-0 dark:border-white/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-slate-400 hover:text-[#164f67]"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end text-sm">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotOpen(true);
+                      setForgotErr("");
+                    }}
+                    className="font-medium text-[#a94b23] hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
+                {err && <p className="text-xs font-medium text-destructive">{err}</p>}
+
+                <Button
+                  type="submit"
+                  className="h-11 w-full rounded-md bg-[#f4511e] text-sm font-semibold text-white shadow-sm hover:bg-[#df4315]"
+                >
+                  Sign in
+                </Button>
+              </form>
+
+              <div className="text-center text-sm text-[#252a2c] dark:text-slate-300">
+                Need access? <span className="font-semibold text-[#a94b23]">Contact your admin</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      <Card className="relative w-full max-w-md overflow-hidden border-white/70 bg-[#eaf0f8]/70 shadow-[0_24px_70px_-28px_rgb(16_48_92/55%)] ring-1 ring-white/50 backdrop-blur-2xl dark:border-white/10 dark:bg-[#0c1c33]/70 dark:ring-white/5">
-        <div className="h-1 bg-[#dd7815] shadow-[0_1px_12px_rgb(221_120_21/55%)]" />
-        <div className="relative flex items-center justify-between overflow-hidden border-b border-white/10 bg-[#10305c]/95 px-6 py-5 dark:border-white/10 sm:px-8">
-          <div
-            aria-hidden
-            className="absolute -right-10 -top-16 h-40 w-40 rounded-full bg-[#5b9df0]/20 blur-3xl"
-          />
-          <div className="flex items-center gap-3">
-            <div className="relative rounded-xl border border-white/30 bg-white p-1.5 shadow-[0_8px_18px_-10px_rgb(0_0_0/80%)]">
-              <img
-                src={logo}
-                alt="MBS Centring Works"
-                className="block h-11 w-11 rounded-lg object-cover"
+      <Dialog
+        open={forgotOpen}
+        onOpenChange={(open) => {
+          setForgotOpen(open);
+          if (!open) {
+            setForgotErr("");
+            setForgotUser("");
+            setForgotPassword("");
+            setForgotConfirm("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset password</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={resetAdminPassword} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Enter the account name or mobile number to reset your account password.
+            </p>
+            <div className="space-y-2">
+              <label htmlFor="forgot-user" className="text-sm font-medium">Name or mobile number</label>
+              <Input
+                id="forgot-user"
+                value={forgotUser}
+                onChange={(event) => setForgotUser(event.target.value)}
+                autoComplete="username"
               />
             </div>
-            <div>
-              <p className="text-sm font-extrabold tracking-tight text-white">
-                M.B.S Centring Works
-              </p>
-            </div>
-          </div>
-          <div className="relative rounded-full border border-[#dd7815]/50 bg-[#dd7815]/15 p-2 text-[#ffad5c] shadow-sm">
-            <LockKeyhole aria-hidden className="h-4 w-4" />
-          </div>
-        </div>
-
-        <CardContent className="space-y-6 px-6 pb-7 pt-7 sm:px-8 sm:pb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#10305c] dark:text-white">
-              Welcome back
-            </h1>
-            <p className="mt-1 text-sm text-[#5b6b84] dark:text-slate-400">
-              Sign in to manage your records.
-            </p>
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-semibold text-[#10305c]/75 dark:text-slate-300">
-                Username
-              </Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-sidebar-foreground">
-                  <User aria-hidden strokeWidth={2.25} className="h-5 w-5" />
-                </span>
-                <Input
-                  value={u}
-                  onChange={(e) => setU(e.target.value)}
-                  autoFocus
-                  autoComplete="username"
-                  className="h-12 border-[#10305c]/15 bg-white/85 pl-10 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
-                />
-              </div>
+              <label htmlFor="forgot-password" className="text-sm font-medium">New password</label>
+              <Input
+                id="forgot-password"
+                type="password"
+                value={forgotPassword}
+                onChange={(event) => setForgotPassword(event.target.value)}
+                autoComplete="new-password"
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-semibold text-[#10305c]/75 dark:text-slate-300">
-                Password
-              </Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-sidebar-foreground">
-                  <KeyRound aria-hidden strokeWidth={2.25} className="h-5 w-5" />
-                </span>
-                <Input
-                  type="password"
-                  value={p}
-                  onChange={(e) => setP(e.target.value)}
-                  autoComplete="current-password"
-                  className="h-12 border-[#10305c]/15 bg-white/85 pl-10 shadow-sm transition-shadow focus-visible:border-[#dd7815] focus-visible:shadow-[0_0_0_3px_rgb(221_120_21/18%)] dark:border-white/15 dark:bg-white/[0.08]"
-                />
-              </div>
+              <label htmlFor="forgot-confirm" className="text-sm font-medium">Confirm new password</label>
+              <Input
+                id="forgot-confirm"
+                type="password"
+                value={forgotConfirm}
+                onChange={(event) => setForgotConfirm(event.target.value)}
+                autoComplete="new-password"
+              />
             </div>
-            {err && <p className="text-xs font-medium text-destructive">{err}</p>}
-            <Button
-              type="submit"
-              className="h-12 w-full rounded-xl bg-[#10305c] text-sm font-semibold text-white shadow-lg shadow-[#10305c]/20 hover:bg-[#174579]"
-            >
-              Sign in
-              <ArrowRight aria-hidden className="h-4 w-4" />
-            </Button>
+            {forgotErr && <p className="text-xs font-medium text-destructive">{forgotErr}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={forgotSaving}>
+                {forgotSaving ? "Resetting..." : "Reset password"}
+              </Button>
+            </DialogFooter>
           </form>
-
-          <div className="flex items-start gap-2.5 rounded-xl border border-[#dd7815]/25 bg-[#dd7815]/10 px-3.5 py-3">
-            <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#dd7815]" />
-            <p className="text-xs leading-relaxed text-[#10305c]/80 dark:text-slate-300">
-              <b>Need access?</b> Contact admin for login credentials.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

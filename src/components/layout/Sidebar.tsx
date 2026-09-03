@@ -308,16 +308,14 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      {/* ================================
-          ADMIN SIDEBAR
-         ================================ */}
-      {!isWorkerSidebar && (
-        <>
-          <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-4">
-            <img
+        {/* ===================================
+          MOBILE/TABLET LOGO/TITLE
+          Desktop shows the logo inside the full
+          sidebar. Workers keep this header logo
+          until the desktop sidebar is available.
               src={logo}
               alt="MBS"
-              className="block h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
+        <div className="flex items-center gap-2 lg:hidden">
             />
 
             <div className="min-w-0">
@@ -425,12 +423,9 @@ function SidebarContent({
 }
 
 /**
- * TABLET RAIL (768–1023px)
- * Always-visible icon-only nav column — one tap to navigate instead of
- * two (open sheet, then tap link), while staying far narrower than the
- * full desktop sidebar. Secondary items (theme, explore, sign out,
- * change password, worker location) live behind the "More" button,
- * which opens the same full `SidebarContent` used on mobile/desktop.
+ * DESKTOP SIDEBAR (>= 1024px)
+ * The full labeled sidebar remains desktop-only. Phone and tablet use the
+ * compact bottom navigation below.
  */
 function NavRail({
   onOpenMore,
@@ -442,7 +437,7 @@ function NavRail({
 
   return (
     <aside
-      className="shell-rail sticky top-0 hidden h-screen shrink-0 flex-col items-center border-r border-sidebar-border bg-sidebar py-3 text-sidebar-foreground md:flex lg:hidden"
+      className="hidden"
       aria-label="Primary"
     >
       <img
@@ -492,7 +487,7 @@ function NavRail({
 }
 
 /**
- * MOBILE "MORE" SHEET (< 768px)
+ * MOBILE/TABLET "MORE" SHEET (< 1024px)
  * Opens from the bottom (matches the bottom-nav's "More" tab it's
  * triggered from) as an icon grid of the nav items that don't have a
  * permanent bottom-nav slot, followed by theme/account controls.
@@ -614,7 +609,7 @@ function MobileMoreSheet({
 }
 
 /**
- * MOBILE BOTTOM TAB BAR (< 768px)
+ * MOBILE/TABLET BOTTOM TAB BAR (< 1024px)
  * The first 4 `primary` nav items, plus a permanent "More" tab that
  * opens `MobileMoreSheet` (remaining nav items, explore links, theme,
  * account) as a bottom sheet. Fixed to the viewport bottom, safe-area
@@ -683,7 +678,7 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
 export function AppLayout({ children }: { children: ReactNode }) {
   /*
    * IMPORTANT:
-   * false = desktop sidebar CLOSED after login/refresh.
+  * true = desktop sidebar OPEN after login/refresh.
    *
    * Clicking the desktop ☰ button opens it. This only governs the
    * >=1024px full labeled sidebar — independent from the two sheet
@@ -694,7 +689,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
    *   mobileMoreOpen  -> phone bottom-nav's "More" tab (bottom
    *                       sheet, MobileMoreSheet's icon grid)
    */
-  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
   const [railSheetOpen, setRailSheetOpen] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
@@ -799,7 +794,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
              ========================================== */}
 
           {desktopOpen && (
-            <aside className="sticky top-0 hidden h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border lg:flex">
+            <aside className="sticky top-0 flex h-screen w-[var(--shell-sidebar-w)] shrink-0 overflow-hidden border-r border-sidebar-border max-lg:hidden">
               <SidebarContent {...sharedSidebarProps} />
             </aside>
           )}
@@ -829,7 +824,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </Sheet>
 
           {/* ==========================================
-              MOBILE "MORE" SHEET
+              MOBILE/TABLET "MORE" SHEET
               Bottom sheet, matching the bottom-nav tab
               it's opened from — not the desktop sidebar.
              ========================================== */}
@@ -837,7 +832,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
             <SheetContent
               side="bottom"
-              className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden md:hidden"
+              className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden lg:hidden"
             >
               <MobileMoreSheet
                 onNav={() => setMobileMoreOpen(false)}
@@ -912,7 +907,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   worker (no rail), show it up to lg too.
                  =================================== */}
 
-              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
+              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "lg:hidden")}>
                 <img
                   src={logo}
                   alt="MBS"
@@ -953,7 +948,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* ========================================
-            MOBILE BOTTOM TAB BAR (< 768px)
+            MOBILE/TABLET BOTTOM TAB BAR (< 1024px)
             Admin/manager only — workers use the
             classic sidebar at every screen size.
            ======================================== */}

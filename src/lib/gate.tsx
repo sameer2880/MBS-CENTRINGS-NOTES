@@ -280,21 +280,29 @@ export function Gate({ children }: { children: ReactNode }) {
       return;
     }
     void (async () => {
+      const selectFields = "id, name, email, phone, password, active, notes, session_token";
       const { data: userByName } = await supabase
         .from("workers")
-        .select("id, name, phone, active, notes, session_token")
+        .select(selectFields)
         .ilike("name", u.trim())
         .maybeSingle();
       const { data: userByPhone } = userByName
         ? { data: null }
         : await supabase
             .from("workers")
-            .select("id, name, phone, active, notes, session_token")
+            .select(selectFields)
             .eq("phone", u.trim())
             .maybeSingle();
-      const userRecord = userByName ?? userByPhone;
-      if (!userRecord?.phone) {
-        setErr("User name not found");
+      const { data: userByEmail } = userByName || userByPhone
+        ? { data: null }
+        : await supabase
+            .from("workers")
+            .select(selectFields)
+            .ilike("email", u.trim())
+            .maybeSingle();
+      const userRecord = userByName ?? userByPhone ?? userByEmail;
+      if (!userRecord?.password) {
+        setErr("Account or password is not configured");
         return;
       }
       if (!userRecord.active) {
@@ -302,7 +310,7 @@ export function Gate({ children }: { children: ReactNode }) {
         return;
       }
       const password = p.trim();
-      if (password !== userRecord.phone.trim()) {
+      if (password !== userRecord.password.trim()) {
         setErr("Invalid Credentials");
         return;
       }
@@ -350,7 +358,7 @@ export function Gate({ children }: { children: ReactNode }) {
     try {
       const { data: byName, error: nameError } = await supabase
         .from("workers")
-        .select("id, phone, active, notes")
+        .select("id, email, phone, password, active, notes")
         .ilike("name", identity)
         .maybeSingle();
       if (nameError) throw nameError;
@@ -358,7 +366,7 @@ export function Gate({ children }: { children: ReactNode }) {
         ? { data: null, error: null }
         : await supabase
             .from("workers")
-            .select("id, phone, active, notes")
+            .select("id, email, phone, password, active, notes")
             .eq("phone", identity)
             .maybeSingle();
       if (phoneError) throw phoneError;
@@ -367,7 +375,7 @@ export function Gate({ children }: { children: ReactNode }) {
       if (!record.active) throw new Error("This account is deactivated");
       const { error: updateError } = await supabase
         .from("workers")
-        .update({ phone: nextPassword })
+        .update({ password: nextPassword })
         .eq("id", record.id);
       if (updateError) throw updateError;
       setForgotOpen(false);

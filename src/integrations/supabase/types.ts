@@ -312,9 +312,11 @@ export type Database = {
           active: boolean;
           created_at: string;
           daily_wage: number;
+          email: string | null;
           id: string;
           name: string;
           notes: string | null;
+          password: string | null;
           phone: string | null;
           session_token: string | null;
           updated_at: string;
@@ -323,9 +325,11 @@ export type Database = {
           active?: boolean;
           created_at?: string;
           daily_wage?: number;
+          email?: string | null;
           id?: string;
           name: string;
           notes?: string | null;
+          password?: string | null;
           phone?: string | null;
           session_token?: string | null;
           updated_at?: string;
@@ -334,9 +338,11 @@ export type Database = {
           active?: boolean;
           created_at?: string;
           daily_wage?: number;
+          email?: string | null;
           id?: string;
           name?: string;
           notes?: string | null;
+          password?: string | null;
           phone?: string | null;
           session_token?: string | null;
           updated_at?: string;

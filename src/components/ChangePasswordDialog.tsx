@@ -49,11 +49,11 @@ export function ChangePasswordDialog() {
       if (!adminId) throw new Error("No admin account found for this session");
       const { data: record, error: fetchError } = await supabase
         .from("workers")
-        .select("phone")
+        .select("password")
         .eq("id", adminId)
         .maybeSingle();
       if (fetchError) throw fetchError;
-      if (!record?.phone || current !== record.phone) {
+      if (!record?.password || current !== record.password) {
         throw new Error("Current password is incorrect");
       }
       if (next.length < 4) {
@@ -62,7 +62,7 @@ export function ChangePasswordDialog() {
       if (next !== confirm) {
         throw new Error("New passwords do not match");
       }
-      const { error } = await supabase.from("workers").update({ phone: next.trim() }).eq("id", adminId);
+      const { error } = await supabase.from("workers").update({ password: next.trim() }).eq("id", adminId);
       if (error) throw error;
     },
     onSuccess: () => {

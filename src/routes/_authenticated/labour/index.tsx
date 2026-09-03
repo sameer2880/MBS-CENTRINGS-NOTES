@@ -29,7 +29,9 @@ export const Route = createFileRoute("/_authenticated/labour/")({
 export type Worker = {
   id: string;
   name: string;
+  email: string | null;
   phone: string | null;
+  password: string | null;
   daily_wage: number;
   active: boolean;
   notes: string | null;

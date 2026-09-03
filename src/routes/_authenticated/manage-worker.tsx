@@ -64,7 +64,9 @@ type ManagedUser = Worker & { role: UserRole };
 
 const emptyForm = () => ({
   name: "",
+  email: "",
   phone: "",
+  password: "",
   daily_wage: "" as string | number,
   notes: "",
   role: "worker" as UserRole,
@@ -130,11 +132,19 @@ function ManageUsers() {
       const role: UserRole = managerView ? "worker" : form.role;
       const payload = {
         name: form.name.trim(),
+        email: form.email.trim() || null,
         phone: form.phone.trim() || null,
         daily_wage: role === "worker" ? Number(form.daily_wage) || 0 : 0,
         notes: encodeNotes(role, form.notes),
       };
       if (!payload.name) throw new Error("Name is required");
+      if (!form.password.trim()) throw new Error("Password is required");
+      if (form.password.trim().length < 4) {
+        throw new Error("Password must be at least 4 characters");
+      }
+      if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+        throw new Error("Enter a valid email address");
+      }
       if (payload.phone && !MOBILE_REGEX.test(payload.phone)) {
         throw new Error("Mobile number must be 10 digits and start with 6, 7, 8 or 9");
       }
@@ -142,10 +152,11 @@ function ManageUsers() {
         if (managerView && editing.role !== "worker") {
           throw new Error("You can only manage worker accounts. Ask the admin for this change.");
         }
-        const { error } = await supabase.from("workers").update(payload).eq("id", editing.id);
+        const updatePayload = { ...payload, password: form.password.trim() };
+        const { error } = await supabase.from("workers").update(updatePayload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("workers").insert(payload);
+        const { error } = await supabase.from("workers").insert({ ...payload, password: form.password.trim() });
         if (error) throw error;
       }
     },
@@ -176,7 +187,7 @@ function ManageUsers() {
 
   const createAccount = useMutation({
     mutationFn: async (user: ManagedUser) => {
-      if (!user.phone?.trim()) throw new Error("Add a mobile number before creating a login");
+      if (!user.password?.trim()) throw new Error("Add a password before creating a login");
       if (!user.active) {
         const { error } = await supabase.from("workers").update({ active: true }).eq("id", user.id);
         if (error) throw error;
@@ -185,7 +196,7 @@ function ManageUsers() {
     onSuccess: (_, user) => {
       qc.invalidateQueries({ queryKey: ["workers"] });
       setEditing((current) => (current?.id === user.id ? { ...current, active: true } : current));
-      toast.success("Login enabled. Name is the username; mobile is the password.");
+      toast.success("Login enabled. Use the email, name or mobile number with the password.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -208,7 +219,7 @@ function ManageUsers() {
     return users
       // Managers only ever see Workers here, regardless of the filter UI.
       .filter((u) => (managerView ? u.role === "worker" : roleFilter === "all" || u.role === roleFilter))
-      .filter((u) => !ql || u.name.toLowerCase().includes(ql) || (u.phone ?? "").includes(ql));
+      .filter((u) => !ql || u.name.toLowerCase().includes(ql) || (u.email ?? "").toLowerCase().includes(ql) || (u.phone ?? "").includes(ql));
   }, [users, q, roleFilter, managerView]);
 
   return (
@@ -292,8 +303,9 @@ function ManageUsers() {
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {u.phone ? `${u.phone} · ` : ""}
+                          <div className="text-xs text-muted-foreground">
+                            {u.email ? `${u.email} · ` : ""}
+                            {u.phone ? `${u.phone} · ` : ""}
                       {u.role === "worker" ? `₹${Number(u.daily_wage).toLocaleString("en-IN")}/day` : "Management access"}
                     </div>
                     {getVisibleNotes(u.notes) && (
@@ -315,7 +327,9 @@ function ManageUsers() {
                           setEditing(u);
                           setForm({
                             name: u.name,
+                            email: u.email ?? "",
                             phone: u.phone ?? "",
+                            password: "",
                             daily_wage: u.daily_wage,
                             notes: getVisibleNotes(u.notes),
                             role: u.role,
@@ -437,9 +451,13 @@ function ManageUsers() {
               <Label>Name</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
             </div>
+            <div>
+              <Label>Email (optional login)</Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="name@example.com" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Mobile (used as password)</Label>
+                <Label>Mobile number</Label>
                 <Input
                   value={form.phone}
                   onChange={(e) =>
@@ -466,6 +484,16 @@ function ManageUsers() {
                   />
                 </div>
               )}
+            </div>
+            <div>
+              <Label>{editing ? "New password" : "Password"}</Label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Minimum 4 characters"
+                autoComplete="new-password"
+              />
             </div>
             <div>
               <Label>Notes</Label>

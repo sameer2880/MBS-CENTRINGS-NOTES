@@ -340,9 +340,9 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
 }
 
-/* ---- Mobile/tablet bottom tab bar ----------------------------------------
-  Fixed, safe-area aware, sits above the iOS home-indicator gesture
-  bar. It is hidden at the desktop `lg` breakpoint as a hard guarantee. */
+/* ---- Responsive bottom tab bar -------------------------------------------
+  Fixed, safe-area aware, and shared by admin/manager accounts at every
+  viewport width. */
 .shell-bottomnav {
   position: fixed;
   inset-inline: 0;
@@ -358,22 +358,45 @@
 .dark .shell-bottomnav {
   background-color: #0a1424;
 }
-@media (min-width: 1024px) {
-  .shell-bottomnav { display: none !important; }
-}
-
 /* Reserve room at the bottom of scrollable page content for the fixed
    bottom nav, so the last card/row is never hidden behind it. */
 .shell-content-offset {
   padding-bottom: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px) + 1rem);
 }
-@media (min-width: 1024px) {
-  .shell-content-offset { padding-bottom: 0; }
+@media (min-width: 768px) {
+  .shell-bottomnav {
+    inset-inline: auto 0;
+    inset-block: 0;
+    left: 0;
+    width: var(--shell-rail-w);
+    height: 100dvh;
+    padding: 0.75rem 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+    border-top: 0;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .shell-bottomnav > a,
+  .shell-bottomnav > button {
+    flex: none;
+    width: 100%;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .shell-bottomnav > a > span,
+  .shell-bottomnav > button > span {
+    display: none;
+  }
+
+  .shell-content-offset {
+    padding-bottom: 1rem;
+    padding-left: calc(var(--shell-rail-w) + 1rem);
+  }
 }
 
-/* ---- Tablet shell ------------------------------------------------------
-   Tablets share the mobile bottom-navigation treatment; desktop alone
-   gets the persistent labeled sidebar. */
+/* Kept for compatibility with any remaining shell references. */
 .shell-rail {
   display: none;
 }

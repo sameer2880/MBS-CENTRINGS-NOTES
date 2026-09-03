@@ -427,7 +427,7 @@ export function Gate({ children }: { children: ReactNode }) {
               <form onSubmit={submit} className="space-y-5">
                 <div className="space-y-2">
                   <label htmlFor="gate-username" className="text-sm font-medium text-[#252a2c] dark:text-slate-200">
-                    Email or username
+                    Email / Username / Phone
                   </label>
                   <div className="relative">
                     <Mail aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />

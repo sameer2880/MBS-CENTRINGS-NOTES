@@ -64,86 +64,83 @@
 
 :root {
   --radius: 1rem;
-  /* Cool steel-white canvas, echoing the brushed-steel + navy of the MBS mark */
-  --background: #f2f5fa;
-  --foreground: #0c1c33;
-  /* Glass surfaces: translucent panels that blur the gradient canvas behind them */
-  --card: rgb(255 255 255 / 58%);
-  --card-foreground: #0c1c33;
-  --popover: rgb(255 255 255 / 86%);
-  --popover-foreground: #0c1c33;
-  /* Brand navy + saffron duotone, lifted from the MBS Centring Works logo */
-  --primary: #10305c;
+  /* Warm ivory canvas with the MBS navy and saffron brand pairing. */
+  --background: #f4f6f3;
+  --foreground: #173042;
+  --card: rgb(255 255 255 / 86%);
+  --card-foreground: #173042;
+  --popover: rgb(255 255 255 / 96%);
+  --popover-foreground: #173042;
+  --primary: #174a68;
   --primary-foreground: #ffffff;
-  --secondary: rgb(255 255 255 / 45%);
-  --secondary-foreground: #1a3358;
-  --muted: rgb(238 242 248 / 70%);
-  --muted-foreground: #5b6b84;
-  --accent: #dd7815;
+  --secondary: rgb(224 233 236 / 70%);
+  --secondary-foreground: #234357;
+  --muted: rgb(231 237 235 / 76%);
+  --muted-foreground: #607482;
+  --accent: #d47a24;
   --accent-foreground: #ffffff;
-  --destructive: #be123c;
+  --destructive: #c2414d;
   --destructive-foreground: #ffffff;
-  --warning: #ca8a04;
-  --warning-foreground: #10241c;
-  --success: #15803d;
+  --warning: #b97812;
+  --warning-foreground: #2d2109;
+  --success: #2d8658;
   --success-foreground: #ffffff;
-  --border: rgb(16 48 92 / 16%);
-  --input: rgb(16 48 92 / 20%);
-  --ring: #10305c;
-  --chart-1: #10305c;
-  --chart-2: #dd7815;
-  --chart-3: #3b6ea5;
-  --chart-4: #16a34a;
-  --chart-5: #64748b;
-  --sidebar: rgb(255 255 255 / 58%);
-  --sidebar-foreground: #0c1c33;
-  --sidebar-primary: #10305c;
+  --border: rgb(23 74 104 / 17%);
+  --input: rgb(23 74 104 / 24%);
+  --ring: #174a68;
+  --chart-1: #174a68;
+  --chart-2: #d47a24;
+  --chart-3: #43819b;
+  --chart-4: #2d8658;
+  --chart-5: #738693;
+  --sidebar: rgb(255 255 255 / 90%);
+  --sidebar-foreground: #173042;
+  --sidebar-primary: #174a68;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgb(16 48 92 / 12%);
-  --sidebar-accent-foreground: #10305c;
-  --sidebar-border: rgb(16 48 92 / 14%);
-  --sidebar-ring: #10305c;
+  --sidebar-accent: rgb(23 74 104 / 11%);
+  --sidebar-accent-foreground: #174a68;
+  --sidebar-border: rgb(23 74 104 / 14%);
+  --sidebar-ring: #174a68;
 }
 
 .dark {
-  /* Deep midnight-navy canvas instead of indigo-black, matching the MBS mark */
-  --background: #081020;
-  --foreground: #eef2fa;
-  /* Navy-tinted glass, glowing azure + saffron accents */
-  --card: rgb(19 33 58 / 48%);
-  --card-foreground: #eef2fa;
-  --popover: rgb(13 23 42 / 84%);
-  --popover-foreground: #eef2fa;
-  --primary: #5b9df0;
-  --primary-foreground: #071227;
-  --secondary: rgb(91 157 240 / 10%);
-  --secondary-foreground: #eef2fa;
-  --muted: rgb(91 157 240 / 7%);
-  --muted-foreground: #93a7c9;
-  --accent: #fb923c;
-  --accent-foreground: #1c0f00;
-  --destructive: #fb7185;
-  --destructive-foreground: #180a10;
-  --warning: #fbbf24;
-  --warning-foreground: #201400;
-  --success: #4ade80;
-  --success-foreground: #052e10;
-  --border: rgb(91 157 240 / 16%);
-  --input: rgb(91 157 240 / 20%);
-  --ring: #5b9df0;
-  --chart-1: #5b9df0;
-  --chart-2: #fb923c;
-  --chart-3: #4ade80;
-  --chart-4: #fbbf24;
-  --chart-5: #94a3b8;
-  --sidebar: rgb(11 19 36 / 55%);
-  --sidebar-foreground: #eef2fa;
-  --sidebar-primary: #5b9df0;
-  --sidebar-primary-foreground: #071227;
-  --sidebar-accent: rgb(91 157 240 / 12%);
-  --sidebar-accent-foreground: #cfe2ff;
-  --sidebar-border: rgb(91 157 240 / 14%);
-  --sidebar-ring: #5b9df0;
+  /* Graphite-navy surfaces keep the interface calm while retaining the MBS navy. */
+  --background: #0d141c;
+  --foreground: #f4f1ea;
+  --card: rgb(24 33 42 / 88%);
+  --card-foreground: #f4f1ea;
+  --popover: rgb(19 28 37 / 96%);
+  --popover-foreground: #f4f1ea;
+  --primary: #e5a23b;
+  --primary-foreground: #231605;
+  --secondary: rgb(57 76 92 / 42%);
+  --secondary-foreground: #e8edf1;
+  --muted: rgb(38 51 62 / 58%);
+  --muted-foreground: #aab7c1;
+  --accent: #e88932;
+  --accent-foreground: #211005;
+  --destructive: #f07878;
+  --destructive-foreground: #260b0b;
+  --warning: #f2bd52;
+  --warning-foreground: #251907;
+  --success: #65c58a;
+  --success-foreground: #092014;
+  --border: rgb(148 166 179 / 22%);
+  --input: rgb(148 166 179 / 28%);
+  --ring: #e5a23b;
+  --chart-1: #e5a23b;
+  --chart-2: #4f8eaf;
+  --chart-3: #65c58a;
+  --chart-4: #d97955;
+  --chart-5: #aab7c1;
+  --sidebar: rgb(14 23 31 / 96%);
+  --sidebar-foreground: #f4f1ea;
+  --sidebar-primary: #e5a23b;
+  --sidebar-primary-foreground: #231605;
+  --sidebar-accent: rgb(229 162 59 / 15%);
+  --sidebar-accent-foreground: #ffd58a;
+  --sidebar-border: rgb(148 166 179 / 20%);
+  --sidebar-ring: #e5a23b;
 }
 
 
@@ -174,10 +171,10 @@
     color: var(--color-foreground);
     min-height: 100dvh;
     background-image:
-      radial-gradient(900px circle at 8% 8%, rgb(16 48 92 / 18%), transparent 55%),
-      radial-gradient(800px circle at 92% 18%, rgb(221 120 21 / 16%), transparent 50%),
-      radial-gradient(850px circle at 25% 95%, rgb(59 110 165 / 14%), transparent 50%),
-      radial-gradient(700px circle at 95% 90%, rgb(22 163 74 / 10%), transparent 50%);
+      radial-gradient(900px circle at 8% 8%, rgb(23 74 104 / 12%), transparent 55%),
+      radial-gradient(800px circle at 92% 18%, rgb(212 122 36 / 11%), transparent 50%),
+      radial-gradient(850px circle at 25% 95%, rgb(67 129 155 / 10%), transparent 50%),
+      radial-gradient(700px circle at 95% 90%, rgb(45 134 88 / 7%), transparent 50%);
     background-repeat: no-repeat;
   }
 
@@ -197,10 +194,10 @@
 }
 .dark body {
   background-image:
-    radial-gradient(900px circle at 8% 8%, rgb(91 157 240 / 24%), transparent 55%),
-    radial-gradient(800px circle at 92% 15%, rgb(251 146 60 / 16%), transparent 50%),
-    radial-gradient(850px circle at 25% 95%, rgb(74 222 128 / 10%), transparent 55%),
-    radial-gradient(700px circle at 95% 90%, rgb(91 157 240 / 14%), transparent 50%);
+    radial-gradient(900px circle at 8% 8%, rgb(45 91 119 / 20%), transparent 55%),
+    radial-gradient(800px circle at 92% 15%, rgb(229 162 59 / 12%), transparent 50%),
+    radial-gradient(850px circle at 25% 95%, rgb(48 109 91 / 10%), transparent 55%),
+    radial-gradient(700px circle at 95% 90%, rgb(45 91 119 / 12%), transparent 50%);
 }
 
 /* Glassmorphism: every surface built from these tokens becomes frosted glass
@@ -217,7 +214,7 @@
 }
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
-  background-color: #f5f7fb;
+  background-color: #f7f8f5;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   /* Keep the header (logo, menu button, refresh) clear of the notch /
@@ -227,7 +224,7 @@
   height: calc(4rem + env(safe-area-inset-top, 0px));
 }
 .dark .site-header {
-  background-color: #0a1424;
+  background-color: #101a23;
 }
 
 /* The mobile slide-in sidebar (a full-height Sheet, class contains
@@ -350,13 +347,13 @@
   z-index: 40;
   height: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background-color: #f5f7fb;
+  background-color: #f7f8f5;
   border-top: 1px solid var(--color-border);
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 .dark .shell-bottomnav {
-  background-color: #0a1424;
+  background-color: #101a23;
 }
 /* Reserve room at the bottom of scrollable page content for the fixed
    bottom nav, so the last card/row is never hidden behind it. */

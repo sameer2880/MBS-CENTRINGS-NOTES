@@ -409,7 +409,7 @@
     color: #111827 !important;
   }
 
-  aside, header, .print\:hidden { display: none !important; }
+  aside, header, .shell-bottomnav, .print\:hidden { display: none !important; }
 
   main {
     margin: 0 !important;

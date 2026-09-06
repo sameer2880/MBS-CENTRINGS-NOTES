@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -391,112 +390,129 @@ export function Gate({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#f7fafb] px-4 py-4 text-[#164f67] sm:px-6 lg:py-6">
-      <div className="flex min-h-[min(700px,calc(100dvh-2rem))] w-full max-w-[1080px] overflow-hidden rounded-xl border border-[#4d5558] bg-white shadow-[0_12px_35px_rgb(15_42_49/10%)] dark:border-white/15 dark:bg-[#102038] lg:min-h-[700px]">
-        <div
-          className="hidden w-1/2 bg-cover bg-center lg:block"
-          style={{
-            backgroundImage:
-              "linear-gradient(180deg, rgb(209 230 237 / 12%), rgb(209 230 237 / 12%)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85')",
-          }}
-          aria-label="Modern glass building"
-          role="img"
-        />
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6 md:py-10">
+      <div className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] md:max-w-[460px] lg:max-w-[1040px] lg:flex-row lg:rounded-3xl">
+        {/* Brand panel — only room for this once the desktop rail/sidebar tier kicks in */}
+        <div className="relative hidden overflow-hidden bg-primary lg:flex lg:w-[44%] lg:flex-col lg:justify-between lg:p-10">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(520px circle at 10% 10%, rgb(255 255 255 / 14%), transparent 55%), radial-gradient(480px circle at 95% 95%, rgb(221 120 21 / 45%), transparent 55%), radial-gradient(360px circle at 90% 15%, rgb(59 110 165 / 40%), transparent 55%)",
+            }}
+          />
+          <div className="relative flex items-center gap-3 text-white">
+            <img src={logo} alt="MBS Centring Works" className="h-16 w-16 object-contain drop-shadow-md" />
+            <span className="text-xl font-extrabold leading-tight tracking-wide">
+              <span className="text-white">MBS</span>{" "}
+              <span className="text-accent">CENTRING WORKS</span>
+            </span>
+          </div>
+          <div className="relative space-y-3 text-white">
+            <h2 className="text-3xl font-bold leading-tight">
+              Centring &amp; shuttering,
+              <br /> tracked end to end.
+            </h2>
+            <p className="max-w-xs text-sm text-white/70">
+              Rentals, returns, payments and worker records — all in one place.
+            </p>
+          </div>
+          <p className="relative text-xs text-white/50">
+            © {new Date().getFullYear()} MBS Centring Works
+          </p>
+        </div>
 
-        <div className="flex w-full items-center justify-center bg-white px-5 py-10 dark:bg-[#102038] sm:px-10 lg:w-1/2 lg:px-14">
-          <Card className="w-full max-w-[410px] border-0 bg-transparent shadow-none dark:bg-transparent">
-            <CardContent className="space-y-6 p-0">
-              <div className="text-center lg:text-left">
-                <img
-                  src={logo}
-                  alt="MBS Centring Works"
-                  className="mx-auto mb-3 h-20 w-20 object-contain"
-                />
-                <div className="mb-2 flex items-center justify-center gap-1 text-lg font-bold">
-                  <span className="text-[#164f67]">MBS</span>
-                  <span className="text-[#f56b52]">CENTRING WORKS</span>
+        {/* Form panel — the only panel on mobile and tablet */}
+        <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-8 md:px-10 lg:px-14 lg:py-12">
+          <div className="w-full max-w-[360px] space-y-6">
+            <div className="text-center lg:text-left">
+              <img
+                src={logo}
+                alt="MBS Centring Works"
+                className="mx-auto mb-3 h-16 w-16 object-contain lg:hidden"
+              />
+              <div className="mb-2 flex items-center justify-center gap-1 text-base font-bold lg:hidden">
+                <span className="text-primary">MBS</span>
+                <span className="text-accent">CENTRING WORKS</span>
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Welcome back
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Sign in to manage your records
+              </p>
+            </div>
+
+            <form onSubmit={submit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="gate-username" className="text-sm font-medium text-foreground">
+                  Email / Username / Phone
+                </label>
+                <div className="relative">
+                  <Mail aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="gate-username"
+                    value={u}
+                    onChange={(e) => setU(e.target.value)}
+                    autoFocus
+                    autoComplete="username"
+                    placeholder="username or mobile"
+                    className="h-11 pl-10"
+                  />
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-[#252a2c] dark:text-white">
-                  Login
-                </h1>
-                <p className="mt-2 text-sm text-[#8a9498] dark:text-slate-400">
-                  Sign in to manage your records
-                </p>
               </div>
 
-              <form onSubmit={submit} className="space-y-5">
-                <div className="space-y-2">
-                  <label htmlFor="gate-username" className="text-sm font-medium text-[#252a2c] dark:text-slate-200">
-                    Email / Username / Phone
-                  </label>
-                  <div className="relative">
-                    <Mail aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <Input
-                      id="gate-username"
-                      value={u}
-                      onChange={(e) => setU(e.target.value)}
-                      autoFocus
-                      autoComplete="username"
-                      placeholder="username or mobile"
-                      className="h-11 rounded-md border-0 border-b border-[#d8dfe1] bg-transparent pl-10 text-sm shadow-none placeholder:text-[#b5bdc0] focus-visible:border-[#f56b52] focus-visible:ring-0 dark:border-white/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="gate-password" className="text-sm font-medium text-[#252a2c] dark:text-slate-200">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <LockKeyhole aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <Input
-                      id="gate-password"
-                      type={showPassword ? "text" : "password"}
-                      value={p}
-                      onChange={(e) => setP(e.target.value)}
-                      autoComplete="current-password"
-                      placeholder="Password"
-                      className="h-11 rounded-md border-0 border-b border-[#d8dfe1] bg-transparent pl-10 pr-10 text-sm shadow-none placeholder:text-[#b5bdc0] focus-visible:border-[#f56b52] focus-visible:ring-0 dark:border-white/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((visible) => !visible)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 text-slate-400 hover:text-[#164f67]"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end text-sm">
+              <div className="space-y-2">
+                <label htmlFor="gate-password" className="text-sm font-medium text-foreground">
+                  Password
+                </label>
+                <div className="relative">
+                  <LockKeyhole aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="gate-password"
+                    type={showPassword ? "text" : "password"}
+                    value={p}
+                    onChange={(e) => setP(e.target.value)}
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    className="h-11 pl-10 pr-10"
+                  />
                   <button
                     type="button"
-                    onClick={() => {
-                      setForgotOpen(true);
-                      setForgotErr("");
-                    }}
-                    className="font-medium text-[#a94b23] hover:underline"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    Forgot Password?
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-
-                {err && <p className="text-xs font-medium text-destructive">{err}</p>}
-
-                <Button
-                  type="submit"
-                  className="h-11 w-full rounded-md bg-[#f4511e] text-sm font-semibold text-white shadow-sm hover:bg-[#df4315]"
-                >
-                  Sign in
-                </Button>
-              </form>
-
-              <div className="text-center text-sm text-[#252a2c] dark:text-slate-300">
-                Need access? <span className="font-semibold text-[#a94b23]">Contact your admin</span>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="flex items-center justify-end text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotOpen(true);
+                    setForgotErr("");
+                  }}
+                  className="font-medium text-accent hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              {err && <p className="text-xs font-medium text-destructive">{err}</p>}
+
+              <Button type="submit" className="h-11 w-full text-sm font-semibold">
+                Sign in
+              </Button>
+            </form>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Need access? <span className="font-semibold text-accent">Contact your admin</span>
+            </div>
+          </div>
         </div>
       </div>
 

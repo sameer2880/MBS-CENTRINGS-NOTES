@@ -23,6 +23,7 @@ import {
   UserCog,
   Compass,
   MoreHorizontal,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import { WorkerLocationToggle } from "@/components/WorkerLocationToggle";
 import logo from "@/assets/logo.png";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useDeviceType } from "@/hooks/use-device";
 import { lock } from "@/lib/gate";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY } from "@/lib/worker-auth";
@@ -545,6 +547,169 @@ function MobileMoreSheet({
 }
 
 /**
+ * TABLET/DESKTOP "MORE" FLYOUT (>= 768px)
+ * The rail's "More" button opens this instead of the mobile bottom
+ * sheet. A full-width drawer sliding up from the bottom of the
+ * viewport is a mobile pattern — stretched across a tablet or desktop
+ * screen it just reads as an oversized, empty box. This is a compact
+ * panel anchored beside the rail instead, sized and positioned for a
+ * pointer-driven screen.
+ */
+function MoreFlyout({
+  open,
+  onOpenChange,
+  onNav,
+  workerName,
+  workerId,
+  dark,
+  onToggleTheme,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onNav?: () => void;
+  workerName?: string;
+  workerId?: string | null;
+  dark: boolean;
+  onToggleTheme: () => void;
+}) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { links } = useNavLinks();
+  const isWorkerSidebar = workerName !== undefined;
+  const secondary = links.filter((l) => !l.primary);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onOpenChange(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-slate-950/20"
+        onClick={() => onOpenChange(false)}
+        aria-hidden
+      />
+
+      <div
+        role="dialog"
+        aria-label="More"
+        className="fixed bottom-4 left-[calc(var(--shell-rail-w)+0.75rem)] z-50 flex max-h-[min(34rem,calc(100dvh-2rem))] w-[21rem] flex-col overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
+          <span className="text-sm font-bold">More</span>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {secondary.length > 0 && (
+            <div className="grid grid-cols-3 gap-1">
+              {secondary.map(({ to, label, icon: Icon }) => {
+                const active = path === to || path.startsWith(to + "/");
+
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={() => {
+                      onNav?.();
+                      onOpenChange(false);
+                    }}
+                    className="flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+                  >
+                    <span
+                      className={cn(
+                        "flex h-11 w-11 items-center justify-center rounded-full",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-sidebar-accent/70 text-sidebar-foreground",
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 space-y-2.5 border-t border-sidebar-border pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleTheme}
+              className="w-full justify-center gap-2 font-semibold"
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {dark ? "Light mode" : "Dark mode"}
+            </Button>
+
+            {isWorkerSidebar ? (
+              <WorkerLocationToggle workerId={workerId ?? null} />
+            ) : (
+              <ChangePasswordDialog />
+            )}
+
+            <ExploreLinks />
+
+            {isWorkerSidebar ? (
+              <div className="min-w-0 text-sm">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Signed in as
+                </div>
+                <div className="truncate font-semibold">{workerName || "Worker"}</div>
+              </div>
+            ) : (
+              <SignedInLabel />
+            )}
+
+            <ConfirmDelete
+              onConfirm={lock}
+              title={isWorkerSidebar ? "Sign out of this worker account?" : "Sign out of this account?"}
+              description={
+                isWorkerSidebar
+                  ? "You will need to sign in again to view attendance and payment records."
+                  : "You will need to sign in again to access the dashboard."
+              }
+              confirmLabel="Sign out"
+            >
+              <Button
+                variant={isWorkerSidebar ? "outline" : "default"}
+                size="sm"
+                className={cn(
+                  "w-full justify-center rounded-lg font-semibold",
+                  isWorkerSidebar
+                    ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    : "bg-primary",
+                )}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            </ConfirmDelete>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/**
  * MOBILE/TABLET BOTTOM TAB BAR (< 1024px)
  * The first 4 `primary` nav items, plus a permanent "More" tab that
  * opens `MobileMoreSheet` (remaining nav items, explore links, theme,
@@ -572,6 +737,18 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
 
   return (
     <nav className="shell-bottomnav flex items-stretch" aria-label="Primary">
+      <Link
+        to="/dashboard"
+        aria-label="Dashboard"
+        className="hidden shrink-0 items-center justify-center md:mb-2 md:flex"
+      >
+        <img
+          src={logo}
+          alt="MBS"
+          className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
+        />
+      </Link>
+
       {items.map((item) => {
         if (item.isMore) {
           return (
@@ -619,6 +796,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   * The mobileMoreOpen state controls the More tab's bottom sheet.
    */
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
+  // Which "More" surface to render for it: a bottom sheet on phones,
+  // a compact flyout anchored beside the rail on tablet/desktop. See
+  // MobileMoreSheet / MoreFlyout below.
+  const deviceType = useDeviceType();
+  const isMobileDevice = deviceType === "mobile";
 
   // Worker accounts don't get the bottom-nav / tablet-rail shell at
   // all — just the original single hamburger-button sidebar, at every
@@ -721,22 +904,34 @@ export function AppLayout({ children }: { children: ReactNode }) {
              ========================================== */}
 
           {/* ==========================================
-              MOBILE/TABLET "MORE" SHEET
-              Bottom sheet, matching the bottom-nav tab
-              it's opened from — not the desktop sidebar.
+              "MORE" SURFACE
+              Phone: bottom sheet, matching the bottom-nav
+              tab it's opened from. Tablet/desktop: a
+              compact flyout anchored beside the rail —
+              see MoreFlyout for why this isn't just the
+              same sheet stretched wider.
              ========================================== */}
 
-          <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
-            <SheetContent
-              side="bottom"
-              className="shell-more-sheet max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
-            >
-              <MobileMoreSheet
-                onNav={() => setMobileMoreOpen(false)}
-                {...sharedSidebarProps}
-              />
-            </SheetContent>
-          </Sheet>
+          {isMobileDevice ? (
+            <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
+              <SheetContent
+                side="bottom"
+                className="max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+              >
+                <MobileMoreSheet
+                  onNav={() => setMobileMoreOpen(false)}
+                  {...sharedSidebarProps}
+                />
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <MoreFlyout
+              open={mobileMoreOpen}
+              onOpenChange={setMobileMoreOpen}
+              onNav={() => setMobileMoreOpen(false)}
+              {...sharedSidebarProps}
+            />
+          )}
         </>
       )}
 
@@ -745,7 +940,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
          ========================================== */}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className={cn("site-header sticky top-0 z-40 h-16 border-b border-border px-4 lg:px-6", !worker && "lg:hidden")}>
+        <header className={cn("site-header sticky top-0 z-40 h-16 border-b border-border px-4 lg:px-6", !worker && "md:hidden")}>
           <div className="flex h-full items-center justify-between gap-4">
             {/* =====================================
                 LEFT SIDE
@@ -793,19 +988,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   worker (no rail), show it up to lg too.
                  =================================== */}
 
-              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "lg:hidden")}>
+              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
                 <img
                   src={logo}
                   alt="MBS"
                   className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
                 />
 
-                <div>
-                  <h1 className="text-fluid-sm font-bold leading-tight sm:text-base">
+                <div className="min-w-0">
+                  <h1 className="truncate text-fluid-sm font-bold leading-tight sm:text-base">
                     M.B.S CENTRING WORKS
                   </h1>
 
-                  <p className="text-fluid-xs text-muted-foreground">Nereducherla</p>
+                  <p className="truncate text-fluid-xs text-muted-foreground">Nereducherla</p>
                 </div>
               </div>
             </div>

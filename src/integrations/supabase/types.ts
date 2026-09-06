@@ -314,6 +314,7 @@ export type Database = {
           daily_wage: number;
           email: string | null;
           id: string;
+          must_set_password: boolean;
           name: string;
           notes: string | null;
           password: string | null;
@@ -327,6 +328,7 @@ export type Database = {
           daily_wage?: number;
           email?: string | null;
           id?: string;
+          must_set_password?: boolean;
           name: string;
           notes?: string | null;
           password?: string | null;
@@ -340,6 +342,7 @@ export type Database = {
           daily_wage?: number;
           email?: string | null;
           id?: string;
+          must_set_password?: boolean;
           name?: string;
           notes?: string | null;
           password?: string | null;

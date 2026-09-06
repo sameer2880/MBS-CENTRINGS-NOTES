@@ -30,6 +30,7 @@ import {
   Shield,
   ShieldAlert,
   Crown,
+  KeyRound,
 } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { AdminOnly } from "@/components/AdminOnly";
@@ -66,7 +67,6 @@ const emptyForm = () => ({
   name: "",
   email: "",
   phone: "",
-  password: "",
   daily_wage: "" as string | number,
   notes: "",
   role: "worker" as UserRole,
@@ -138,10 +138,6 @@ function ManageUsers() {
         notes: encodeNotes(role, form.notes),
       };
       if (!payload.name) throw new Error("Name is required");
-      if (!form.password.trim()) throw new Error("Password is required");
-      if (form.password.trim().length < 4) {
-        throw new Error("Password must be at least 4 characters");
-      }
       if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) {
         throw new Error("Enter a valid email address");
       }
@@ -152,20 +148,50 @@ function ManageUsers() {
         if (managerView && editing.role !== "worker") {
           throw new Error("You can only manage worker accounts. Ask the admin for this change.");
         }
-        const updatePayload = { ...payload, password: form.password.trim() };
-        const { error } = await supabase.from("workers").update(updatePayload).eq("id", editing.id);
+        // Admins don't set or change a user's password here — only the
+        // user does, via first-login or "Manage my account". Editing never
+        // touches password / must_set_password.
+        const { error } = await supabase.from("workers").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("workers").insert({ ...payload, password: form.password.trim() });
+        // New users can't be given a password by the admin — their login
+        // starts out as their mobile number, and must_set_password forces
+        // them to choose their own password the first time they sign in.
+        if (!payload.phone) {
+          throw new Error("Mobile number is required — it's used as the account's first-time password");
+        }
+        const { error } = await supabase
+          .from("workers")
+          .insert({ ...payload, password: payload.phone, must_set_password: true });
         if (error) throw error;
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["workers"] });
-      toast.success(editing ? "User updated" : "User added");
+      toast.success(
+        editing ? "User updated" : "User added — they can sign in with their mobile number as the password",
+      );
       setOpen(false);
       setEditing(null);
       setForm(emptyForm());
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: async (user: ManagedUser) => {
+      if (!user.phone) {
+        throw new Error("Add a mobile number before resetting the password");
+      }
+      const { error } = await supabase
+        .from("workers")
+        .update({ password: user.phone, must_set_password: true })
+        .eq("id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, user) => {
+      qc.invalidateQueries({ queryKey: ["workers"] });
+      toast.success(`Password reset to ${user.phone}. They'll be asked to set a new one at next login.`);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -329,7 +355,6 @@ function ManageUsers() {
                             name: u.name,
                             email: u.email ?? "",
                             phone: u.phone ?? "",
-                            password: "",
                             daily_wage: u.daily_wage,
                             notes: getVisibleNotes(u.notes),
                             role: u.role,
@@ -485,22 +510,33 @@ function ManageUsers() {
                 </div>
               )}
             </div>
-            <div>
-              <Label>{editing ? "New password" : "Password"}</Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Minimum 4 characters"
-                autoComplete="new-password"
-              />
-            </div>
+            {!editing && (
+              <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                No password to set here — their mobile number is the first-time password. They'll be
+                asked to set their own password the first time they sign in.
+              </p>
+            )}
             <div>
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
             </div>
             {editing && (
               <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                <ConfirmDelete
+                  onConfirm={() => resetPassword.mutate(editing)}
+                  title={`Reset ${editing.name}'s password?`}
+                  description={
+                    editing.phone
+                      ? `Their password will be reset to their mobile number (${editing.phone}). They'll be asked to set a new password the next time they sign in.`
+                      : "Add a mobile number for this user first — it's used as the reset password."
+                  }
+                  confirmLabel="Reset password"
+                >
+                  <Button type="button" variant="outline" disabled={!editing.phone || resetPassword.isPending}>
+                    <KeyRound className="h-4 w-4 mr-1.5" />
+                    Reset password
+                  </Button>
+                </ConfirmDelete>
                 {!editing.active && (
                   <Button
                     type="button"

@@ -32,6 +32,7 @@ export type Worker = {
   email: string | null;
   phone: string | null;
   password: string | null;
+  must_set_password: boolean;
   daily_wage: number;
   active: boolean;
   notes: string | null;

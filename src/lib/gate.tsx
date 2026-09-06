@@ -7,7 +7,7 @@ import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
-import { getRole } from "@/lib/user-role";
+import { getRole, type UserRole } from "@/lib/user-role";
 
 export const KEY = "mbs-gate";
 const USER = "mbscentringworks";
@@ -44,6 +44,20 @@ export function Gate({ children }: { children: ReactNode }) {
   const [forgotConfirm, setForgotConfirm] = useState("");
   const [forgotErr, setForgotErr] = useState("");
   const [forgotSaving, setForgotSaving] = useState(false);
+
+  // Set right after a correct sign-in when the row's password is still the
+  // mobile-number default (must_set_password). The session isn't granted
+  // yet — the user has to choose their own password first.
+  const [pendingUser, setPendingUser] = useState<{
+    id: string;
+    name: string;
+    role: UserRole;
+    sessionToken: string | null;
+  } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [newPasswordErr, setNewPasswordErr] = useState("");
+  const [savingNewPassword, setSavingNewPassword] = useState(false);
 
   const disableWorkerSession = async (message = "Your account is deactivated") => {
     const workerId = localStorage.getItem(WORKER_ID_KEY);
@@ -279,7 +293,8 @@ export function Gate({ children }: { children: ReactNode }) {
       return;
     }
     void (async () => {
-      const selectFields = "id, name, email, phone, password, active, notes, session_token";
+      const selectFields =
+        "id, name, email, phone, password, active, notes, session_token, must_set_password";
       const { data: userByName } = await supabase
         .from("workers")
         .select(selectFields)
@@ -314,6 +329,19 @@ export function Gate({ children }: { children: ReactNode }) {
         return;
       }
       const role = getRole(userRecord.notes);
+      if (userRecord.must_set_password) {
+        // Correct credentials, but this is still the mobile-number default
+        // password — hold off on granting the session until they've chosen
+        // their own password.
+        setErr("");
+        setPendingUser({
+          id: userRecord.id,
+          name: userRecord.name,
+          role,
+          sessionToken: userRecord.session_token,
+        });
+        return;
+      }
       if (role === "admin" || role === "manager") {
         // Admin- and manager-role users get full access to the management
         // screens, but we keep their row id (and role) so their status can
@@ -374,7 +402,7 @@ export function Gate({ children }: { children: ReactNode }) {
       if (!record.active) throw new Error("This account is deactivated");
       const { error: updateError } = await supabase
         .from("workers")
-        .update({ password: nextPassword })
+        .update({ password: nextPassword, must_set_password: false })
         .eq("id", record.id);
       if (updateError) throw updateError;
       setForgotOpen(false);
@@ -388,6 +416,119 @@ export function Gate({ children }: { children: ReactNode }) {
       setForgotSaving(false);
     }
   };
+
+  const submitNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewPasswordErr("");
+    if (!pendingUser) return;
+    const password = newPassword.trim();
+    if (password.length < 4) {
+      setNewPasswordErr("Password must be at least 4 characters");
+      return;
+    }
+    if (password !== newPasswordConfirm.trim()) {
+      setNewPasswordErr("Passwords do not match");
+      return;
+    }
+    setSavingNewPassword(true);
+    try {
+      const { error } = await supabase
+        .from("workers")
+        .update({ password, must_set_password: false })
+        .eq("id", pendingUser.id);
+      if (error) throw error;
+      if (!(await claimDevice(pendingUser.id, pendingUser.sessionToken))) return;
+      if (pendingUser.role === "admin" || pendingUser.role === "manager") {
+        localStorage.setItem(KEY, "1");
+        localStorage.setItem(ADMIN_ID_KEY, pendingUser.id);
+        localStorage.setItem(ADMIN_ROLE_KEY, pendingUser.role);
+        localStorage.removeItem(WORKER_ID_KEY);
+        setWorker(false);
+        setOk(true);
+        setPendingUser(null);
+        setNewPassword("");
+        setNewPasswordConfirm("");
+        void navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+      localStorage.setItem(WORKER_ID_KEY, pendingUser.id);
+      setWorker(true);
+      setPendingUser(null);
+      setNewPassword("");
+      setNewPasswordConfirm("");
+    } catch (error) {
+      setNewPasswordErr(error instanceof Error ? error.message : "Unable to set password");
+    } finally {
+      setSavingNewPassword(false);
+    }
+  };
+
+  if (pendingUser) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6">
+        <div className="w-full max-w-[420px] overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-8">
+          <div className="mb-6 text-center">
+            <img src={logo} alt="MBS Centring Works" className="mx-auto mb-3 h-14 w-14 object-contain" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Welcome, {pendingUser.name}!
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Set a password for your account to continue. You won't need to use your mobile number as
+              your password again.
+            </p>
+          </div>
+          <form onSubmit={submitNewPassword} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="new-password" className="text-sm font-medium text-foreground">
+                New password
+              </label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                autoFocus
+                placeholder="Minimum 4 characters"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="new-password-confirm" className="text-sm font-medium text-foreground">
+                Confirm password
+              </label>
+              <Input
+                id="new-password-confirm"
+                type="password"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
+                placeholder="Re-enter password"
+              />
+            </div>
+            {newPasswordErr && <p className="text-xs font-medium text-destructive">{newPasswordErr}</p>}
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setPendingUser(null);
+                  setNewPassword("");
+                  setNewPasswordConfirm("");
+                  setNewPasswordErr("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1 font-semibold" disabled={savingNewPassword}>
+                {savingNewPassword ? "Saving…" : "Set password & continue"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6 md:py-10">

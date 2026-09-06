@@ -157,12 +157,14 @@ function ManageUsers() {
         // New users can't be given a password by the admin — their login
         // starts out as their mobile number, and must_set_password forces
         // them to choose their own password the first time they sign in.
+        // Admin-role accounts are the one exception — they're never shown
+        // that screen and manage their own password from "Manage my account".
         if (!payload.phone) {
           throw new Error("Mobile number is required — it's used as the account's first-time password");
         }
         const { error } = await supabase
           .from("workers")
-          .insert({ ...payload, password: payload.phone, must_set_password: true });
+          .insert({ ...payload, password: payload.phone, must_set_password: role !== "admin" });
         if (error) throw error;
       }
     },
@@ -183,15 +185,21 @@ function ManageUsers() {
       if (!user.phone) {
         throw new Error("Add a mobile number before resetting the password");
       }
+      // Admins are never forced through the "set a new password" screen —
+      // reset their password directly to the mobile number instead.
       const { error } = await supabase
         .from("workers")
-        .update({ password: user.phone, must_set_password: true })
+        .update({ password: user.phone, must_set_password: user.role !== "admin" })
         .eq("id", user.id);
       if (error) throw error;
     },
     onSuccess: (_, user) => {
       qc.invalidateQueries({ queryKey: ["workers"] });
-      toast.success(`Password reset to ${user.phone}. They'll be asked to set a new one at next login.`);
+      toast.success(
+        user.role === "admin"
+          ? `Password reset to ${user.phone}.`
+          : `Password reset to ${user.phone}. They'll be asked to set a new one at next login.`,
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -527,7 +535,9 @@ function ManageUsers() {
                   title={`Reset ${editing.name}'s password?`}
                   description={
                     editing.phone
-                      ? `Their password will be reset to their mobile number (${editing.phone}). They'll be asked to set a new password the next time they sign in.`
+                      ? editing.role === "admin"
+                        ? `Their password will be reset to their mobile number (${editing.phone}).`
+                        : `Their password will be reset to their mobile number (${editing.phone}). They'll be asked to set a new password the next time they sign in.`
                       : "Add a mobile number for this user first — it's used as the reset password."
                   }
                   confirmLabel="Reset password"

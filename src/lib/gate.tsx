@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -329,10 +328,11 @@ export function Gate({ children }: { children: ReactNode }) {
         return;
       }
       const role = getRole(userRecord.notes);
-      if (userRecord.must_set_password) {
+      if (userRecord.must_set_password && role !== "admin") {
         // Correct credentials, but this is still the mobile-number default
         // password — hold off on granting the session until they've chosen
-        // their own password.
+        // their own password. Admins are never forced through this step —
+        // they can change their password anytime from "Manage my account".
         setErr("");
         setPendingUser({
           id: userRecord.id,
@@ -341,6 +341,11 @@ export function Gate({ children }: { children: ReactNode }) {
           sessionToken: userRecord.session_token,
         });
         return;
+      }
+      if (userRecord.must_set_password && role === "admin") {
+        // Clear the stale flag quietly so this check is skipped on future
+        // logins too — the admin is signed in normally below.
+        void supabase.from("workers").update({ must_set_password: false }).eq("id", userRecord.id);
       }
       if (role === "admin" || role === "manager") {
         // Admin- and manager-role users get full access to the management
@@ -530,6 +535,82 @@ export function Gate({ children }: { children: ReactNode }) {
     );
   }
 
+  if (forgotOpen) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6">
+        <div className="w-full max-w-[420px] overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-8">
+          <div className="mb-6 text-center">
+            <img src={logo} alt="MBS Centring Works" className="mx-auto mb-3 h-14 w-14 object-contain" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Reset password</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Enter the account name or mobile number to reset your account password.
+            </p>
+          </div>
+          <form onSubmit={resetAdminPassword} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="forgot-user" className="text-sm font-medium text-foreground">
+                Name or mobile number
+              </label>
+              <Input
+                id="forgot-user"
+                value={forgotUser}
+                onChange={(event) => setForgotUser(event.target.value)}
+                autoComplete="username"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="forgot-password" className="text-sm font-medium text-foreground">
+                New password
+              </label>
+              <Input
+                id="forgot-password"
+                type="password"
+                value={forgotPassword}
+                onChange={(event) => setForgotPassword(event.target.value)}
+                autoComplete="new-password"
+                placeholder="Minimum 4 characters"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="forgot-confirm" className="text-sm font-medium text-foreground">
+                Confirm new password
+              </label>
+              <Input
+                id="forgot-confirm"
+                type="password"
+                value={forgotConfirm}
+                onChange={(event) => setForgotConfirm(event.target.value)}
+                autoComplete="new-password"
+                placeholder="Re-enter password"
+              />
+            </div>
+            {forgotErr && <p className="text-xs font-medium text-destructive">{forgotErr}</p>}
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setForgotOpen(false);
+                  setForgotErr("");
+                  setForgotUser("");
+                  setForgotPassword("");
+                  setForgotConfirm("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1 font-semibold" disabled={forgotSaving}>
+                {forgotSaving ? "Resetting…" : "Reset password"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6 md:py-10">
       <div className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] md:max-w-[460px] lg:max-w-[1040px] lg:flex-row lg:rounded-3xl">
@@ -637,7 +718,7 @@ export function Gate({ children }: { children: ReactNode }) {
                     setForgotOpen(true);
                     setForgotErr("");
                   }}
-                  className="font-medium text-accent hover:underline"
+                  className="font-medium text-accent underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
                   Forgot Password?
                 </button>
@@ -656,68 +737,6 @@ export function Gate({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
-
-      <Dialog
-        open={forgotOpen}
-        onOpenChange={(open) => {
-          setForgotOpen(open);
-          if (!open) {
-            setForgotErr("");
-            setForgotUser("");
-            setForgotPassword("");
-            setForgotConfirm("");
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reset password</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={resetAdminPassword} className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Enter the account name or mobile number to reset your account password.
-            </p>
-            <div className="space-y-2">
-              <label htmlFor="forgot-user" className="text-sm font-medium">Name or mobile number</label>
-              <Input
-                id="forgot-user"
-                value={forgotUser}
-                onChange={(event) => setForgotUser(event.target.value)}
-                autoComplete="username"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="forgot-password" className="text-sm font-medium">New password</label>
-              <Input
-                id="forgot-password"
-                type="password"
-                value={forgotPassword}
-                onChange={(event) => setForgotPassword(event.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="forgot-confirm" className="text-sm font-medium">Confirm new password</label>
-              <Input
-                id="forgot-confirm"
-                type="password"
-                value={forgotConfirm}
-                onChange={(event) => setForgotConfirm(event.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
-            {forgotErr && <p className="text-xs font-medium text-destructive">{forgotErr}</p>}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={forgotSaving}>
-                {forgotSaving ? "Resetting..." : "Reset password"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

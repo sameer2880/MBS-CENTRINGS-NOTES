@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "mbs-centring-hub",
+      "version": "0.1.0",
+      "title": "MBS Centring Hub"
+    },
+    "tools": [
+      {
+        "name": "list_rentals",
+        "title": "List rentals",
+        "description": "List material rental records, newest first. Optionally filter by status or search customer / material name.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by stored rental status.",
+              "type": "string",
+              "enum": [
+                "active",
+                "returned"
+              ]
+            },
+            "search": {
+              "description": "Case-insensitive match on customer name, phone or material name.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_rental",
+        "title": "Create rental",
+        "description": "Record a new material rental (one material per record). Total amount is computed as quantity x rate when not supplied.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "customer_phone": {
+              "type": "string",
+              "minLength": 1
+            },
+            "customer_address": {
+              "type": "string"
+            },
+            "material_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "quantity": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "unit": {
+              "description": "Unit of measure, default 'pcs'.",
+              "type": "string"
+            },
+            "rate_per_unit": {
+              "type": "number",
+              "minimum": 0
+            },
+            "total_amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "security_deposit": {
+              "type": "number",
+              "minimum": 0
+            },
+            "issue_date": {
+              "type": "string",
+              "description": "Issue date, YYYY-MM-DD."
+            },
+            "return_date": {
+              "type": "string",
+              "description": "Expected return date, YYYY-MM-DD."
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "customer_name",
+            "customer_phone",
+            "material_name",
+            "quantity",
+            "rate_per_unit",
+            "issue_date",
+            "return_date"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_rental",
+        "title": "Update rental",
+        "description": "Update an existing rental record — mark it returned/active, change the return date, amount or notes.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Rental record id."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "returned"
+              ]
+            },
+            "return_date": {
+              "description": "YYYY-MM-DD.",
+              "type": "string"
+            },
+            "quantity": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_per_unit": {
+              "type": "number",
+              "minimum": 0
+            },
+            "total_amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "security_deposit": {
+              "type": "number",
+              "minimum": 0
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_diary_notes",
+        "title": "List diary notes",
+        "description": "List diary / notebook entries, newest date first. Filter by category, date range or text search.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Filter by note category.",
+              "type": "string",
+              "enum": [
+                "general",
+                "labour",
+                "expense",
+                "payment",
+                "reminder"
+              ]
+            },
+            "from_date": {
+              "description": "Earliest entry_date, YYYY-MM-DD.",
+              "type": "string"
+            },
+            "to_date": {
+              "description": "Latest entry_date, YYYY-MM-DD.",
+              "type": "string"
+            },
+            "search": {
+              "description": "Case-insensitive match on title or content.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_diary_note",
+        "title": "Create diary note",
+        "description": "Add a daily diary / notebook entry with an optional amount and category.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "content": {
+              "type": "string"
+            },
+            "entry_date": {
+              "description": "YYYY-MM-DD, defaults to today.",
+              "type": "string"
+            },
+            "category": {
+              "description": "Defaults to 'general'.",
+              "type": "string",
+              "enum": [
+                "general",
+                "labour",
+                "expense",
+                "payment",
+                "reminder"
+              ]
+            },
+            "amount": {
+              "description": "Optional money amount for expense/payment notes.",
+              "type": "number"
+            }
+          },
+          "required": [
+            "title"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "business_summary",
+        "title": "Business summary",
+        "description": "Summarise rentals: totals, active vs returned counts, overdue rentals and revenue over an optional date range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "from_date": {
+              "description": "Earliest issue_date, YYYY-MM-DD.",
+              "type": "string"
+            },
+            "to_date": {
+              "description": "Latest issue_date, YYYY-MM-DD.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

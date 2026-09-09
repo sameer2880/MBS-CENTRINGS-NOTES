@@ -1,0 +1,436 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ============================================================
+   DEVICE-TIER SHELL TOKENS
+   Single source of truth for the sizes the 3-tier app shell
+   (mobile bottom-nav / tablet rail / desktop sidebar) is built
+   from, so header, rail, bottom-nav and page padding never drift
+   out of sync with each other.
+   ============================================================ */
+:root {
+  --shell-header-h: 4rem; /* 64px topbar, plus safe-area on iOS (see .site-header) */
+  --shell-bottomnav-h: 4.25rem; /* 68px mobile tab bar, plus safe-area */
+  --shell-rail-w: 4.75rem; /* 76px tablet icon-only rail */
+  --shell-sidebar-w: 16rem; /* 256px desktop labeled sidebar */
+  --shell-touch-target: 2.75rem; /* 44px — Apple/Material minimum comfortable hit area */
+}
+
+:root {
+  --radius: 1rem;
+  /* Warm ivory canvas with the MBS navy and saffron brand pairing. */
+  --background: #f4f6f3;
+  --foreground: #173042;
+  --card: rgb(255 255 255 / 86%);
+  --card-foreground: #173042;
+  --popover: rgb(255 255 255 / 96%);
+  --popover-foreground: #173042;
+  --primary: #174a68;
+  --primary-foreground: #ffffff;
+  --secondary: rgb(224 233 236 / 70%);
+  --secondary-foreground: #234357;
+  --muted: rgb(231 237 235 / 76%);
+  --muted-foreground: #607482;
+  --accent: #d47a24;
+  --accent-foreground: #ffffff;
+  --destructive: #c2414d;
+  --destructive-foreground: #ffffff;
+  --warning: #b97812;
+  --warning-foreground: #2d2109;
+  --success: #2d8658;
+  --success-foreground: #ffffff;
+  --border: rgb(23 74 104 / 17%);
+  --input: rgb(23 74 104 / 24%);
+  --ring: #174a68;
+  --chart-1: #174a68;
+  --chart-2: #d47a24;
+  --chart-3: #43819b;
+  --chart-4: #2d8658;
+  --chart-5: #738693;
+  --sidebar: rgb(255 255 255 / 90%);
+  --sidebar-foreground: #173042;
+  --sidebar-primary: #174a68;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(23 74 104 / 11%);
+  --sidebar-accent-foreground: #174a68;
+  --sidebar-border: rgb(23 74 104 / 14%);
+  --sidebar-ring: #174a68;
+}
+
+.dark {
+  /* Graphite-navy surfaces keep the interface calm while retaining the MBS navy. */
+  --background: #0d141c;
+  --foreground: #f4f1ea;
+  --card: rgb(24 33 42 / 88%);
+  --card-foreground: #f4f1ea;
+  --popover: rgb(19 28 37 / 96%);
+  --popover-foreground: #f4f1ea;
+  --primary: #e5a23b;
+  --primary-foreground: #231605;
+  --secondary: rgb(57 76 92 / 42%);
+  --secondary-foreground: #e8edf1;
+  --muted: rgb(38 51 62 / 58%);
+  --muted-foreground: #aab7c1;
+  --accent: #e88932;
+  --accent-foreground: #211005;
+  --destructive: #f07878;
+  --destructive-foreground: #260b0b;
+  --warning: #f2bd52;
+  --warning-foreground: #251907;
+  --success: #65c58a;
+  --success-foreground: #092014;
+  --border: rgb(148 166 179 / 22%);
+  --input: rgb(148 166 179 / 28%);
+  --ring: #e5a23b;
+  --chart-1: #e5a23b;
+  --chart-2: #4f8eaf;
+  --chart-3: #65c58a;
+  --chart-4: #d97955;
+  --chart-5: #aab7c1;
+  --sidebar: rgb(14 23 31 / 96%);
+  --sidebar-foreground: #f4f1ea;
+  --sidebar-primary: #e5a23b;
+  --sidebar-primary-foreground: #231605;
+  --sidebar-accent: rgb(229 162 59 / 15%);
+  --sidebar-accent-foreground: #ffd58a;
+  --sidebar-border: rgb(148 166 179 / 20%);
+  --sidebar-ring: #e5a23b;
+}
+
+
+@layer base {
+  * { border-color: var(--color-border); }
+
+  /* `overscroll-behavior` stops the browser's own rubber-band/bounce
+     scroll (iOS Safari) and pull-to-refresh glow (Android Chrome) from
+     ever kicking in on the outermost scroll container. Without this,
+     swiping past the top/bottom of a short page drags the viewport
+     beyond the document bounds for a moment, exposing whatever sits
+     behind it.
+     NOTE: this is deliberately just `overscroll-behavior-y` with no
+     `overflow-x: hidden` alongside it — putting `overflow` of any kind
+     on <html>/<body> is a known WebKit bug trigger that makes
+     `position: fixed` elements (like the mobile bottom nav) stop
+     tracking the real viewport and "float" up into the page instead
+     of sitting flush at the bottom. Horizontal clipping is handled
+     per-container (see `main`'s `overflow-x-hidden`) instead. */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  html { background-color: var(--color-background); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100dvh;
+    background-image:
+      radial-gradient(900px circle at 8% 8%, rgb(23 74 104 / 12%), transparent 55%),
+      radial-gradient(800px circle at 92% 18%, rgb(212 122 36 / 11%), transparent 50%),
+      radial-gradient(850px circle at 25% 95%, rgb(67 129 155 / 10%), transparent 50%),
+      radial-gradient(700px circle at 95% 90%, rgb(45 134 88 / 7%), transparent 50%);
+    background-repeat: no-repeat;
+  }
+
+  /* `background-attachment: fixed` is unreliable on touch browsers —
+     iOS Safari and Android Chrome both re-paint it against the *last*
+     viewport size instead of the live one while the address bar
+     shows/hides during a scroll, so the gradient can visibly detach
+     from the screen edges mid-swipe. Keep it only for pointer-driven
+     (non-touch) devices, where it renders correctly and gives the
+     parallax-y feel it was meant for; touch devices get the safe,
+     default `scroll` attachment instead. */
+  @media (hover: hover) and (pointer: fine) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+}
+.dark body {
+  background-image:
+    radial-gradient(900px circle at 8% 8%, rgb(45 91 119 / 20%), transparent 55%),
+    radial-gradient(800px circle at 92% 15%, rgb(229 162 59 / 12%), transparent 50%),
+    radial-gradient(850px circle at 25% 95%, rgb(48 109 91 / 10%), transparent 55%),
+    radial-gradient(700px circle at 95% 90%, rgb(45 91 119 / 12%), transparent 50%);
+}
+
+/* Glassmorphism: every surface built from these tokens becomes frosted glass
+   that blurs and tints whatever sits behind it (the gradient canvas on body,
+   or content scrolling underneath a sticky header/sidebar/modal). */
+.bg-card,
+.bg-popover,
+.bg-sidebar,
+.bg-background,
+.bg-muted,
+.bg-secondary {
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+/* Top nav bar: solid, no glass/blur/transparency */
+.site-header {
+  background-color: #f7f8f5;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* Keep the header (logo, menu button, refresh) clear of the notch /
+     status bar on iOS home-screen installs, where the status bar is
+     translucent and the page draws underneath it. */
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(4rem + env(safe-area-inset-top, 0px));
+}
+.dark .site-header {
+  background-color: #101a23;
+}
+
+/* The mobile slide-in sidebar (a full-height Sheet, class contains
+   "inset-y-0") runs edge-to-edge, so keep its logo block and sign-out
+   button clear of the notch and the home-indicator gesture bar.
+   Centered dialogs ("left-[50%] top-[50%]") are unaffected. */
+[role="dialog"][class*="inset-y-0"] {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Keep page content clear of the home-indicator gesture area at the bottom
+   when the app is installed as a standalone PWA (edge-to-edge on iOS). In a
+   regular browser tab safe-area-inset-bottom is 0, so this is a no-op there. */
+@media (display-mode: standalone) {
+  main {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Fixed dialogs/sheets/dropdowns get a touch more blur + a soft glass shadow
+   so they read as raised panels rather than flat tinted rectangles. */
+[data-slot="dialog-content"],
+[role="dialog"],
+[role="alertdialog"],
+[role="menu"],
+[role="listbox"] {
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  box-shadow:
+    0 8px 32px rgb(15 23 42 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 40%);
+}
+
+.dark [data-slot="dialog-content"],
+.dark [role="dialog"],
+.dark [role="alertdialog"],
+.dark [role="menu"],
+.dark [role="listbox"] {
+  box-shadow:
+    0 8px 32px rgb(0 0 0 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+/* ============================================================
+   RESPONSIVE DEVICE-TIER SYSTEM
+   Everything below is additive — it never overrides an existing
+   rule above, it only adds new utility classes the app shell and
+   pages opt into. Breakpoints match Tailwind defaults exactly:
+     mobile  < 768px   tablet  768–1023px   desktop >= 1024px
+   ============================================================ */
+
+/* ---- Fluid typography -------------------------------------------------
+   Scales smoothly between phone and desktop instead of jumping at a
+   single breakpoint, so text never feels cramped on a 360px phone or
+   tiny on a 27" monitor. clamp(min, preferred-vw, max). */
+@layer base {
+  .text-fluid-xs   { font-size: clamp(0.72rem, 0.68rem + 0.2vw, 0.8rem); }
+  .text-fluid-sm   { font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.9rem); }
+  .text-fluid-base { font-size: clamp(0.92rem, 0.88rem + 0.25vw, 1rem); }
+  .text-fluid-lg   { font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.2rem); }
+  .text-fluid-xl   { font-size: clamp(1.2rem, 1.08rem + 0.6vw, 1.5rem); }
+  .text-fluid-2xl  { font-size: clamp(1.35rem, 1.15rem + 1vw, 1.875rem); }
+  .text-fluid-3xl  { font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.25rem); }
+}
+
+/* ---- Touch targets ------------------------------------------------------
+   Any interactive element on a touch-capable device should have at
+   least a 44x44px hit area (Apple HIG / Material minimum), even if it
+   looks visually smaller. Applied automatically to coarse-pointer
+   devices (phones, tablets, touch laptops) — mouse/trackpad users keep
+   the tighter, denser default sizing. */
+@media (pointer: coarse) {
+  .touch-target,
+  [data-touch-target] {
+    min-height: var(--shell-touch-target);
+    min-width: var(--shell-touch-target);
+  }
+
+  /* Every <Button> gets a comfortable minimum tap height on touch
+     devices only — mouse/trackpad users keep the tighter default
+     (h-8/h-9) sizing untouched. Buttons that already opt into the
+     explicit "touch" / "icon-touch" size variants are unaffected
+     since those are already >= this minimum. */
+  .btn-comfortable {
+    min-height: var(--shell-touch-target);
+  }
+}
+
+/* ---- Fluid section/page padding -----------------------------------------
+   Replaces a hard p-4 / p-6 jump with a smooth scale so content isn't
+   glued to the screen edge on a small phone nor floating with too
+   little margin on an ultrawide monitor. */
+.page-pad {
+  padding: clamp(0.875rem, 0.7rem + 1vw, 1.75rem);
+}
+
+/* ---- Responsive card/stat grid -------------------------------------------
+   `auto-fit`+`minmax` grid that reflows itself: 2-up on a phone,
+   3–4-up on a tablet, as many as fit on a wide desktop — no manual
+   `sm:` / `lg:` column-count juggling needed per page. */
+.grid-fluid {
+  display: grid;
+  gap: clamp(0.75rem, 0.6rem + 0.5vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+.grid-fluid-sm {
+  display: grid;
+  gap: clamp(0.75rem, 0.6rem + 0.5vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+}
+
+/* ---- Responsive bottom tab bar -------------------------------------------
+  Fixed, safe-area aware, and shared by admin/manager accounts at every
+  viewport width. */
+.shell-bottomnav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  height: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background-color: #f7f8f5;
+  border-top: 1px solid var(--color-border);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.dark .shell-bottomnav {
+  background-color: #101a23;
+}
+/* Reserve room at the bottom of scrollable page content for the fixed
+   bottom nav, so the last card/row is never hidden behind it. */
+.shell-content-offset {
+  padding-bottom: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px) + 1rem);
+}
+@media (min-width: 768px) {
+  .shell-bottomnav {
+    inset-inline: auto 0;
+    inset-block: 0;
+    left: 0;
+    width: var(--shell-rail-w);
+    height: 100dvh;
+    padding: 0.75rem 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+    border-top: 0;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .shell-bottomnav > a,
+  .shell-bottomnav > button {
+    flex: none;
+    width: 100%;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .shell-bottomnav > a > span,
+  .shell-bottomnav > button > span {
+    display: none;
+  }
+
+  .shell-content-offset {
+    padding-bottom: 1rem;
+    padding-left: calc(var(--shell-rail-w) + 1rem);
+  }
+}
+
+/* Kept for compatibility with any remaining shell references. */
+.shell-rail {
+  display: none;
+}
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  aside, header, .shell-bottomnav, .print\:hidden { display: none !important; }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .receipt-sheet {
+    width: 100% !important;
+    max-width: none !important;
+    border-color: #111827 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    padding: 8mm !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* The receipt uses fixed black/white/gray classes (not theme
+     variables), so it already looks the same in light and dark mode.
+     This just forces those backgrounds to actually print instead of
+     being stripped by the browser's default print color handling. */
+  .receipt-sheet * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

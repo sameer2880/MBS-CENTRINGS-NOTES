@@ -212,6 +212,21 @@
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
+
+/* Outermost app-shell background — deliberately NOT `.bg-background`.
+   That class carries `backdrop-filter` above, and `backdrop-filter` (like
+   `transform`/`filter`) makes an element a *containing block* for any
+   `position: fixed` descendant. The app shell wraps the fixed
+   `.shell-bottomnav`, so giving the shell itself a backdrop-filter makes
+   the browser pin the nav to the shell instead of the real viewport.
+   Visible result: over-swiping past the top/bottom of the page (the
+   rubber-band bounce) drags the whole shell — bottom nav included —
+   along with it, instead of the nav staying put while only the page
+   content moves. This class gives the same background color with no
+   backdrop-filter, so it can never become that containing block. */
+.shell-root {
+  background-color: var(--color-background);
+}
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
   background-color: #f5f8f0;

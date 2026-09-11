@@ -879,7 +879,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-dvh bg-background">
+    // NOTE: `shell-root` (not the `bg-background` utility) on purpose — see
+    // the comment on `.shell-root` in styles.css. `bg-background` carries a
+    // `backdrop-filter`, and a `backdrop-filter` on this div (an ancestor of
+    // the fixed `.shell-bottomnav` below) turns it into the containing block
+    // for that fixed nav, so the nav bounces along with the page instead of
+    // staying pinned to the screen during over-swipe.
+    <div className="flex min-h-dvh shell-root">
       {worker ? (
         <>
           {/* ==========================================

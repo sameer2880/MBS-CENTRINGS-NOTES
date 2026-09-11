@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { LoginIllustration } from "@/components/LoginIllustration";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
 import { getRole, type UserRole } from "@/lib/user-role";
@@ -649,19 +650,21 @@ export function Gate({ children }: { children: ReactNode }) {
         <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-8 md:px-10 lg:px-14 lg:py-12">
           <div className="w-full max-w-[360px] space-y-6">
             <div className="text-center lg:text-left">
-              <img
-                src={logo}
-                alt="MBS Centring Works"
-                className="mx-auto mb-3 h-16 w-16 object-contain lg:hidden"
-              />
-              <div className="mb-2 flex items-center justify-center gap-1 text-base font-bold lg:hidden">
+              <div className="mb-1 flex items-center justify-center gap-1 text-sm font-bold lg:hidden">
+                <img src={logo} alt="" className="h-6 w-6 object-contain" />
                 <span className="text-primary">MBS</span>
                 <span className="text-accent">CENTRING WORKS</span>
               </div>
+
+              <LoginIllustration className="mx-auto mb-4 h-48 w-full max-w-[220px] lg:hidden" />
+
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Welcome back
+                Login
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-base font-semibold text-foreground/85 lg:hidden">
+                Let's get started
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Sign in to manage your records
               </p>
             </div>

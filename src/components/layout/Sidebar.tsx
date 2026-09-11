@@ -724,19 +724,20 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
-  // More is just another equal-width column here, not a specially
-  // pinned corner element — every column (tabs + More) is the same
-  // width, which is what actually guarantees even spacing regardless
-  // of how long each label is. (The "pin More to the corner" need was
-  // for the worker's single-tab case, which no longer uses this bar
-  // at all — workers get the classic sidebar now.)
+  // The "More" tab sits in the middle of the row (2 tabs either side) so it
+  // can double as a raised, circular floating action button on mobile —
+  // same tab, just visually popped up out of the bar. On the tablet/desktop
+  // rail it collapses back to a normal full-width row item like every
+  // other tab (see the `md:` overrides below), so nothing about the rail
+  // layout changes.
   const items = [
-    ...tabs.map((t) => ({ ...t, isMore: false as const })),
+    ...tabs.slice(0, 2).map((t) => ({ ...t, isMore: false as const })),
     { to: "__more__", label: "More", shortLabel: undefined, icon: MoreHorizontal, isMore: true as const },
+    ...tabs.slice(2, 4).map((t) => ({ ...t, isMore: false as const })),
   ];
 
   return (
-    <nav className="shell-bottomnav flex items-stretch" aria-label="Primary">
+    <nav className="shell-bottomnav relative flex items-stretch" aria-label="Primary">
       <Link
         to="/dashboard"
         aria-label="Dashboard"
@@ -757,10 +758,18 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
               type="button"
               onClick={onOpenMore}
               aria-label="More"
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold text-muted-foreground"
+              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold text-muted-foreground md:static"
             >
-              <MoreHorizontal className="h-5 w-5" />
-              <span>More</span>
+              {/* Raised circular bubble — mobile only */}
+              <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
+                <MoreHorizontal className="h-6 w-6" />
+              </span>
+              <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
+
+              {/* Plain rail tab — tablet/desktop only */}
+              <MoreHorizontal className="hidden h-5 w-5 md:block" />
+
+              <span className="mt-1 md:mt-0.5">More</span>
             </button>
           );
         }
@@ -784,6 +793,13 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
           </Link>
         );
       })}
+
+      {/* Decorative home-indicator bar — mobile only, purely visual */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 mx-auto hidden h-1 w-28 rounded-full bg-foreground/15 max-md:block"
+        style={{ bottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))" }}
+      />
     </nav>
   );
 }

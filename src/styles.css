@@ -63,84 +63,84 @@
 }
 
 :root {
-  --radius: 1rem;
-  /* Warm ivory canvas with the MBS navy and saffron brand pairing. */
-  --background: #f4f6f3;
-  --foreground: #173042;
+  --radius: 1.25rem;
+  /* Leafora: soft sage/cream canvas for light mode, with the lime-on-forest brand pairing. */
+  --background: #f3f6ee;
+  --foreground: #16261c;
   --card: rgb(255 255 255 / 86%);
-  --card-foreground: #173042;
+  --card-foreground: #16261c;
   --popover: rgb(255 255 255 / 96%);
-  --popover-foreground: #173042;
-  --primary: #174a68;
+  --popover-foreground: #16261c;
+  --primary: #4f7a3d;
   --primary-foreground: #ffffff;
-  --secondary: rgb(224 233 236 / 70%);
-  --secondary-foreground: #234357;
-  --muted: rgb(231 237 235 / 76%);
-  --muted-foreground: #607482;
-  --accent: #d47a24;
-  --accent-foreground: #ffffff;
+  --secondary: rgb(224 233 216 / 70%);
+  --secondary-foreground: #2c4423;
+  --muted: rgb(230 237 224 / 76%);
+  --muted-foreground: #64785e;
+  --accent: #a8d977;
+  --accent-foreground: #16261c;
   --destructive: #c2414d;
   --destructive-foreground: #ffffff;
   --warning: #b97812;
   --warning-foreground: #2d2109;
-  --success: #2d8658;
+  --success: #3f8f5c;
   --success-foreground: #ffffff;
-  --border: rgb(23 74 104 / 17%);
-  --input: rgb(23 74 104 / 24%);
-  --ring: #174a68;
-  --chart-1: #174a68;
-  --chart-2: #d47a24;
-  --chart-3: #43819b;
-  --chart-4: #2d8658;
-  --chart-5: #738693;
+  --border: rgb(22 38 28 / 14%);
+  --input: rgb(22 38 28 / 22%);
+  --ring: #4f7a3d;
+  --chart-1: #4f7a3d;
+  --chart-2: #a8d977;
+  --chart-3: #7fae5f;
+  --chart-4: #d4a72c;
+  --chart-5: #738a6e;
   --sidebar: rgb(255 255 255 / 90%);
-  --sidebar-foreground: #173042;
-  --sidebar-primary: #174a68;
+  --sidebar-foreground: #16261c;
+  --sidebar-primary: #4f7a3d;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgb(23 74 104 / 11%);
-  --sidebar-accent-foreground: #174a68;
-  --sidebar-border: rgb(23 74 104 / 14%);
-  --sidebar-ring: #174a68;
+  --sidebar-accent: rgb(79 122 61 / 11%);
+  --sidebar-accent-foreground: #4f7a3d;
+  --sidebar-border: rgb(22 38 28 / 14%);
+  --sidebar-ring: #4f7a3d;
 }
 
 .dark {
-  /* Graphite-navy surfaces keep the interface calm while retaining the MBS navy. */
-  --background: #0d141c;
-  --foreground: #f4f1ea;
-  --card: rgb(24 33 42 / 88%);
-  --card-foreground: #f4f1ea;
-  --popover: rgb(19 28 37 / 96%);
-  --popover-foreground: #f4f1ea;
-  --primary: #e5a23b;
-  --primary-foreground: #231605;
-  --secondary: rgb(57 76 92 / 42%);
-  --secondary-foreground: #e8edf1;
-  --muted: rgb(38 51 62 / 58%);
-  --muted-foreground: #aab7c1;
-  --accent: #e88932;
-  --accent-foreground: #211005;
+  /* Leafora signature look: deep forest-green surfaces with a bright lime accent. */
+  --background: #0e1911;
+  --foreground: #f4f6ee;
+  --card: rgb(29 46 34 / 82%);
+  --card-foreground: #f4f6ee;
+  --popover: rgb(20 33 24 / 96%);
+  --popover-foreground: #f4f6ee;
+  --primary: #a8d977;
+  --primary-foreground: #16281a;
+  --secondary: rgb(56 82 60 / 45%);
+  --secondary-foreground: #e6efe0;
+  --muted: rgb(38 58 42 / 58%);
+  --muted-foreground: #a3bfa4;
+  --accent: #c8e896;
+  --accent-foreground: #16281a;
   --destructive: #f07878;
   --destructive-foreground: #260b0b;
   --warning: #f2bd52;
   --warning-foreground: #251907;
-  --success: #65c58a;
-  --success-foreground: #092014;
-  --border: rgb(148 166 179 / 22%);
-  --input: rgb(148 166 179 / 28%);
-  --ring: #e5a23b;
-  --chart-1: #e5a23b;
+  --success: #7dcb92;
+  --success-foreground: #0b2013;
+  --border: rgb(168 217 119 / 16%);
+  --input: rgb(168 217 119 / 22%);
+  --ring: #a8d977;
+  --chart-1: #a8d977;
   --chart-2: #4f8eaf;
-  --chart-3: #65c58a;
-  --chart-4: #d97955;
-  --chart-5: #aab7c1;
-  --sidebar: rgb(14 23 31 / 96%);
-  --sidebar-foreground: #f4f1ea;
-  --sidebar-primary: #e5a23b;
-  --sidebar-primary-foreground: #231605;
-  --sidebar-accent: rgb(229 162 59 / 15%);
-  --sidebar-accent-foreground: #ffd58a;
-  --sidebar-border: rgb(148 166 179 / 20%);
-  --sidebar-ring: #e5a23b;
+  --chart-3: #7dcb92;
+  --chart-4: #e0b45a;
+  --chart-5: #a3bfa4;
+  --sidebar: rgb(14 25 17 / 96%);
+  --sidebar-foreground: #f4f6ee;
+  --sidebar-primary: #a8d977;
+  --sidebar-primary-foreground: #16281a;
+  --sidebar-accent: rgb(168 217 119 / 14%);
+  --sidebar-accent-foreground: #cdeca0;
+  --sidebar-border: rgb(168 217 119 / 18%);
+  --sidebar-ring: #a8d977;
 }
 
 
@@ -171,10 +171,10 @@
     color: var(--color-foreground);
     min-height: 100dvh;
     background-image:
-      radial-gradient(900px circle at 8% 8%, rgb(23 74 104 / 12%), transparent 55%),
-      radial-gradient(800px circle at 92% 18%, rgb(212 122 36 / 11%), transparent 50%),
-      radial-gradient(850px circle at 25% 95%, rgb(67 129 155 / 10%), transparent 50%),
-      radial-gradient(700px circle at 95% 90%, rgb(45 134 88 / 7%), transparent 50%);
+      radial-gradient(900px circle at 8% 8%, rgb(79 122 61 / 12%), transparent 55%),
+      radial-gradient(800px circle at 92% 18%, rgb(168 217 119 / 14%), transparent 50%),
+      radial-gradient(850px circle at 25% 95%, rgb(127 174 95 / 10%), transparent 50%),
+      radial-gradient(700px circle at 95% 90%, rgb(63 143 92 / 8%), transparent 50%);
     background-repeat: no-repeat;
   }
 
@@ -194,10 +194,10 @@
 }
 .dark body {
   background-image:
-    radial-gradient(900px circle at 8% 8%, rgb(45 91 119 / 20%), transparent 55%),
-    radial-gradient(800px circle at 92% 15%, rgb(229 162 59 / 12%), transparent 50%),
-    radial-gradient(850px circle at 25% 95%, rgb(48 109 91 / 10%), transparent 55%),
-    radial-gradient(700px circle at 95% 90%, rgb(45 91 119 / 12%), transparent 50%);
+    radial-gradient(900px circle at 8% 8%, rgb(168 217 119 / 10%), transparent 55%),
+    radial-gradient(800px circle at 92% 15%, rgb(125 203 146 / 10%), transparent 50%),
+    radial-gradient(850px circle at 25% 95%, rgb(79 122 61 / 16%), transparent 55%),
+    radial-gradient(700px circle at 95% 90%, rgb(200 232 150 / 8%), transparent 50%);
 }
 
 /* Glassmorphism: every surface built from these tokens becomes frosted glass
@@ -214,7 +214,7 @@
 }
 /* Top nav bar: solid, no glass/blur/transparency */
 .site-header {
-  background-color: #f7f8f5;
+  background-color: #f5f8f0;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   /* Keep the header (logo, menu button, refresh) clear of the notch /
@@ -224,7 +224,7 @@
   height: calc(4rem + env(safe-area-inset-top, 0px));
 }
 .dark .site-header {
-  background-color: #101a23;
+  background-color: #0f1c14;
 }
 
 /* The mobile slide-in sidebar (a full-height Sheet, class contains
@@ -347,13 +347,16 @@
   z-index: 40;
   height: calc(var(--shell-bottomnav-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background-color: #f7f8f5;
+  background-color: #f5f8f0;
   border-top: 1px solid var(--color-border);
+  border-radius: 1.5rem 1.5rem 0 0;
+  box-shadow: 0 -8px 24px rgb(22 38 28 / 8%);
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 .dark .shell-bottomnav {
-  background-color: #101a23;
+  background-color: #0f1c14;
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 30%);
 }
 /* Reserve room at the bottom of scrollable page content for the fixed
    bottom nav, so the last card/row is never hidden behind it. */
@@ -372,6 +375,8 @@
     align-items: stretch;
     border-top: 0;
     border-right: 1px solid var(--color-border);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .shell-bottomnav > a,

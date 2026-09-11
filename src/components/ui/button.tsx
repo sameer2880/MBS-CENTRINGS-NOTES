@@ -9,7 +9,7 @@ const buttonVariants = cva(
   // `(pointer: coarse)` block below bumps every size up to a comfortable
   // 44px+ tap target on phones/tablets/touch-laptops only — mouse and
   // trackpad users never see the bigger version.
-  "btn-comfortable inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "btn-comfortable inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -19,18 +19,18 @@ const buttonVariants = cva(
           "border border-input bg-white/25 dark:bg-white/[0.05] backdrop-blur-md shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground backdrop-blur-md shadow-sm hover:bg-secondary/80 border border-white/40 dark:border-white/10",
-        ghost: "hover:bg-accent/10 hover:backdrop-blur-md hover:text-accent",
-        link: "text-primary underline-offset-4 hover:underline",
+        ghost: "rounded-full hover:bg-accent/10 hover:backdrop-blur-md hover:text-accent",
+        link: "rounded-none text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-9 px-5 py-2",
+        sm: "h-8 rounded-full px-4 text-xs",
+        lg: "h-11 rounded-full px-8",
+        icon: "h-9 w-9 rounded-full",
         // Explicit touch size for spots that always need a big target
         // regardless of pointer type — e.g. the mobile bottom-nav tabs.
         touch: "h-11 min-w-11 px-4",
-        "icon-touch": "h-11 w-11",
+        "icon-touch": "h-11 w-11 rounded-full",
       },
     },
     defaultVariants: {

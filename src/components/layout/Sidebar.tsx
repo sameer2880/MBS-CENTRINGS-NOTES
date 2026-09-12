@@ -504,7 +504,7 @@ function MobileMoreSheet({
           <ChangePasswordDialog />
         )}
 
-        <ExploreLinks />
+        {isWorkerSidebar && <ExploreLinks />}
 
         {isWorkerSidebar ? (
           <div className="min-w-0 text-sm">
@@ -665,7 +665,7 @@ function MoreFlyout({
               <ChangePasswordDialog />
             )}
 
-            <ExploreLinks />
+            {isWorkerSidebar && <ExploreLinks />}
 
             {isWorkerSidebar ? (
               <div className="min-w-0 text-sm">
@@ -717,23 +717,27 @@ function MoreFlyout({
  * aware (see `.shell-bottomnav` in styles.css) so it clears the iOS
  * home indicator when installed as a standalone PWA.
  */
-function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
+function BottomNav({
+  onOpenMore,
+  isMoreOpen,
+}: {
+  onOpenMore: () => void;
+  isMoreOpen: boolean;
+}) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { links } = useNavLinks();
 
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
-  // The "More" tab sits in the middle of the row (2 tabs either side) so it
-  // can double as a raised, circular floating action button on mobile —
-  // same tab, just visually popped up out of the bar. On the tablet/desktop
-  // rail it collapses back to a normal full-width row item like every
-  // other tab (see the `md:` overrides below), so nothing about the rail
-  // layout changes.
+  // "More" now sits last in the row rather than the middle — it still
+  // pops up into the same raised circular bubble as any other active
+  // tab, just while its own sheet is open (see `isMoreOpen` above). On
+  // the tablet/desktop rail it's a normal full-width row item like
+  // every other tab (see the `md:` overrides below).
   const items = [
-    ...tabs.slice(0, 2).map((t) => ({ ...t, isMore: false as const })),
+    ...tabs.map((t) => ({ ...t, isMore: false as const })),
     { to: "__more__", label: "More", shortLabel: undefined, icon: MoreHorizontal, isMore: true as const },
-    ...tabs.slice(2, 4).map((t) => ({ ...t, isMore: false as const })),
   ];
 
   return (
@@ -758,16 +762,25 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
               type="button"
               onClick={onOpenMore}
               aria-label="More"
-              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold text-muted-foreground md:static"
+              className={cn(
+                "relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10.5px] font-semibold md:static",
+                isMoreOpen ? "text-primary" : "text-muted-foreground",
+              )}
             >
-              {/* Raised circular bubble — mobile only */}
-              <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
-                <MoreHorizontal className="h-6 w-6" />
-              </span>
-              <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
+              {isMoreOpen ? (
+                <>
+                  {/* Raised circular bubble — mobile only, only while the sheet is open */}
+                  <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
+                    <MoreHorizontal className="h-6 w-6" />
+                  </span>
+                  <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
 
-              {/* Plain rail tab — tablet/desktop only */}
-              <MoreHorizontal className="hidden h-5 w-5 md:block" />
+                  {/* Plain rail tab — tablet/desktop only */}
+                  <MoreHorizontal className="hidden h-5 w-5 md:block" />
+                </>
+              ) : (
+                <MoreHorizontal className="h-5 w-5" />
+              )}
 
               <span className="mt-1 md:mt-0.5">More</span>
             </button>
@@ -784,22 +797,31 @@ function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
             title={label}
             aria-label={label}
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden px-1 text-[10.5px] font-semibold",
+              "relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10.5px] font-semibold",
               active ? "text-primary" : "text-muted-foreground",
             )}
           >
-            <Icon className={cn("h-5 w-5", active && "scale-110")} />
-            <span className="w-full truncate text-center leading-tight">{shortLabel ?? label}</span>
+            {active ? (
+              <>
+                {/* Raised circular bubble — mobile only, active tab pops up */}
+                <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
+                  <Icon className="h-6 w-6" />
+                </span>
+                <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
+
+                {/* Plain rail tab — tablet/desktop only */}
+                <Icon className="hidden h-5 w-5 md:block" />
+              </>
+            ) : (
+              <Icon className="h-5 w-5" />
+            )}
+
+            <span className="mt-1 w-full truncate text-center leading-tight md:mt-0.5">
+              {shortLabel ?? label}
+            </span>
           </Link>
         );
       })}
-
-      {/* Decorative home-indicator bar — mobile only, purely visual */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 mx-auto hidden h-1 w-28 rounded-full bg-foreground/15 max-md:block"
-        style={{ bottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))" }}
-      />
     </nav>
   );
 }
@@ -1057,7 +1079,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             mobile and a left icon rail on tablet/desktop.
            ======================================== */}
 
-        {!worker && <BottomNav onOpenMore={() => setMobileMoreOpen(true)} />}
+        {!worker && (
+          <BottomNav
+            onOpenMore={() => setMobileMoreOpen(true)}
+            isMoreOpen={mobileMoreOpen}
+          />
+        )}
       </div>
     </div>
   );

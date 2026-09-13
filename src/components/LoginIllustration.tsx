@@ -2,9 +2,7 @@
  * Decorative login-screen illustration: a construction worker in a hi-vis
  * vest and hard hat holding up a phone that shows a miniature dashboard
  * screenshot — stat cards, a bar chart, a bottom nav row — echoing the
- * app's actual Dashboard page instead of a few abstract rectangles. The
- * hand gripping the phone's bottom edge is the actual app logo (clipped
- * to a circle) rather than a plain skin-tone shape.
+ * app's actual Dashboard page instead of a few abstract rectangles.
  *
  * Colors are hardcoded (not `var(--color-*)`) on purpose — this is a
  * static decorative graphic on the signed-out screen, and CSS custom
@@ -17,8 +15,6 @@
  * phone) so the figure always reads as one connected shape holding the
  * device, never floating pieces.
  */
-import logo from "@/assets/logo.png";
-
 export function LoginIllustration({ className }: { className?: string }) {
   return (
     <svg
@@ -61,9 +57,6 @@ export function LoginIllustration({ className }: { className?: string }) {
           <stop offset="0%" stopColor="#0f1a13" stopOpacity="0.16" />
           <stop offset="100%" stopColor="#0f1a13" stopOpacity="0" />
         </radialGradient>
-        <clipPath id="li-hand-logo">
-          <circle cx="181" cy="128" r="10.5" />
-        </clipPath>
       </defs>
 
       {/* soft background blobs */}
@@ -159,20 +152,6 @@ export function LoginIllustration({ className }: { className?: string }) {
       <rect x="181" y="107" width="6" height="19" rx="1.5" fill="url(#li-bar)" />
       <rect x="191" y="114" width="6" height="12" rx="1.5" fill="url(#li-bar)" />
       <rect x="201" y="109" width="6" height="17" rx="1.5" fill="url(#li-bar)" />
-
-      {/* hand gripping the phone — actual app logo, clipped to a circle, drawn
-          last so it sits on top of the phone's bottom edge */}
-      <circle cx="181" cy="128" r="10.5" fill="#ffffff" />
-      <image
-        href={logo}
-        x="170.5"
-        y="117.5"
-        width="21"
-        height="21"
-        clipPath="url(#li-hand-logo)"
-        preserveAspectRatio="xMidYMid slice"
-      />
-      <circle cx="181" cy="128" r="10.5" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.8" />
     </svg>
   );
 }

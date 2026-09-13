@@ -650,17 +650,12 @@ export function Gate({ children }: { children: ReactNode }) {
         <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-8 md:px-10 lg:px-14 lg:py-12">
           <div className="w-full max-w-[360px] space-y-6">
             <div className="text-center lg:text-left">
-              <div className="mb-2 flex items-center justify-center gap-2 text-lg font-bold lg:hidden">
-                <img src={logo} alt="" className="h-9 w-9 object-contain" />
-                <span className="text-primary">MBS</span>
-                <span className="text-accent">CENTRING WORKS</span>
-              </div>
+              
+              
 
               <LoginIllustration className="mx-auto mb-4 h-48 w-full max-w-[220px] lg:hidden" />
 
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Login
-              </h1>
+              
               <p className="mt-2 text-base font-semibold text-foreground/85 lg:hidden">
                 Let's get started
               </p>

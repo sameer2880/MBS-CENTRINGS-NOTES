@@ -14,7 +14,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { name: "theme-color", content: "#0d141c" },
+      { name: "theme-color", content: "#f3f6ee" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -37,11 +37,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: RootComponent,
 });
 
+// Runs synchronously in <head>, before anything paints, so the status bar
+// color is correct on the very first frame instead of flashing/mismatching.
+// Keep the hex values below in sync with `--background` in styles.css.
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = localStorage.getItem("mbs-theme");
+    var isDark = stored === "dark";
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    }
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", isDark ? "#0e1911" : "#f3f6ee");
+    }
+  } catch (e) {}
+})();
+`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
         {children}

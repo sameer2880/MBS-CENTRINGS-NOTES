@@ -891,6 +891,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("dark", next);
 
     localStorage.setItem("mbs-theme", next ? "dark" : "light");
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", next ? "#0e1911" : "#f3f6ee");
+    }
   };
 
   const sharedSidebarProps = {

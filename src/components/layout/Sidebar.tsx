@@ -774,9 +774,12 @@ function BottomNav({
   const tabClass =
     "group relative flex flex-1 items-center justify-center md:flex-none md:flex-col md:gap-0.5";
 
+  // Flat square chips, not circles: unselected tabs are icon-only with
+  // no background so they sit quietly against the pill; the active tab
+  // gets a solid rounded-square fill instead of a circle or bubble.
   const iconWrapClass = (active: boolean) =>
     cn(
-      "flex h-11 w-11 items-center justify-center rounded-full transition-colors md:h-auto md:w-auto md:rounded-xl",
+      "flex h-11 w-11 items-center justify-center rounded-2xl transition-colors md:h-auto md:w-auto",
       active
         ? "bg-primary text-primary-foreground md:bg-sidebar-accent md:text-primary"
         : "text-muted-foreground",

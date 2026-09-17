@@ -310,14 +310,17 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-        {/* ===================================
-          MOBILE/TABLET LOGO/TITLE
-          Desktop shows the logo inside the full
-          sidebar. Workers keep this header logo
-          until the desktop sidebar is available.
+      {/* ================================
+          ADMIN / MANAGER SIDEBAR
+         ================================ */}
+      {!isWorkerSidebar && (
+        <>
+          {/* MOBILE/TABLET LOGO + TITLE */}
+          <div className="flex items-center gap-2 p-4 lg:hidden">
+            <img
               src={logo}
               alt="MBS"
-        <div className="flex items-center gap-2 lg:hidden">
+              className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
             />
 
             <div className="min-w-0">
@@ -454,12 +457,18 @@ function MobileMoreSheet({
   // one tap away, so repeating it here would just be clutter.
   const secondary = links.filter((l) => !l.primary);
 
+  // Same shape language as the floating pill nav: soft rounded rows,
+  // circular icon chips, and section separation by spacing + surface
+  // tint rather than full-width hairline rules.
+  const rowClass =
+    "flex w-full items-center gap-3 rounded-2xl bg-sidebar-accent/45 px-4 py-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent";
+
   return (
-    <div className="flex max-h-[80vh] flex-col overflow-y-auto pb-[env(safe-area-inset-bottom,0px)]">
-      <div className="mx-auto mt-1 h-1.5 w-10 shrink-0 rounded-full bg-sidebar-foreground/20" />
+    <div className="flex max-h-[82vh] flex-col overflow-y-auto px-4 pb-5 pt-2">
+      <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-sidebar-foreground/20" />
 
       {secondary.length > 0 && (
-        <div className="grid grid-cols-4 gap-1 px-3 pt-4">
+        <div className="mt-4 grid grid-cols-4 gap-2">
           {secondary.map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
 
@@ -468,17 +477,28 @@ function MobileMoreSheet({
                 key={to}
                 to={to}
                 onClick={onNav}
-                className="touch-target flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+                className={cn(
+                  "flex flex-col items-center gap-2 rounded-3xl px-1 py-3 text-center transition-colors",
+                  active ? "bg-primary/10" : "hover:bg-sidebar-accent/60",
+                )}
               >
                 <span
                   className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full",
-                    active ? "bg-primary text-primary-foreground" : "bg-sidebar-accent/70 text-sidebar-foreground",
+                    "flex h-12 w-12 items-center justify-center rounded-full",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-sidebar-accent/70 text-sidebar-foreground",
                   )}
                 >
                   <Icon className="h-5 w-5" />
                 </span>
-                <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-sidebar-foreground">
+
+                <span
+                  className={cn(
+                    "line-clamp-2 text-[11px] font-semibold leading-tight",
+                    active ? "text-primary" : "text-sidebar-foreground",
+                  )}
+                >
                   {label}
                 </span>
               </Link>
@@ -487,31 +507,36 @@ function MobileMoreSheet({
         </div>
       )}
 
-      <div className="mt-3 space-y-2.5 border-t border-sidebar-border p-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onToggleTheme}
-          className="w-full justify-center gap-2 font-semibold"
-        >
-          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {/* ---- Account / settings rows ---- */}
+      <div className="mt-5 space-y-2">
+        <button type="button" onClick={onToggleTheme} className={rowClass}>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar text-sidebar-foreground">
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </span>
           {dark ? "Light mode" : "Dark mode"}
-        </Button>
+        </button>
 
         {isWorkerSidebar ? (
-          <WorkerLocationToggle workerId={workerId ?? null} />
+          <div className={rowClass}>
+            <WorkerLocationToggle workerId={workerId ?? null} />
+          </div>
         ) : (
-          <ChangePasswordDialog />
+          <div className="[&_button]:h-auto [&_button]:w-full [&_button]:justify-start [&_button]:gap-3 [&_button]:rounded-2xl [&_button]:border-0 [&_button]:bg-sidebar-accent/45 [&_button]:px-4 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button:hover]:bg-sidebar-accent">
+            <ChangePasswordDialog />
+          </div>
         )}
 
         {isWorkerSidebar && <ExploreLinks />}
+      </div>
 
+      {/* ---- Signed-in card + sign out ---- */}
+      <div className="mt-5 rounded-3xl bg-sidebar-accent/35 p-4">
         {isWorkerSidebar ? (
           <div className="min-w-0 text-sm">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
               Signed in as
             </div>
-            <div className="truncate font-semibold">{workerName || "Worker"}</div>
+            <div className="truncate text-base font-bold">{workerName || "Worker"}</div>
           </div>
         ) : (
           <SignedInLabel />
@@ -531,7 +556,7 @@ function MobileMoreSheet({
             variant={isWorkerSidebar ? "outline" : "default"}
             size="sm"
             className={cn(
-              "w-full justify-center rounded-lg font-semibold",
+              "mt-3 h-11 w-full justify-center rounded-full font-semibold",
               isWorkerSidebar
                 ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 : "bg-primary",
@@ -730,18 +755,35 @@ function BottomNav({
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
-  // "More" now sits last in the row rather than the middle — it still
-  // pops up into the same raised circular bubble as any other active
-  // tab, just while its own sheet is open (see `isMoreOpen` above). On
-  // the tablet/desktop rail it's a normal full-width row item like
-  // every other tab (see the `md:` overrides below).
   const items = [
     ...tabs.map((t) => ({ ...t, isMore: false as const })),
-    { to: "__more__", label: "More", shortLabel: undefined, icon: MoreHorizontal, isMore: true as const },
+    {
+      to: "__more__",
+      label: "More",
+      shortLabel: undefined,
+      icon: MoreHorizontal,
+      isMore: true as const,
+    },
   ];
 
+  // Shared pill-tab shape. On mobile the active tab is a filled circle
+  // sitting INSIDE the pill (no raised bubble, no ring in the page
+  // background colour) — the ring was what read as a stray line/notch
+  // cutting across the bar. On the md+ rail it goes back to a plain
+  // full-width row item with a rounded-square active state.
+  const tabClass =
+    "group relative flex flex-1 items-center justify-center md:flex-none md:flex-col md:gap-0.5";
+
+  const iconWrapClass = (active: boolean) =>
+    cn(
+      "flex h-11 w-11 items-center justify-center rounded-full transition-colors md:h-auto md:w-auto md:rounded-xl",
+      active
+        ? "bg-primary text-primary-foreground md:bg-sidebar-accent md:text-primary"
+        : "text-muted-foreground",
+    );
+
   return (
-    <nav className="shell-bottomnav relative flex items-stretch" aria-label="Primary">
+    <nav className="shell-bottomnav flex items-center" aria-label="Primary">
       <Link
         to="/dashboard"
         aria-label="Dashboard"
@@ -762,27 +804,22 @@ function BottomNav({
               type="button"
               onClick={onOpenMore}
               aria-label="More"
-              className={cn(
-                "relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10.5px] font-semibold md:static",
-                isMoreOpen ? "text-primary" : "text-muted-foreground",
-              )}
+              title="More"
+              className={tabClass}
             >
-              {isMoreOpen ? (
-                <>
-                  {/* Raised circular bubble — mobile only, only while the sheet is open */}
-                  <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
-                    <MoreHorizontal className="h-6 w-6" />
-                  </span>
-                  <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
-
-                  {/* Plain rail tab — tablet/desktop only */}
-                  <MoreHorizontal className="hidden h-5 w-5 md:block" />
-                </>
-              ) : (
+              <span className={iconWrapClass(isMoreOpen)}>
                 <MoreHorizontal className="h-5 w-5" />
-              )}
+              </span>
 
-              <span className="mt-1 md:mt-0.5">More</span>
+              {/* Label: rail only — the mobile pill is icon-only */}
+              <span
+                className={cn(
+                  "hidden text-[10.5px] font-semibold md:block",
+                  isMoreOpen ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                More
+              </span>
             </button>
           );
         }
@@ -791,32 +828,17 @@ function BottomNav({
         const active = path === to || path.startsWith(to + "/");
 
         return (
-          <Link
-            key={to}
-            to={to}
-            title={label}
-            aria-label={label}
-            className={cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10.5px] font-semibold",
-              active ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            {active ? (
-              <>
-                {/* Raised circular bubble — mobile only, active tab pops up */}
-                <span className="absolute -top-7 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_24px_-6px_rgb(79,122,61,0.55)] ring-[5px] ring-background transition-transform active:scale-95 md:hidden">
-                  <Icon className="h-6 w-6" />
-                </span>
-                <span aria-hidden className="h-5 w-11 shrink-0 md:hidden" />
-
-                {/* Plain rail tab — tablet/desktop only */}
-                <Icon className="hidden h-5 w-5 md:block" />
-              </>
-            ) : (
+          <Link key={to} to={to} title={label} aria-label={label} className={tabClass}>
+            <span className={iconWrapClass(active)}>
               <Icon className="h-5 w-5" />
-            )}
+            </span>
 
-            <span className="mt-1 w-full truncate text-center leading-tight md:mt-0.5">
+            <span
+              className={cn(
+                "hidden w-full truncate text-center text-[10.5px] font-semibold leading-tight md:block",
+                active ? "text-primary" : "text-muted-foreground",
+              )}
+            >
               {shortLabel ?? label}
             </span>
           </Link>
@@ -965,7 +987,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
               <SheetContent
                 side="bottom"
-                className="max-h-[85vh] rounded-t-3xl border-t border-sidebar-border p-0 text-sidebar-foreground shadow-2xl [&>button]:hidden"
+                className="inset-x-auto bottom-[calc(0.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 max-h-[85vh] rounded-[2rem] border-0 bg-sidebar p-0 text-sidebar-foreground shadow-[0_18px_48px_-12px_rgb(22_38_28/35%)] [&>button]:hidden"
               >
                 <MobileMoreSheet
                   onNav={() => setMobileMoreOpen(false)}

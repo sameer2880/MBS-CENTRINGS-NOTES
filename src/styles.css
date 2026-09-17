@@ -352,12 +352,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
 }
 
-/* ---- Floating pill bottom tab bar ---------------------------------------
-   Mobile: a detached, fully rounded pill that floats above the bottom
-   edge. No border-top, no divider, no hairline of any kind — the only
-   depth cue is a soft drop shadow, so nothing reads as a line above or
-   below the bar. md+ turns the exact same element back into the left
-   icon rail. */
+/* ---- Floating nav pill + separate round action button -------------------
+   Mobile: two detached floating shapes sitting on the same row — a
+   rounded pill holding the primary tabs, and a separate round button
+   beside it (the reference's "+" button in its own circle, not glued
+   into the same bar). Neither has a border/hairline; only a soft drop
+   shadow gives them depth. md+ collapses both into one plain rail
+   column, same as before. */
 .shell-bottomnav {
   position: fixed;
   left: 50%;
@@ -366,35 +367,50 @@
   z-index: 40;
   width: min(calc(100% - 1.5rem), 26rem);
   height: 4rem;
-  padding: 0 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.shell-navpill {
+  flex: 1 1 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0.4rem;
   background-color: #ffffff;
-  border: 0;
   border-radius: 999px;
   box-shadow: 0 12px 30px -10px rgb(22 38 28 / 28%);
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
-.dark .shell-bottomnav {
-  /* Noticeably lighter than the page background (#0e1911) plus a hairline
-     border, so the pill reads as a raised surface instead of blending
-     into the page the way an equally-dark pill did. */
+.dark .shell-navpill {
   background-color: #24382a;
   border: 1px solid rgb(168 217 119 / 16%);
   box-shadow: 0 12px 30px -10px rgb(0 0 0 / 55%);
 }
+.shell-morefab {
+  flex: none;
+  display: flex;
+  width: 4rem;
+  height: 4rem;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 12px 30px -10px rgb(22 38 28 / 28%);
+}
+.dark .shell-morefab {
+  background-color: #24382a;
+  border: 1px solid rgb(168 217 119 / 16%);
+  box-shadow: 0 12px 30px -10px rgb(0 0 0 / 55%);
+}
+.shell-morefab-active {
+  background-color: var(--color-sidebar-accent);
+}
 /* Reserve room at the bottom of scrollable page content for the floating
-   pill, so the last card/row is never hidden behind it. */
+   nav, so the last card/row is never hidden behind it. */
 .shell-content-offset {
   padding-bottom: calc(4rem + 0.85rem + env(safe-area-inset-bottom, 0px) + 1rem);
 }
 @media (min-width: 768px) {
-  .dark .shell-bottomnav {
-    background-color: #0f1c14;
-    border: 0;
-    border-right: 1px solid var(--color-border);
-    box-shadow: none;
-  }
-
   .shell-bottomnav {
     left: 0;
     transform: none;
@@ -404,20 +420,44 @@
     padding: 0.75rem 0.5rem;
     flex-direction: column;
     align-items: stretch;
-    justify-content: flex-start;
     gap: 0.25rem;
     border-right: 1px solid var(--color-border);
-    border-radius: 0;
-    box-shadow: none;
     background-color: #f5f8f0;
   }
   .dark .shell-bottomnav {
     background-color: #0f1c14;
-    box-shadow: none;
   }
 
-  .shell-bottomnav > a,
-  .shell-bottomnav > button {
+  /* At the rail, the pill and the fab both flatten into plain,
+     unstyled containers — the rail itself (.shell-bottomnav above)
+     carries the one shared background, same as the original design. */
+  .shell-navpill {
+    flex: 1 1 auto;
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0;
+    background-color: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .shell-morefab {
+    width: 100%;
+    height: 3.5rem;
+    flex-direction: column;
+    gap: 0.125rem;
+    background-color: transparent;
+    border: 0;
+    border-radius: 0.75rem;
+    box-shadow: none;
+  }
+  .shell-morefab-active {
+    background-color: var(--color-sidebar-accent);
+  }
+
+  .shell-navpill > a {
     flex: none;
     width: 100%;
     height: 3.5rem;

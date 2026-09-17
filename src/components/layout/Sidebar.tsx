@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Package,
+  Home,
+  Boxes,
   FileBarChart,
   Receipt,
   Menu,
@@ -9,7 +9,7 @@ import {
   Sun,
   LogOut,
   NotebookPen,
-  Film,
+  Clapperboard,
   HardHat,
   RefreshCw,
   Globe,
@@ -19,7 +19,7 @@ import {
   Phone,
   MapPin,
   MapPinned,
-  MessageSquare,
+  MessagesSquare,
   UserCog,
   Compass,
   MoreHorizontal,
@@ -58,13 +58,13 @@ const nav = [
   {
     to: "/dashboard",
     label: "Dashboard",
-    icon: LayoutDashboard,
+    icon: Home,
     primary: true,
   },
   {
     to: "/rentals",
     label: "Rentals",
-    icon: Package,
+    icon: Boxes,
     primary: true,
   },
   {
@@ -106,13 +106,13 @@ const nav = [
   {
     to: "/reels",
     label: "Reel Management",
-    icon: Film,
+    icon: Clapperboard,
     adminOnly: true,
   },
   {
     to: "/feedback",
     label: "Worker Feedback",
-    icon: MessageSquare,
+    icon: MessagesSquare,
     adminOnly: true,
   },
 ];
@@ -468,7 +468,7 @@ function MobileMoreSheet({
       <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-sidebar-foreground/20" />
 
       {secondary.length > 0 && (
-        <div className="mt-4 grid grid-cols-4 gap-2">
+        <div className="mt-4 grid grid-cols-4 gap-2.5">
           {secondary.map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
 
@@ -478,27 +478,15 @@ function MobileMoreSheet({
                 to={to}
                 onClick={onNav}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-3xl px-1 py-3 text-center transition-colors",
-                  active ? "bg-primary/10" : "hover:bg-sidebar-accent/60",
+                  "flex flex-col items-center gap-2 rounded-2xl px-1 py-4 text-center transition-colors",
+                  active
+                    ? "bg-primary/15 text-primary"
+                    : "bg-sidebar-accent/25 text-sidebar-foreground hover:bg-sidebar-accent/45",
                 )}
               >
-                <span
-                  className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-full",
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-sidebar-accent/70 text-sidebar-foreground",
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
+                <Icon className="h-5 w-5" />
 
-                <span
-                  className={cn(
-                    "line-clamp-2 text-[11px] font-semibold leading-tight",
-                    active ? "text-primary" : "text-sidebar-foreground",
-                  )}
-                >
+                <span className="line-clamp-2 text-[11px] font-semibold leading-tight">
                   {label}
                 </span>
               </Link>
@@ -755,38 +743,18 @@ function BottomNav({
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
-  const items = [
-    ...tabs.map((t) => ({ ...t, isMore: false as const })),
-    {
-      to: "__more__",
-      label: "More",
-      shortLabel: undefined,
-      icon: MoreHorizontal,
-      isMore: true as const,
-    },
-  ];
-
-  // Shared pill-tab shape. On mobile the active tab is a filled circle
-  // sitting INSIDE the pill (no raised bubble, no ring in the page
-  // background colour) — the ring was what read as a stray line/notch
-  // cutting across the bar. On the md+ rail it goes back to a plain
-  // full-width row item with a rounded-square active state.
+  // Shared tab shape for the 4 items that live inside the pill. Icon-only
+  // on mobile with a plain-outline look (no per-tab background, active or
+  // not) — the active/inactive difference is icon + label colour, same as
+  // the reference. Labels + a background come back at md+ for the rail.
   const tabClass =
-    "group relative flex flex-1 items-center justify-center md:flex-none md:flex-col md:gap-0.5";
+    "group relative flex flex-1 flex-col items-center justify-center gap-0.5 md:flex-none md:rounded-xl md:py-2";
 
-  // Flat square chips, not circles: unselected tabs are icon-only with
-  // no background so they sit quietly against the pill; the active tab
-  // gets a solid rounded-square fill instead of a circle or bubble.
-  const iconWrapClass = (active: boolean) =>
-    cn(
-      "flex h-11 w-11 items-center justify-center rounded-2xl transition-colors md:h-auto md:w-auto",
-      active
-        ? "bg-primary text-primary-foreground md:bg-sidebar-accent md:text-primary"
-        : "text-muted-foreground",
-    );
+  const iconClass = (active: boolean) =>
+    cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground");
 
   return (
-    <nav className="shell-bottomnav flex items-center" aria-label="Primary">
+    <nav className="shell-bottomnav" aria-label="Primary">
       <Link
         to="/dashboard"
         aria-label="Dashboard"
@@ -799,54 +767,44 @@ function BottomNav({
         />
       </Link>
 
-      {items.map((item) => {
-        if (item.isMore) {
-          return (
-            <button
-              key="more"
-              type="button"
-              onClick={onOpenMore}
-              aria-label="More"
-              title="More"
-              className={tabClass}
-            >
-              <span className={iconWrapClass(isMoreOpen)}>
-                <MoreHorizontal className="h-5 w-5" />
-              </span>
+      {/* Rounded pill holding the primary tabs — everything else (the
+          "More" trigger) is a separate detached circle, matching the
+          reference where the tab group and the round action button
+          are two distinct floating shapes, not one continuous bar. */}
+      <div className="shell-navpill">
+        {tabs.map((item) => {
+          const { to, label, shortLabel, icon: Icon } = item;
+          const active = path === to || path.startsWith(to + "/");
 
-              {/* Label: rail only — the mobile pill is icon-only */}
+          return (
+            <Link key={to} to={to} title={label} aria-label={label} className={tabClass}>
+              <Icon className={iconClass(active)} />
+
               <span
                 className={cn(
-                  "hidden text-[10.5px] font-semibold md:block",
-                  isMoreOpen ? "text-primary" : "text-muted-foreground",
+                  "hidden w-full truncate text-center text-[10.5px] font-semibold leading-tight md:block",
+                  active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                More
+                {shortLabel ?? label}
               </span>
-            </button>
+            </Link>
           );
-        }
+        })}
+      </div>
 
-        const { to, label, shortLabel, icon: Icon } = item;
-        const active = path === to || path.startsWith(to + "/");
-
-        return (
-          <Link key={to} to={to} title={label} aria-label={label} className={tabClass}>
-            <span className={iconWrapClass(active)}>
-              <Icon className="h-5 w-5" />
-            </span>
-
-            <span
-              className={cn(
-                "hidden w-full truncate text-center text-[10.5px] font-semibold leading-tight md:block",
-                active ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {shortLabel ?? label}
-            </span>
-          </Link>
-        );
-      })}
+      <button
+        type="button"
+        onClick={onOpenMore}
+        aria-label="More"
+        title="More"
+        className={cn("shell-morefab", isMoreOpen && "shell-morefab-active")}
+      >
+        <MoreHorizontal className={cn("h-5 w-5", isMoreOpen ? "text-primary" : "text-muted-foreground")} />
+        <span className={cn("hidden text-[10.5px] font-semibold md:block", isMoreOpen ? "text-primary" : "text-muted-foreground")}>
+          More
+        </span>
+      </button>
     </nav>
   );
 }

@@ -480,7 +480,7 @@ function MobileMoreSheet({
                 className={cn(
                   "flex flex-col items-center gap-2 rounded-2xl px-1 py-4 text-center transition-colors",
                   active
-                    ? "bg-primary/15 text-primary"
+                    ? "bg-foreground text-background"
                     : "bg-sidebar-accent/25 text-sidebar-foreground hover:bg-sidebar-accent/45",
                 )}
               >
@@ -646,7 +646,7 @@ function MoreFlyout({
                       className={cn(
                         "flex h-11 w-11 items-center justify-center rounded-full",
                         active
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-foreground text-background"
                           : "bg-sidebar-accent/70 text-sidebar-foreground",
                       )}
                     >
@@ -743,16 +743,6 @@ function BottomNav({
   const primary = links.filter((l) => l.primary).slice(0, 4);
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
-  // Shared tab shape for the 4 items that live inside the pill. Icon-only
-  // on mobile with a plain-outline look (no per-tab background, active or
-  // not) — the active/inactive difference is icon + label colour, same as
-  // the reference. Labels + a background come back at md+ for the rail.
-  const tabClass =
-    "group relative flex flex-1 flex-col items-center justify-center gap-0.5 md:flex-none md:rounded-xl md:py-2";
-
-  const iconClass = (active: boolean) =>
-    cn("h-5 w-5 transition-colors", active ? "text-primary" : "text-muted-foreground");
-
   return (
     <nav className="shell-bottomnav" aria-label="Primary">
       <Link
@@ -767,44 +757,36 @@ function BottomNav({
         />
       </Link>
 
-      {/* Rounded pill holding the primary tabs — everything else (the
-          "More" trigger) is a separate detached circle, matching the
-          reference where the tab group and the round action button
-          are two distinct floating shapes, not one continuous bar. */}
-      <div className="shell-navpill">
+      <div className="shell-navbar">
         {tabs.map((item) => {
           const { to, label, shortLabel, icon: Icon } = item;
           const active = path === to || path.startsWith(to + "/");
 
           return (
-            <Link key={to} to={to} title={label} aria-label={label} className={tabClass}>
-              <Icon className={iconClass(active)} />
-
-              <span
-                className={cn(
-                  "hidden w-full truncate text-center text-[10.5px] font-semibold leading-tight md:block",
-                  active ? "text-primary" : "text-muted-foreground",
-                )}
-              >
-                {shortLabel ?? label}
-              </span>
+            <Link
+              key={to}
+              to={to}
+              title={label}
+              aria-label={label}
+              className={cn("shell-navtab", active && "shell-navtab-active")}
+            >
+              <Icon className="shell-navtab-icon" />
+              <span className="shell-navtab-label">{shortLabel ?? label}</span>
             </Link>
           );
         })}
-      </div>
 
-      <button
-        type="button"
-        onClick={onOpenMore}
-        aria-label="More"
-        title="More"
-        className={cn("shell-morefab", isMoreOpen && "shell-morefab-active")}
-      >
-        <MoreHorizontal className={cn("h-5 w-5", isMoreOpen ? "text-primary" : "text-muted-foreground")} />
-        <span className={cn("hidden text-[10.5px] font-semibold md:block", isMoreOpen ? "text-primary" : "text-muted-foreground")}>
-          More
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={onOpenMore}
+          aria-label="More"
+          title="More"
+          className={cn("shell-navtab", isMoreOpen && "shell-navtab-active")}
+        >
+          <MoreHorizontal className="shell-navtab-icon" />
+          <span className="shell-navtab-label">More</span>
+        </button>
+      </div>
     </nav>
   );
 }

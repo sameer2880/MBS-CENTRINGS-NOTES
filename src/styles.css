@@ -361,13 +361,13 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
 }
 
-/* ---- Floating nav pill + separate round action button -------------------
-   Mobile: two detached floating shapes sitting on the same row — a
-   rounded pill holding the primary tabs, and a separate round button
-   beside it (the reference's "+" button in its own circle, not glued
-   into the same bar). Neither has a border/hairline; only a soft drop
-   shadow gives them depth. md+ collapses both into one plain rail
-   column, same as before. */
+/* ---- Unified mobile navigation bar ----------------------------------------
+   Mobile: one continuous floating navigation bar that matches the
+   application's sage/forest-green theme. The bar is intentionally distinct
+   from the page/cards so it remains easy to see in both light and dark mode.
+   The active tab uses the deep forest brand color in light mode and the
+   brighter lime brand accent in dark mode.
+   md+ collapses into the existing plain icon rail. */
 .shell-bottomnav {
   position: fixed;
   left: 50%;
@@ -378,47 +378,108 @@
   height: 4rem;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
 }
-.shell-navpill {
+
+.shell-navbar {
   flex: 1 1 auto;
   height: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 0.4rem;
-  background-color: #ffffff;
+  background-color: #e8f0e3;
+  border: 1px solid rgb(79 122 61 / 18%);
   border-radius: 999px;
-  box-shadow: 0 12px 30px -10px rgb(22 38 28 / 28%);
+  box-shadow:
+    0 12px 30px -10px rgb(22 38 28 / 24%),
+    0 2px 8px rgb(79 122 61 / 8%);
 }
-.dark .shell-navpill {
-  background-color: #24382a;
-  border: 1px solid rgb(168 217 119 / 16%);
-  box-shadow: 0 12px 30px -10px rgb(0 0 0 / 55%);
+
+.dark .shell-navbar {
+  background-color: #17291e;
+  border: 1px solid rgb(168 217 119 / 22%);
+  box-shadow:
+    0 12px 30px -10px rgb(0 0 0 / 60%),
+    0 2px 10px rgb(168 217 119 / 5%);
 }
-.shell-morefab {
-  flex: none;
+
+.shell-navtab {
   display: flex;
-  width: 4rem;
-  height: 4rem;
+  flex: none;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
+  gap: 0.375rem;
+  height: 2.75rem;
+  padding: 0 0.65rem;
   border-radius: 999px;
-  box-shadow: 0 12px 30px -10px rgb(22 38 28 / 28%);
+  color: #587052;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    padding 0.15s ease,
+    box-shadow 0.15s ease;
 }
-.dark .shell-morefab {
-  background-color: #24382a;
-  border: 1px solid rgb(168 217 119 / 16%);
-  box-shadow: 0 12px 30px -10px rgb(0 0 0 / 55%);
+
+.dark .shell-navtab {
+  color: #b6cbb8;
 }
-.shell-morefab-active {
-  background-color: var(--color-sidebar-accent);
+
+.shell-navtab:hover {
+  background-color: rgb(79 122 61 / 8%);
+  color: #2f5129;
 }
+
+.dark .shell-navtab:hover {
+  background-color: rgb(168 217 119 / 9%);
+  color: #d7ebc4;
+}
+
+.shell-navtab-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+
+.shell-navtab-label {
+  display: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.shell-navtab-active {
+  background-color: #16261c;
+  color: #ffffff;
+  padding: 0 0.95rem;
+  box-shadow: 0 4px 12px rgb(22 38 28 / 18%);
+}
+
+.shell-navtab-active:hover {
+  background-color: #16261c;
+  color: #ffffff;
+}
+
+.dark .shell-navtab-active {
+  background-color: #a8d977;
+  color: #16261c;
+  box-shadow: 0 4px 14px rgb(168 217 119 / 18%);
+}
+
+.dark .shell-navtab-active:hover {
+  background-color: #a8d977;
+  color: #16261c;
+}
+
+.shell-navtab-active .shell-navtab-label {
+  display: inline-block;
+}
+
 /* Reserve room at the bottom of scrollable page content for the floating
    nav, so the last card/row is never hidden behind it. */
 .shell-content-offset {
   padding-bottom: calc(4rem + 0.85rem + env(safe-area-inset-bottom, 0px) + 1rem);
 }
+
 @media (min-width: 768px) {
   .shell-bottomnav {
     left: 0;
@@ -433,18 +494,19 @@
     border-right: 1px solid var(--color-border);
     background-color: #f5f8f0;
   }
+
   .dark .shell-bottomnav {
     background-color: #0f1c14;
   }
 
-  /* At the rail, the pill and the fab both flatten into plain,
-     unstyled containers — the rail itself (.shell-bottomnav above)
-     carries the one shared background, same as the original design. */
-  .shell-navpill {
+  /* At the rail, the bar flattens into a plain, unstyled column — the
+     rail itself (.shell-bottomnav above) carries the shared background. */
+  .shell-navbar {
     flex: 1 1 auto;
     height: auto;
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
     gap: 0.25rem;
     padding: 0;
     background-color: transparent;
@@ -452,25 +514,41 @@
     border-radius: 0;
     box-shadow: none;
   }
-  .shell-morefab {
+
+  .shell-navtab {
     width: 100%;
     height: 3.5rem;
     flex-direction: column;
     gap: 0.125rem;
-    background-color: transparent;
-    border: 0;
     border-radius: 0.75rem;
-    box-shadow: none;
-  }
-  .shell-morefab-active {
-    background-color: var(--color-sidebar-accent);
+    padding: 0;
   }
 
-  .shell-navpill > a {
-    flex: none;
-    width: 100%;
-    height: 3.5rem;
-    border-radius: 0.75rem;
+  .shell-navtab:hover {
+    background-color: transparent;
+  }
+
+  .shell-navtab-active {
+    background-color: var(--color-sidebar-accent);
+    color: var(--color-primary);
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .dark .shell-navtab-active {
+    background-color: var(--color-sidebar-accent);
+    color: var(--color-primary);
+    box-shadow: none;
+  }
+
+  .shell-navtab-active:hover {
+    background-color: var(--color-sidebar-accent);
+    color: var(--color-primary);
+  }
+
+  .shell-navtab-label {
+    display: block;
+    font-size: 10.5px;
   }
 
   .shell-content-offset {

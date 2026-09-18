@@ -232,14 +232,23 @@
   background-color: #f5f8f0;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  /* Keep the header (logo, menu button, refresh) clear of the notch /
-     status bar on iOS home-screen installs, where the status bar is
-     translucent and the page draws underneath it. */
-  padding-top: env(safe-area-inset-top, 0px);
-  height: calc(4rem + env(safe-area-inset-top, 0px));
+  height: 4rem;
 }
 .dark .site-header {
   background-color: #0f1c14;
+}
+/* Keep the header (logo, menu button, refresh) clear of the notch /
+   status bar on iOS home-screen installs, where the status bar is
+   translucent and the page draws underneath it. Scoped to standalone
+   display-mode only — a regular browser tab (even with
+   viewport-fit=cover) already reserves its own chrome for the status
+   bar, so applying this unconditionally left a permanent empty gap
+   above the header there. */
+@media (display-mode: standalone) {
+  .site-header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(4rem + env(safe-area-inset-top, 0px));
+  }
 }
 
 /* The mobile slide-in sidebar (a full-height Sheet, class contains

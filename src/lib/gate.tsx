@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { LoginIllustration } from "@/components/LoginIllustration";
 import { supabase } from "@/integrations/supabase/client";
@@ -471,52 +471,45 @@ export function Gate({ children }: { children: ReactNode }) {
 
   if (pendingUser) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6">
-        <div className="w-full max-w-[420px] overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-8">
-          <div className="mb-6 text-center">
-            <img src={logo} alt="MBS Centring Works" className="mx-auto mb-3 h-14 w-14 object-contain" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Welcome, {pendingUser.name}!
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Set a password for your account to continue. You won't need to use your mobile number as
-              your password again.
-            </p>
+      <div className="flex min-h-dvh items-center justify-center bg-[#eef6e6] px-4 py-6 sm:px-6 dark:bg-background">
+        <div className="w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-border/60 bg-card p-7 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-9">
+          <div className="mb-7 flex items-center gap-2">
+            <img src={logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+            <span className="text-lg font-bold tracking-tight text-foreground">MBS Centring Works</span>
           </div>
-          <form onSubmit={submitNewPassword} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="new-password" className="text-sm font-medium text-foreground">
-                New password
-              </label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                autoComplete="new-password"
-                autoFocus
-                placeholder="Minimum 4 characters"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="new-password-confirm" className="text-sm font-medium text-foreground">
-                Confirm password
-              </label>
-              <Input
-                id="new-password-confirm"
-                type="password"
-                value={newPasswordConfirm}
-                onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                autoComplete="new-password"
-                placeholder="Re-enter password"
-              />
-            </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Welcome, {pendingUser.name}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Set a password for your account to continue. You won't need to use your mobile number as
+            your password again.
+          </p>
+          <form onSubmit={submitNewPassword} className="mt-7 space-y-4">
+            <Input
+              id="new-password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
+              autoFocus
+              placeholder="New password (min. 4 characters)"
+              className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
+            <Input
+              id="new-password-confirm"
+              type="password"
+              value={newPasswordConfirm}
+              onChange={(e) => setNewPasswordConfirm(e.target.value)}
+              autoComplete="new-password"
+              placeholder="Confirm new password"
+              className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
             {newPasswordErr && <p className="text-xs font-medium text-destructive">{newPasswordErr}</p>}
             <div className="flex gap-2 pt-1">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="h-12 flex-1 rounded-full"
                 onClick={() => {
                   setPendingUser(null);
                   setNewPassword("");
@@ -526,8 +519,8 @@ export function Gate({ children }: { children: ReactNode }) {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 font-semibold" disabled={savingNewPassword}>
-                {savingNewPassword ? "Saving…" : "Set password & continue"}
+              <Button type="submit" className="h-12 flex-1 rounded-full font-semibold" disabled={savingNewPassword}>
+                {savingNewPassword ? "Saving…" : "Continue"}
               </Button>
             </div>
           </form>
@@ -538,60 +531,50 @@ export function Gate({ children }: { children: ReactNode }) {
 
   if (forgotOpen) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6">
-        <div className="w-full max-w-[420px] overflow-hidden rounded-2xl border border-border/80 bg-card p-6 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-8">
-          <div className="mb-6 text-center">
-            <img src={logo} alt="MBS Centring Works" className="mx-auto mb-3 h-14 w-14 object-contain" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Reset password</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Enter the account name or mobile number to reset your account password.
-            </p>
+      <div className="flex min-h-dvh items-center justify-center bg-[#eef6e6] px-4 py-6 sm:px-6 dark:bg-background">
+        <div className="w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-border/60 bg-card p-7 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-9">
+          <div className="mb-7 flex items-center gap-2">
+            <img src={logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+            <span className="text-lg font-bold tracking-tight text-foreground">MBS Centring Works</span>
           </div>
-          <form onSubmit={resetAdminPassword} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="forgot-user" className="text-sm font-medium text-foreground">
-                Name or mobile number
-              </label>
-              <Input
-                id="forgot-user"
-                value={forgotUser}
-                onChange={(event) => setForgotUser(event.target.value)}
-                autoComplete="username"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="forgot-password" className="text-sm font-medium text-foreground">
-                New password
-              </label>
-              <Input
-                id="forgot-password"
-                type="password"
-                value={forgotPassword}
-                onChange={(event) => setForgotPassword(event.target.value)}
-                autoComplete="new-password"
-                placeholder="Minimum 4 characters"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="forgot-confirm" className="text-sm font-medium text-foreground">
-                Confirm new password
-              </label>
-              <Input
-                id="forgot-confirm"
-                type="password"
-                value={forgotConfirm}
-                onChange={(event) => setForgotConfirm(event.target.value)}
-                autoComplete="new-password"
-                placeholder="Re-enter password"
-              />
-            </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Reset password</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enter your account name or mobile number to reset your password.
+          </p>
+          <form onSubmit={resetAdminPassword} className="mt-7 space-y-4">
+            <Input
+              id="forgot-user"
+              value={forgotUser}
+              onChange={(event) => setForgotUser(event.target.value)}
+              autoComplete="username"
+              autoFocus
+              placeholder="Name or mobile number"
+              className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
+            <Input
+              id="forgot-password"
+              type="password"
+              value={forgotPassword}
+              onChange={(event) => setForgotPassword(event.target.value)}
+              autoComplete="new-password"
+              placeholder="New password (min. 4 characters)"
+              className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
+            <Input
+              id="forgot-confirm"
+              type="password"
+              value={forgotConfirm}
+              onChange={(event) => setForgotConfirm(event.target.value)}
+              autoComplete="new-password"
+              placeholder="Re-enter new password"
+              className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
             {forgotErr && <p className="text-xs font-medium text-destructive">{forgotErr}</p>}
             <div className="flex gap-2 pt-1">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="h-12 flex-1 rounded-full"
                 onClick={() => {
                   setForgotOpen(false);
                   setForgotErr("");
@@ -602,8 +585,8 @@ export function Gate({ children }: { children: ReactNode }) {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 font-semibold" disabled={forgotSaving}>
-                {forgotSaving ? "Resetting…" : "Reset password"}
+              <Button type="submit" className="h-12 flex-1 rounded-full font-semibold" disabled={forgotSaving}>
+                {forgotSaving ? "Resetting…" : "Reset"}
               </Button>
             </div>
           </form>
@@ -613,125 +596,113 @@ export function Gate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-6 sm:px-6 md:py-10">
-      <div className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] md:max-w-[460px] lg:max-w-[1040px] lg:flex-row lg:rounded-3xl">
-        {/* Brand panel — only room for this once the desktop rail/sidebar tier kicks in */}
-        <div className="relative hidden overflow-hidden bg-primary lg:flex lg:w-[44%] lg:flex-col lg:justify-between lg:p-10">
+    <div className="flex min-h-dvh items-center justify-center bg-[#eef6e6] px-4 py-6 sm:px-6 md:py-10 dark:bg-background">
+      <div className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-[2rem] bg-card shadow-[0_24px_70px_-12px_rgb(16_48_92/18%)] ring-1 ring-black/5 dark:shadow-[0_24px_70px_-12px_rgb(0_0_0/55%)] dark:ring-white/10 md:max-w-[460px] lg:max-w-[1000px] lg:flex-row">
+        {/* Illustration panel — only room for this once the desktop tier kicks in */}
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#7ab558] via-primary to-[#22331c] lg:flex lg:w-[46%] lg:items-center lg:justify-center">
+          {/* soft blurred accent blobs — safer and cleaner than hand-drawn shapes */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(520px circle at 10% 10%, rgb(255 255 255 / 14%), transparent 55%), radial-gradient(480px circle at 95% 95%, rgb(221 120 21 / 45%), transparent 55%), radial-gradient(360px circle at 90% 15%, rgb(59 110 165 / 40%), transparent 55%)",
-            }}
+            className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/15 blur-3xl"
           />
-          <div className="relative flex items-center gap-3 text-white">
-            <img src={logo} alt="MBS Centring Works" className="h-16 w-16 object-contain drop-shadow-md" />
-            <span className="text-xl font-extrabold leading-tight tracking-wide">
-              <span className="text-white">MBS</span>{" "}
-              <span className="text-accent">CENTRING WORKS</span>
-            </span>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-black/20 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-10 top-10 h-24 w-24 rounded-full bg-[#c8e896]/25 blur-2xl"
+          />
+
+          <div className="relative z-10 flex flex-col items-center gap-8">
+            <div className="rounded-[2.5rem] bg-white/10 p-8 backdrop-blur-sm">
+              <LoginIllustration className="h-56 w-56 drop-shadow-2xl" />
+            </div>
+            <div className="text-center text-white/90">
+              <p className="text-lg font-semibold">Centring &amp; shuttering, tracked end to end</p>
+              <p className="mt-1 text-sm text-white/60">
+                Rentals, returns, payments and worker records — all in one place.
+              </p>
+            </div>
           </div>
-          <div className="relative space-y-3 text-white">
-            <h2 className="text-3xl font-bold leading-tight">
-              Centring &amp; shuttering,
-              <br /> tracked end to end.
-            </h2>
-            <p className="max-w-xs text-sm text-white/70">
-              Rentals, returns, payments and worker records — all in one place.
-            </p>
-          </div>
-          <p className="relative text-xs text-white/50">
-            © {new Date().getFullYear()} MBS Centring Works
-          </p>
         </div>
 
         {/* Form panel — the only panel on mobile and tablet */}
-        <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-8 md:px-10 lg:px-14 lg:py-12">
-          <div className="w-full max-w-[360px] space-y-6">
-            <div className="text-center lg:text-left">
-              
-              
-
-              <LoginIllustration className="mx-auto mb-4 h-48 w-full max-w-[220px] lg:hidden" />
-
-              
-              <p className="mt-2 text-base font-semibold text-foreground/85 lg:hidden">
-                Let's get started
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Sign in to manage your records
-              </p>
+        <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-10 md:px-12 lg:px-14 lg:py-14">
+          <div className="w-full max-w-[360px]">
+            <div className="mb-8 flex items-center gap-2.5">
+              <img src={logo} alt="" className="h-9 w-9 rounded-xl object-contain shadow-sm" />
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                MBS Centring Works
+              </span>
             </div>
 
-            <form onSubmit={submit} className="space-y-5">
-              <div className="space-y-2">
-                <label htmlFor="gate-username" className="text-sm font-medium text-foreground">
-                  Email / Username / Phone
-                </label>
-                <div className="relative">
-                  <Mail aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="gate-username"
-                    value={u}
-                    onChange={(e) => setU(e.target.value)}
-                    autoFocus
-                    autoComplete="username"
-                    placeholder="username or mobile"
-                    className="h-11 pl-10"
-                  />
-                </div>
+            <div className="mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-[1.75rem] bg-gradient-to-br from-[#eaf3e2] to-[#dbe9cd] lg:hidden">
+              <LoginIllustration className="h-24 w-24" />
+            </div>
+
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">Sign in to manage your records</p>
+
+            <form onSubmit={submit} className="mt-8 space-y-3.5">
+              <Input
+                id="gate-username"
+                value={u}
+                onChange={(e) => setU(e.target.value)}
+                autoFocus
+                autoComplete="username"
+                placeholder="Username or mobile number"
+                className="h-12 rounded-full border-border bg-background px-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              />
+
+              <div className="relative">
+                <Input
+                  id="gate-password"
+                  type={showPassword ? "text" : "password"}
+                  value={p}
+                  onChange={(e) => setP(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  className="h-12 rounded-full border-border bg-background px-5 pr-12 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="gate-password" className="text-sm font-medium text-foreground">
-                  Password
-                </label>
-                <div className="relative">
-                  <LockKeyhole aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="gate-password"
-                    type={showPassword ? "text" : "password"}
-                    value={p}
-                    onChange={(e) => setP(e.target.value)}
-                    autoComplete="current-password"
-                    placeholder="Password"
-                    className="h-11 pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((visible) => !visible)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end text-sm">
+              <div className="flex items-center justify-end pt-0.5 text-sm">
                 <button
                   type="button"
                   onClick={() => {
                     setForgotOpen(true);
                     setForgotErr("");
                   }}
-                  className="font-medium text-accent underline-offset-4 transition-colors hover:text-primary hover:underline"
+                  className="font-medium text-primary underline-offset-4 transition-colors hover:underline"
                 >
-                  Forgot Password?
+                  Forgot password?
                 </button>
               </div>
 
               {err && <p className="text-xs font-medium text-destructive">{err}</p>}
 
-              <Button type="submit" className="h-11 w-full text-sm font-semibold">
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-full text-sm font-semibold shadow-md shadow-primary/20 transition-transform active:scale-[0.99]"
+              >
                 Sign in
               </Button>
             </form>
 
-            <div className="text-center text-sm text-muted-foreground">
-              Need access? <span className="font-semibold text-accent">Contact your admin</span>
-            </div>
+            <p className="mt-8 text-center text-sm text-muted-foreground">
+              Need access? <span className="font-semibold text-primary">Contact your admin</span>
+            </p>
           </div>
         </div>
       </div>

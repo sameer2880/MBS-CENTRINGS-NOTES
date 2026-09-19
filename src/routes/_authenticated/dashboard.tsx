@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, type HTMLAttributes } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { listRentals, type Rental } from "@/lib/rentals";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_ID_KEY } from "@/lib/worker-auth";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useDeviceType } from "@/hooks/use-device";
@@ -78,6 +78,18 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
+/**
+ * Card padding used across the dashboard.
+ *
+ * The shared card-content component defaults to `p-4 pt-0 sm:p-6 sm:pt-0`.
+ * Passing `p-4` only overrides the mobile value, so from `sm:` upward the top
+ * padding stayed at 0 and content sat flush against the top edge of every card.
+ * This plain wrapper owns its padding on every breakpoint instead.
+ */
+function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("min-w-0 p-4 sm:p-5", className)} {...props} />;
+}
+
 /* ------------------------------------------------------------------ */
 /* Small building blocks                                               */
 /* ------------------------------------------------------------------ */
@@ -112,7 +124,7 @@ function Segmented<T extends string>({
   value, onChange, options,
 }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
   return (
-    <div className="inline-flex rounded-full bg-muted p-1 text-xs font-medium">
+    <div className="inline-flex shrink-0 rounded-full bg-muted p-1 text-xs font-medium">
       {options.map((o) => (
         <button
           key={o.value}
@@ -256,6 +268,7 @@ function Dashboard() {
           </div>
           <Link
             to="/rentals"
+            search={{ new: true }}
             className="inline-flex h-10 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium shadow-sm transition-colors hover:bg-primary hover:text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
@@ -267,9 +280,9 @@ function Dashboard() {
       {/* ---------- Main grid ---------- */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)_minmax(0,1fr)]">
         {/* Left column: revenue card + this month */}
-        <div className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-start-1 lg:row-start-1">
           <Card>
-            <CardContent className="space-y-4 p-4">
+            <CardBody className="space-y-4">
               <CardTop
                 title="Total Revenue"
                 subtitle="All-time rental income"
@@ -283,20 +296,22 @@ function Dashboard() {
                   <span className="text-lg font-extrabold tracking-wider">MBS</span>
                   <span className="text-[11px] opacity-80">Revenue</span>
                 </div>
-                <p className="relative mt-5 text-fluid-xl font-bold sm:text-3xl">{inr(totalRevenue)}</p>
+                <p className="relative mt-5 truncate text-2xl font-bold xl:text-3xl" title={inr(totalRevenue)}>
+                  {inr(totalRevenue)}
+                </p>
                 <div className="relative mt-5 flex items-center justify-between text-[11px] opacity-80">
                   <span>{rentals.length} rentals</span>
                   <span>Nereducherla</span>
                 </div>
               </div>
-            </CardContent>
+            </CardBody>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
+          <Card className="lg:flex lg:flex-1 lg:flex-col">
+            <CardBody className="lg:flex lg:flex-1 lg:flex-col lg:justify-center">
               <p className="text-fluid-xs text-muted-foreground">This Month</p>
               <div className="mt-1 flex items-center justify-between gap-2">
-                <p className="text-fluid-xl font-semibold">{inr(monthlyRevenue)}</p>
+                <p className="min-w-0 truncate text-fluid-xl font-semibold">{inr(monthlyRevenue)}</p>
                 {monthDelta !== null && (
                   <span
                     className={cn(
@@ -309,16 +324,16 @@ function Dashboard() {
                   </span>
                 )}
               </div>
-            </CardContent>
+            </CardBody>
           </Card>
         </div>
 
         {/* Center: revenue bar chart */}
-        <Card className="lg:col-start-2 lg:row-start-1">
-          <CardContent className="p-4">
+        <Card className="min-w-0 lg:col-start-2 lg:row-start-1">
+          <CardBody>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted">
                   <TrendingUp className="h-4 w-4" />
                 </div>
                 <p className="text-fluid-sm font-semibold">Revenue</p>
@@ -405,14 +420,14 @@ function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
+          </CardBody>
         </Card>
 
         {/* Right column: trend / to collect / pending returns */}
-        <div className="grid gap-4 md:col-span-2 md:grid-cols-2 lg:col-span-1 lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:grid-cols-1 lg:content-start">
-          {/* Rentals trend */}
-          <Card>
-            <CardContent className="space-y-3 p-4">
+        <div className="grid min-w-0 gap-4 md:col-span-2 md:grid-cols-2 lg:contents">
+          {/* Rentals trend — desktop: row 1, same height as the Revenue card */}
+          <Card className="flex min-w-0 flex-col lg:col-start-3 lg:row-start-1">
+            <CardBody className="flex flex-1 flex-col gap-3">
               <CardTop title="Rentals Trend" subtitle="Last 6 months" to="/rentals" linkLabel="Open rentals" />
               <div className="text-center">
                 <p className="text-fluid-xs text-muted-foreground">
@@ -420,28 +435,30 @@ function Dashboard() {
                 </p>
                 <p className="text-fluid-3xl font-semibold">{trendValue}</p>
               </div>
-              <div style={{ height: 110 }}>
-                <ResponsiveContainer>
-                  <AreaChart data={monthly} margin={{ top: 6, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="label" hide />
-                    <YAxis hide domain={[0, (max: number) => Math.max(max, 1)]} />
-                    <Tooltip contentStyle={tooltipStyle} cursor={false} />
-                    <Area
-                      type="monotone"
-                      dataKey={trendMode}
-                      name={trendMode === "issued" ? "Issued" : "Returned"}
-                      stroke="var(--chart-1)"
-                      strokeWidth={2}
-                      fill="url(#trendFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="relative min-h-[110px] flex-1">
+                <div className="absolute inset-0">
+                  <ResponsiveContainer>
+                    <AreaChart data={monthly} margin={{ top: 6, right: 0, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
+                          <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="label" hide />
+                      <YAxis hide domain={[0, (max: number) => Math.max(max, 1)]} />
+                      <Tooltip contentStyle={tooltipStyle} cursor={false} />
+                      <Area
+                        type="monotone"
+                        dataKey={trendMode}
+                        name={trendMode === "issued" ? "Issued" : "Returned"}
+                        stroke="var(--chart-1)"
+                        strokeWidth={2}
+                        fill="url(#trendFill)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
               <div className="flex justify-center">
                 <Segmented
@@ -453,15 +470,15 @@ function Dashboard() {
                   ]}
                 />
               </div>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Amount to collect */}
-          <Card>
-            <CardContent className="space-y-4 p-4">
+          <Card className="min-w-0 lg:col-start-3 lg:row-start-2">
+            <CardBody className="space-y-4">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted">
                     <Wallet className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
@@ -484,12 +501,12 @@ function Dashboard() {
                   {unpaidShare}% of revenue
                 </span>
               </div>
-            </CardContent>
+            </CardBody>
           </Card>
 
           {/* Pending returns */}
-          <Card className="md:col-span-2 lg:col-span-1">
-            <CardContent className="space-y-3 p-4">
+          <Card className="min-w-0 md:col-span-2 lg:col-span-1 lg:col-start-3 lg:row-start-3">
+            <CardBody className="space-y-3">
               <CardTop
                 title="Pending Returns"
                 subtitle="Due today & overdue"
@@ -536,13 +553,13 @@ function Dashboard() {
                   </div>
                 ))}
               </div>
-            </CardContent>
+            </CardBody>
           </Card>
         </div>
 
         {/* Bottom: rental history */}
-        <Card className="md:col-span-2 lg:col-span-2 lg:col-start-1 lg:row-start-2">
-          <CardContent className="p-4">
+        <Card className="min-w-0 md:col-span-2 lg:col-span-2 lg:col-start-1 lg:row-span-2 lg:row-start-2">
+          <CardBody>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-fluid-sm font-semibold leading-tight">Rental History</p>
@@ -665,7 +682,7 @@ function Dashboard() {
                 </Table>
               </div>
             )}
-          </CardContent>
+          </CardBody>
         </Card>
       </div>
     </div>

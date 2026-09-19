@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -34,6 +34,11 @@ import {
 import { canDeleteRentals } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/rentals")({
+  // `/rentals?new=true` opens the "New Rental" form straight away
+  // (used by the dashboard's "New Rental" button).
+  validateSearch: (search: Record<string, unknown>): { new?: boolean } => ({
+    new: search.new === true || search.new === "true" || search.new === 1 || search.new === "1" ? true : undefined,
+  }),
   component: RentalsPage,
 });
 
@@ -66,6 +71,17 @@ function RentalsPage() {
   const [editingGroup, setEditingGroup] = useState<RentalGroup | null>(null);
   const [delGroup, setDelGroup] = useState<RentalGroup | null>(null);
   const [returnGroup, setReturnGroup] = useState<RentalGroup | null>(null);
+
+  // Arrived via the dashboard's "New Rental" button: open the add form, then
+  // drop `?new=true` from the URL so a refresh / back-navigation doesn't reopen it.
+  const { new: openNewForm } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  useEffect(() => {
+    if (!openNewForm) return;
+    setEditingGroup(null);
+    setOpen(true);
+    navigate({ search: (prev) => ({ ...prev, new: undefined }), replace: true });
+  }, [openNewForm, navigate]);
 
   const activeFilterCount = [takenDate, phoneFilter, nameFilter, placeFilter].filter(Boolean).length;
 

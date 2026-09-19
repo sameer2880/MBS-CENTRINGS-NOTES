@@ -471,16 +471,16 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
             </div>
 
             <div className="mx-auto w-full max-w-5xl lg:max-w-none">
-              <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold uppercase tracking-wide text-muted-foreground sm:gap-2 sm:text-xs sm:tracking-wider">
                 {DAYS.map((d) => (
                   <div key={d} className="pb-1">
                     {d}
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
                 {Array.from({ length: firstDay }).map((_, i) => (
-                  <div key={`e${i}`} className="aspect-square rounded-xl bg-muted/20" />
+                  <div key={`e${i}`} className="aspect-square min-w-0 rounded-[32%] bg-muted/20" />
                 ))}
                 {Array.from({ length: daysInMonth }, (_, i) => {
                   const date = ymd(new Date(year, month, i + 1));
@@ -498,7 +498,7 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                           : "No record — tap to set"
                       }
                       className={cn(
-                        "relative flex aspect-square flex-col items-center justify-center rounded-xl border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:text-sm",
+                        "relative flex aspect-square min-w-0 flex-col items-center justify-center rounded-[32%] border border-border bg-card text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-95",
                         !st && "text-muted-foreground hover:border-primary/40 hover:bg-muted/50",
                         st === "present" &&
                           "border-success/30 bg-success/10 text-success hover:bg-success/20",
@@ -514,12 +514,12 @@ export function WorkerOverview({ id, readOnly = false }: { id: string; readOnly?
                     >
                       <span>{i + 1}</span>
                       {st === "present" && DAY_TYPE_SHORT[dt] && (
-                        <span className="absolute right-2 top-1.5 text-[9px] font-bold leading-none text-primary">
+                        <span className="absolute right-1.5 top-1 text-[8px] font-bold leading-none text-primary sm:right-2 sm:top-1.5 sm:text-[9px]">
                           {DAY_TYPE_SHORT[dt]}
                         </span>
                       )}
                       {hasPay && (
-                        <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span className="absolute bottom-1 h-1.5 w-1.5 rounded-full bg-primary sm:bottom-1.5" />
                       )}
                     </button>
                   );

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listRentals, groupRentals } from "@/lib/rentals";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Printer, Layers } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -27,10 +27,10 @@ function ReceiptsList() {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {groups.map((g) => (
           <Card key={g.group_id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4 space-y-2">
+            <div className="space-y-2 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-semibold">{g.customer_name}</div>
+                <div className="min-w-0">
+                  <div className="truncate font-semibold">{g.customer_name}</div>
                   <div className="text-xs text-muted-foreground">{g.customer_phone}</div>
                 </div>
                 <StatusBadge status={g.status} />
@@ -63,7 +63,7 @@ function ReceiptsList() {
               <div className="text-[11px] text-muted-foreground">
                 #{g.group_id.slice(0, 8).toUpperCase()} · {g.issue_date} → {g.return_date}
               </div>
-            </CardContent>
+            </div>
           </Card>
         ))}
         {groups.length === 0 && <div className="col-span-full text-center py-10 text-muted-foreground">No rentals yet</div>}

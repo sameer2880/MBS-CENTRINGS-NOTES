@@ -228,9 +228,9 @@ function ExploreLinks() {
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer" : undefined}
-            className="touch-target flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+            className="group touch-target flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-sidebar-accent/70 text-sidebar-foreground">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/25 text-sidebar-foreground transition-colors group-hover:bg-primary/35">
               <Icon className="h-5 w-5" />
             </span>
             <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-sidebar-foreground">
@@ -640,14 +640,14 @@ function MoreFlyout({
                       onNav?.();
                       onOpenChange(false);
                     }}
-                    className="flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+                    className="group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
                   >
                     <span
                       className={cn(
-                        "flex h-11 w-11 items-center justify-center rounded-full",
+                        "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
                         active
                           ? "bg-foreground text-background"
-                          : "bg-sidebar-accent/70 text-sidebar-foreground",
+                          : "bg-primary/25 text-sidebar-foreground group-hover:bg-primary/35",
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -723,7 +723,10 @@ function MoreFlyout({
 }
 
 /**
- * MOBILE/TABLET BOTTOM TAB BAR (< 1024px)
+ * NAVIGATION BAR
+ * Phones: floating bottom tab bar. Tablet/desktop (md+): fixed icon rail on
+ * the left — logo on top, the main tabs beneath it, and "More" pinned to the
+ * very bottom of the rail.
  * The first 4 `primary` nav items, plus a permanent "More" tab that
  * opens `MobileMoreSheet` (remaining nav items, explore links, theme,
  * account) as a bottom sheet. Fixed to the viewport bottom, safe-area
@@ -744,7 +747,10 @@ function BottomNav({
   const tabs = primary.length > 0 ? primary : links.slice(0, 4);
 
   return (
-    <nav className="shell-bottomnav" aria-label="Primary">
+    <nav
+      className="shell-bottomnav md:overflow-y-auto md:overflow-x-hidden md:[scrollbar-width:none] md:[&::-webkit-scrollbar]:hidden"
+      aria-label="Primary"
+    >
       <Link
         to="/dashboard"
         aria-label="Dashboard"
@@ -781,13 +787,63 @@ function BottomNav({
           onClick={onOpenMore}
           aria-label="More"
           title="More"
-          className={cn("shell-navtab", isMoreOpen && "shell-navtab-active")}
+          className={cn("shell-navtab md:mt-auto md:shrink-0", isMoreOpen && "shell-navtab-active")}
         >
           <MoreHorizontal className="shell-navtab-icon" />
           <span className="shell-navtab-label">More</span>
         </button>
       </div>
     </nav>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile header title: slow "scroll -> stop -> scroll" marquee         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The title slides in from the right edge, glides slowly to its resting
+ * position, stays put for a few seconds so it can be read, then slides out to
+ * the left and the cycle repeats.
+ *
+ * Timing (12s loop):  0-40% slide in  |  40-75% hold  |  75-100% slide out
+ * Change MARQUEE_SECONDS to make the whole thing slower / faster.
+ */
+const MARQUEE_SECONDS = 12;
+
+function MobileMarqueeTitle({ text }: { text: string }) {
+  return (
+    <div className="relative h-6 min-w-0 flex-1 overflow-hidden">
+      <style>{`
+        @keyframes mbs-title-marquee {
+          0%   { left: 100%; transform: translateX(0);     animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1); }
+          40%  { left: 0;    transform: translateX(0);     animation-timing-function: linear; }
+          75%  { left: 0;    transform: translateX(0);     animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19); }
+          100% { left: 0;    transform: translateX(-100%); }
+        }
+        .mbs-title-marquee {
+          position: absolute;
+          top: 0;
+          left: 100%;
+          white-space: nowrap;
+          animation: mbs-title-marquee ${MARQUEE_SECONDS}s infinite;
+          will-change: left, transform;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mbs-title-marquee {
+            animation: none;
+            left: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+      `}</style>
+
+      <h1 className="mbs-title-marquee text-fluid-sm font-bold leading-6 sm:text-base sm:leading-6">
+        {text}
+      </h1>
+    </div>
   );
 }
 
@@ -960,7 +1016,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 LEFT SIDE
                ===================================== */}
 
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               {worker ? (
                 /* =================================
                    WORKER MENU BUTTON
@@ -1002,20 +1058,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   worker (no rail), show it up to lg too.
                  =================================== */}
 
-              <div className={cn("flex items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
+              <div className={cn("flex min-w-0 flex-1 items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
                 <img
                   src={logo}
                   alt="MBS"
                   className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
                 />
 
-                <div className="min-w-0">
-                  <h1 className="truncate text-fluid-sm font-bold leading-tight sm:text-base">
-                    M.B.S CENTRING WORKS
-                  </h1>
-
-                  <p className="truncate text-fluid-xs text-muted-foreground">Nereducherla</p>
-                </div>
+                <MobileMarqueeTitle text="M.B.S CENTRING WORKS" />
               </div>
             </div>
 

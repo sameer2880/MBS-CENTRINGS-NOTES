@@ -428,14 +428,140 @@ function SidebarContent({
 }
 
 /**
- * MOBILE/TABLET "MORE" SHEET (< 1024px)
- * Opens from the bottom (matches the bottom-nav's "More" tab it's
- * triggered from) as an icon grid of the nav items that don't have a
- * permanent bottom-nav slot, followed by theme/account controls.
- * Deliberately NOT the same component as the desktop/tablet sidebar —
- * a full-height list sliding in from the left reads as a leftover
- * desktop pattern on a phone; a bottom sheet matches where the tap
- * that opened it came from.
+ * "MORE" MENU CONTENT — shared by the phone bottom sheet and the tablet /
+ * desktop flyout, so both look exactly the same: a "More" header with a close
+ * button, a 3-column grid of round icon chips, then the theme / account
+ * controls and Sign out.
+ */
+function MoreMenuContent({
+  onClose,
+  workerName,
+  workerId,
+  dark,
+  onToggleTheme,
+}: {
+  onClose: () => void;
+  workerName?: string;
+  workerId?: string | null;
+  dark: boolean;
+  onToggleTheme: () => void;
+}) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const { links } = useNavLinks();
+  const isWorkerSidebar = workerName !== undefined;
+  // Everything without a permanent nav slot — those are already one tap away.
+  const secondary = links.filter((l) => !l.primary);
+
+  return (
+    <>
+      <div className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
+        <span className="text-sm font-bold">More</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {secondary.length > 0 && (
+          <div className="grid grid-cols-3 gap-1">
+            {secondary.map(({ to, label, icon: Icon }) => {
+              const active = path === to || path.startsWith(to + "/");
+
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={onClose}
+                  className="group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
+                >
+                  <span
+                    className={cn(
+                      "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
+                      active
+                        ? "bg-foreground text-background"
+                        : "bg-primary/25 text-sidebar-foreground group-hover:bg-primary/35",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-4 space-y-2.5 border-t border-sidebar-border pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleTheme}
+            className="w-full justify-center gap-2 font-semibold"
+          >
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {dark ? "Light mode" : "Dark mode"}
+          </Button>
+
+          {isWorkerSidebar ? (
+            <WorkerLocationToggle workerId={workerId ?? null} />
+          ) : (
+            <ChangePasswordDialog />
+          )}
+
+          {isWorkerSidebar && <ExploreLinks />}
+
+          {isWorkerSidebar ? (
+            <div className="min-w-0 text-sm">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Signed in as
+              </div>
+              <div className="truncate font-semibold">{workerName || "Worker"}</div>
+            </div>
+          ) : (
+            <SignedInLabel />
+          )}
+
+          <ConfirmDelete
+            onConfirm={lock}
+            title={isWorkerSidebar ? "Sign out of this worker account?" : "Sign out of this account?"}
+            description={
+              isWorkerSidebar
+                ? "You will need to sign in again to view attendance and payment records."
+                : "You will need to sign in again to access the dashboard."
+            }
+            confirmLabel="Sign out"
+          >
+            <Button
+              variant={isWorkerSidebar ? "outline" : "default"}
+              size="sm"
+              className={cn(
+                "w-full justify-center rounded-lg font-semibold",
+                isWorkerSidebar
+                  ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  : "bg-primary",
+              )}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
+          </ConfirmDelete>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/**
+ * PHONE "MORE" SHEET (< 768px)
+ * Opens from the bottom (where the bottom-nav's "More" tab is). It shows the
+ * same card as the tablet/desktop flyout — see MoreMenuContent.
  */
 function MobileMoreSheet({
   onNav,
@@ -450,123 +576,25 @@ function MobileMoreSheet({
   dark: boolean;
   onToggleTheme: () => void;
 }) {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const { links } = useNavLinks();
-  const isWorkerSidebar = workerName !== undefined;
-  // Everything without a permanent bottom-nav slot — that's already
-  // one tap away, so repeating it here would just be clutter.
-  const secondary = links.filter((l) => !l.primary);
-
-  // Same shape language as the floating pill nav: soft rounded rows,
-  // circular icon chips, and section separation by spacing + surface
-  // tint rather than full-width hairline rules.
-  const rowClass =
-    "flex w-full items-center gap-3 rounded-2xl bg-sidebar-accent/45 px-4 py-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent";
-
   return (
-    <div className="flex max-h-[82vh] flex-col overflow-y-auto px-4 pb-5 pt-2">
-      <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-sidebar-foreground/20" />
-
-      {secondary.length > 0 && (
-        <div className="mt-4 grid grid-cols-4 gap-2.5">
-          {secondary.map(({ to, label, icon: Icon }) => {
-            const active = path === to || path.startsWith(to + "/");
-
-            return (
-              <Link
-                key={to}
-                to={to}
-                onClick={onNav}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-2xl px-1 py-4 text-center transition-colors",
-                  active
-                    ? "bg-foreground text-background"
-                    : "bg-sidebar-accent/25 text-sidebar-foreground hover:bg-sidebar-accent/45",
-                )}
-              >
-                <Icon className="h-5 w-5" />
-
-                <span className="line-clamp-2 text-[11px] font-semibold leading-tight">
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ---- Account / settings rows ---- */}
-      <div className="mt-5 space-y-2">
-        <button type="button" onClick={onToggleTheme} className={rowClass}>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar text-sidebar-foreground">
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </span>
-          {dark ? "Light mode" : "Dark mode"}
-        </button>
-
-        {isWorkerSidebar ? (
-          <div className={rowClass}>
-            <WorkerLocationToggle workerId={workerId ?? null} />
-          </div>
-        ) : (
-          <div className="[&_button]:h-auto [&_button]:w-full [&_button]:justify-start [&_button]:gap-3 [&_button]:rounded-2xl [&_button]:border-0 [&_button]:bg-sidebar-accent/45 [&_button]:px-4 [&_button]:py-3 [&_button]:text-sm [&_button]:font-semibold [&_button:hover]:bg-sidebar-accent">
-            <ChangePasswordDialog />
-          </div>
-        )}
-
-        {isWorkerSidebar && <ExploreLinks />}
-      </div>
-
-      {/* ---- Signed-in card + sign out ---- */}
-      <div className="mt-5 rounded-3xl bg-sidebar-accent/35 p-4">
-        {isWorkerSidebar ? (
-          <div className="min-w-0 text-sm">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
-              Signed in as
-            </div>
-            <div className="truncate text-base font-bold">{workerName || "Worker"}</div>
-          </div>
-        ) : (
-          <SignedInLabel />
-        )}
-
-        <ConfirmDelete
-          onConfirm={lock}
-          title={isWorkerSidebar ? "Sign out of this worker account?" : "Sign out of this account?"}
-          description={
-            isWorkerSidebar
-              ? "You will need to sign in again to view attendance and payment records."
-              : "You will need to sign in again to access the dashboard."
-          }
-          confirmLabel="Sign out"
-        >
-          <Button
-            variant={isWorkerSidebar ? "outline" : "default"}
-            size="sm"
-            className={cn(
-              "mt-3 h-11 w-full justify-center rounded-full font-semibold",
-              isWorkerSidebar
-                ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                : "bg-primary",
-            )}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </Button>
-        </ConfirmDelete>
-      </div>
+    <div className="flex max-h-[min(34rem,calc(100dvh-2rem))] flex-col overflow-hidden rounded-2xl">
+      <MoreMenuContent
+        onClose={() => onNav?.()}
+        workerName={workerName}
+        workerId={workerId}
+        dark={dark}
+        onToggleTheme={onToggleTheme}
+      />
     </div>
   );
 }
 
 /**
  * TABLET/DESKTOP "MORE" FLYOUT (>= 768px)
- * The rail's "More" button opens this instead of the mobile bottom
- * sheet. A full-width drawer sliding up from the bottom of the
- * viewport is a mobile pattern — stretched across a tablet or desktop
- * screen it just reads as an oversized, empty box. This is a compact
- * panel anchored beside the rail instead, sized and positioned for a
- * pointer-driven screen.
+ * The rail's "More" button opens this compact panel anchored beside the rail
+ * (a full-width bottom drawer stretched across a big screen reads as an
+ * oversized, empty box). The card itself is MoreMenuContent, shared with the
+ * phone sheet.
  */
 function MoreFlyout({
   open,
@@ -585,11 +613,6 @@ function MoreFlyout({
   dark: boolean;
   onToggleTheme: () => void;
 }) {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const { links } = useNavLinks();
-  const isWorkerSidebar = workerName !== undefined;
-  const secondary = links.filter((l) => !l.primary);
-
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -614,113 +637,21 @@ function MoreFlyout({
         aria-label="More"
         className="fixed bottom-4 left-[calc(var(--shell-rail-w)+0.75rem)] z-50 flex max-h-[min(34rem,calc(100dvh-2rem))] w-[21rem] flex-col overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
-          <span className="text-sm font-bold">More</span>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Close"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          {secondary.length > 0 && (
-            <div className="grid grid-cols-3 gap-1">
-              {secondary.map(({ to, label, icon: Icon }) => {
-                const active = path === to || path.startsWith(to + "/");
-
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    onClick={() => {
-                      onNav?.();
-                      onOpenChange(false);
-                    }}
-                    className="group flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-center transition-colors hover:bg-sidebar-accent"
-                  >
-                    <span
-                      className={cn(
-                        "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-                        active
-                          ? "bg-foreground text-background"
-                          : "bg-primary/25 text-sidebar-foreground group-hover:bg-primary/35",
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-foreground">
-                      {label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-4 space-y-2.5 border-t border-sidebar-border pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onToggleTheme}
-              className="w-full justify-center gap-2 font-semibold"
-            >
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {dark ? "Light mode" : "Dark mode"}
-            </Button>
-
-            {isWorkerSidebar ? (
-              <WorkerLocationToggle workerId={workerId ?? null} />
-            ) : (
-              <ChangePasswordDialog />
-            )}
-
-            {isWorkerSidebar && <ExploreLinks />}
-
-            {isWorkerSidebar ? (
-              <div className="min-w-0 text-sm">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Signed in as
-                </div>
-                <div className="truncate font-semibold">{workerName || "Worker"}</div>
-              </div>
-            ) : (
-              <SignedInLabel />
-            )}
-
-            <ConfirmDelete
-              onConfirm={lock}
-              title={isWorkerSidebar ? "Sign out of this worker account?" : "Sign out of this account?"}
-              description={
-                isWorkerSidebar
-                  ? "You will need to sign in again to view attendance and payment records."
-                  : "You will need to sign in again to access the dashboard."
-              }
-              confirmLabel="Sign out"
-            >
-              <Button
-                variant={isWorkerSidebar ? "outline" : "default"}
-                size="sm"
-                className={cn(
-                  "w-full justify-center rounded-lg font-semibold",
-                  isWorkerSidebar
-                    ? "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    : "bg-primary",
-                )}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </Button>
-            </ConfirmDelete>
-          </div>
-        </div>
+        <MoreMenuContent
+          onClose={() => {
+            onNav?.();
+            onOpenChange(false);
+          }}
+          workerName={workerName}
+          workerId={workerId}
+          dark={dark}
+          onToggleTheme={onToggleTheme}
+        />
       </div>
     </>
   );
 }
+
 
 /**
  * NAVIGATION BAR
@@ -728,8 +659,8 @@ function MoreFlyout({
  * the left — logo on top, the main tabs beneath it, and "More" pinned to the
  * very bottom of the rail.
  * The first 4 `primary` nav items, plus a permanent "More" tab that
- * opens `MobileMoreSheet` (remaining nav items, explore links, theme,
- * account) as a bottom sheet. Fixed to the viewport bottom, safe-area
+ * opens the "More" card (remaining nav items, explore links, theme,
+ * account) — a bottom sheet on phones, a flyout beside the rail on larger screens. Fixed to the viewport bottom, safe-area
  * aware (see `.shell-bottomnav` in styles.css) so it clears the iOS
  * home indicator when installed as a standalone PWA.
  */
@@ -986,7 +917,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Sheet open={mobileMoreOpen} onOpenChange={setMobileMoreOpen}>
               <SheetContent
                 side="bottom"
-                className="inset-x-auto bottom-[calc(0.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 max-h-[85vh] rounded-[2rem] border-0 bg-sidebar p-0 text-sidebar-foreground shadow-[0_18px_48px_-12px_rgb(22_38_28/35%)] [&>button]:hidden"
+                className="inset-x-auto bottom-[calc(0.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 max-h-[85vh] rounded-2xl border border-border bg-popover p-0 text-popover-foreground shadow-2xl [&>button]:hidden"
               >
                 <MobileMoreSheet
                   onNav={() => setMobileMoreOpen(false)}

@@ -598,3 +598,103 @@
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* ---- Brand logo: circular ring + subtle motion -----------------------------
+   Used by <BrandLogo /> everywhere the logo appears. The ring is a pseudo-
+   element behind the (circular) image; the wrapper's padding is the ring's
+   thickness (set per instance through --brand-ring-w). */
+.brand-logo {
+  --brand-ring-w: 2px;
+  --brand-ring-a: var(--primary);
+  --brand-ring-b: rgb(79 122 61 / 12%);
+  --brand-glow: rgb(79 122 61 / 38%);
+
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: var(--brand-ring-w);
+  border-radius: 9999px;
+  isolation: isolate;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dark .brand-logo {
+  --brand-ring-b: rgb(168 217 119 / 12%);
+  --brand-glow: rgb(168 217 119 / 35%);
+}
+
+.brand-logo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--brand-ring-a); /* static ring */
+}
+
+.brand-logo-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  object-fit: cover;
+  background: #ffffff;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.brand-logo:hover {
+  transform: scale(1.08);
+}
+
+.brand-logo-animated {
+  /* pop-in once, then a slow pulsing glow */
+  animation:
+    brand-logo-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+    brand-logo-glow 3.2s ease-in-out 0.7s infinite;
+}
+
+.brand-logo-animated::before {
+  /* a light "chase" travelling round the ring */
+  background: conic-gradient(
+    from 0deg,
+    var(--brand-ring-a) 0%,
+    var(--brand-ring-b) 35%,
+    var(--brand-ring-a) 60%,
+    var(--brand-ring-a) 100%
+  );
+  animation: brand-logo-spin 5s linear infinite;
+}
+
+@keyframes brand-logo-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes brand-logo-glow {
+  0%   { box-shadow: 0 0 0 0 var(--brand-glow); }
+  70%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes brand-logo-pop {
+  from { transform: scale(0.6) rotate(-90deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo,
+  .brand-logo::before {
+    animation: none !important;
+    transition: none;
+  }
+  .brand-logo:hover { transform: none; }
+}
+
+@media print {
+  .brand-logo,
+  .brand-logo::before {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+}

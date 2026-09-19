@@ -3,7 +3,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { BrandLogo } from "@/components/BrandLogo";
 import { LoginIllustration } from "@/components/LoginIllustration";
 import { supabase } from "@/integrations/supabase/client";
 import { WORKER_ID_KEY, ADMIN_ID_KEY, ADMIN_ROLE_KEY, workerSessionKey } from "@/lib/worker-auth";
@@ -474,7 +474,7 @@ export function Gate({ children }: { children: ReactNode }) {
       <div className="flex min-h-dvh items-center justify-center bg-[#eef6e6] px-4 py-6 sm:px-6 dark:bg-background">
         <div className="w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-border/60 bg-card p-7 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-9">
           <div className="mb-7 flex items-center gap-2">
-            <img src={logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+            <BrandLogo className="h-9 w-9" />
             <span className="text-lg font-bold tracking-tight text-foreground">MBS Centring Works</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -534,7 +534,7 @@ export function Gate({ children }: { children: ReactNode }) {
       <div className="flex min-h-dvh items-center justify-center bg-[#eef6e6] px-4 py-6 sm:px-6 dark:bg-background">
         <div className="w-full max-w-[420px] overflow-hidden rounded-[2rem] border border-border/60 bg-card p-7 shadow-[0_20px_60px_rgb(16_48_92/12%)] dark:shadow-[0_20px_60px_rgb(0_0_0/45%)] sm:p-9">
           <div className="mb-7 flex items-center gap-2">
-            <img src={logo} alt="" className="h-8 w-8 rounded-lg object-contain" />
+            <BrandLogo className="h-9 w-9" />
             <span className="text-lg font-bold tracking-tight text-foreground">MBS Centring Works</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Reset password</h1>
@@ -631,7 +631,7 @@ export function Gate({ children }: { children: ReactNode }) {
         <div className="flex w-full flex-1 items-center justify-center px-6 py-10 sm:px-10 md:px-12 lg:px-14 lg:py-14">
           <div className="w-full max-w-[360px]">
             <div className="mb-8 flex items-center gap-2.5">
-              <img src={logo} alt="" className="h-9 w-9 rounded-xl object-contain shadow-sm" />
+              <BrandLogo className="h-10 w-10" />
               <span className="text-lg font-bold tracking-tight text-foreground">
                 MBS Centring Works
               </span>

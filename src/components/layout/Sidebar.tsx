@@ -33,7 +33,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { WorkerLocationToggle } from "@/components/WorkerLocationToggle";
-import logo from "@/assets/logo.png";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useDeviceType } from "@/hooks/use-device";
@@ -317,11 +317,7 @@ function SidebarContent({
         <>
           {/* MOBILE/TABLET LOGO + TITLE */}
           <div className="flex items-center gap-2 p-4 lg:hidden">
-            <img
-              src={logo}
-              alt="MBS"
-              className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
-            />
+            <BrandLogo alt="MBS" className="h-9 w-9" />
 
             <div className="min-w-0">
               <div className="text-sm font-bold leading-tight tracking-tight">
@@ -376,11 +372,7 @@ function SidebarContent({
         <>
           <div className="flex-1 overflow-y-auto">
             <div className="flex flex-col items-center px-6 pt-8 text-center">
-              <img
-                src={logo}
-                alt="MBS Centring Works"
-                className="h-28 w-28 rounded-full bg-white object-contain p-1 shadow-sm"
-              />
+              <BrandLogo alt="MBS Centring Works" ringWidth={4} className="h-28 w-28" />
 
               <div className="mt-4 text-base font-bold tracking-tight">MBS CENTRING WORKS</div>
 
@@ -687,11 +679,7 @@ function BottomNav({
         aria-label="Dashboard"
         className="hidden shrink-0 items-center justify-center md:mb-2 md:flex"
       >
-        <img
-          src={logo}
-          alt="MBS"
-          className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
-        />
+        <BrandLogo alt="MBS" className="h-9 w-9" />
       </Link>
 
       <div className="shell-navbar">
@@ -990,11 +978,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                  =================================== */}
 
               <div className={cn("flex min-w-0 flex-1 items-center gap-2", worker ? "lg:hidden" : "md:hidden")}>
-                <img
-                  src={logo}
-                  alt="MBS"
-                  className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-white object-cover p-0.5"
-                />
+                <BrandLogo alt="MBS" className="h-9 w-9" />
 
                 <MobileMarqueeTitle text="M.B.S CENTRING WORKS" />
               </div>

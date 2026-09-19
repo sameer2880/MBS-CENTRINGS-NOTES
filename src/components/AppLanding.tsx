@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
+import { BrandLogo } from "@/components/BrandLogo";
 
 // Keep in sync with the AndroidManifest `package` in the shipped APK.
 const ANDROID_PACKAGE = "com.mbscentring.works";
@@ -70,7 +70,7 @@ export function AppLanding() {
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 sm:px-8">
         <div className="flex items-center gap-2.5">
-          <img src={logo} alt="" className="h-8 w-8 rounded-lg object-cover" />
+          <BrandLogo className="h-9 w-9" />
           <span className="text-lg font-bold tracking-tight">
             MBS <span className="text-primary">CENTRING WORKS</span>
           </span>
